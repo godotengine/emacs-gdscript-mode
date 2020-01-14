@@ -35,13 +35,18 @@ dotspacemacs-additional-packages '((gdscript-mode :location local))
   (require 'gdscript-mode))
 ```
 
+## Available features ##
+
+- Syntax highlighting for all built-in functions and classes in Godot 3.2
+- Indentation
+- Imenu to jump to functions quickly
+
 ## Planned features ##
 
 1. Fixing the support for indentations.
 1. Functions to open the project in Godot.
 
 For auto-competition, we should rely on the GDScript language server coming in Godot 3.2. Another developer is working on it.
-
 
 ## Customization ##
 
@@ -55,4 +60,7 @@ Set the following variables to customize gdscript-mode:
 
 ## Credits ##
 
-This is based on the [gdscript-mode](https://github.com/akoaysigod/gdscript-mode) package that is not in active development anymore.
+This is based on:
+
+1. The [gdscript-mode](https://github.com/akoaysigod/gdscript-mode) package that is not in active development anymore.
+1. Python support from Emacs 27. GDScript took inspiration from Python so a lot of the Python package works well for it.

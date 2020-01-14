@@ -9,11 +9,18 @@
   :version "26.1"
   :link '(emacs-commentary-link "gdscript"))
 
-
-(defvar gdscript-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "<backtab>") 'gdscript-indent-back)
-    (define-key map [remap newline-and-indent] 'gdscript-newline-and-indent) map))
+(defvar gdscript-mode-map (let ((map (make-sparse-keymap)))
+                            ;; Movement
+                            (define-key map [remap backward-sentence] 'gdscript-nav-backward-block)
+                            (define-key map [remap forward-sentence] 'gdscript-nav-forward-block)
+                            (define-key map [remap backward-up-list] 'gdscript-nav-backward-up-list)
+                            (define-key map [remap mark-defun] 'gdscript-mark-defun)
+                            (define-key map "\C-c\C-j" 'imenu)
+                            ;; Indent specific
+                            (define-key map "\177" 'gdscript-indent-dedent-line-backspace)
+                            (define-key map (kbd "<backtab>") 'gdscript-indent-dedent-line)
+                            map)
+  "Keymap for `gdscript-mode'.")
 
 
 ;; Lists of keywords in the language
@@ -253,7 +260,8 @@
           (and (nth 4 ppss) (nth 8 ppss))))
       (''string
        `(let ((ppss (or ,syntax-ppss (syntax-ppss))))
-          (and (nth 3 ppss) (nth 8 ppss))))
+          (and (n
+th 3 ppss) (nth 8 ppss))))
       (''paren
        `(nth 1 (or ,syntax-ppss (syntax-ppss))))
       (_ form))))
@@ -316,6 +324,83 @@ The type returned can be `comment', `string' or `paren'."
   (eql (syntax-class (syntax-after (point)))
        (syntax-class (string-to-syntax ")"))))
 
+(defun gdscript-font-lock-syntactic-face-function (state)
+  "Return syntactic face given STATE."
+  (if (nth 3 state)
+      (if (gdscript-info-docstring-p state)
+          font-lock-doc-face
+        font-lock-string-face)
+    font-lock-comment-face))
+
+(defconst gdscript-syntax-propertize-function
+  (syntax-propertize-rules
+   ((rx (or "\"\"\"" "'''"))
+    (0 (ignore (gdscript-syntax-stringify))))))
+
+(defsubst gdscript-syntax-count-quotes (quote-char &optional point limit)
+  "Count number of quotes around point (max is 3).
+QUOTE-CHAR is the quote char to count.  Optional argument POINT is
+the point where scan starts (defaults to current point), and LIMIT
+is used to limit the scan."
+  (let ((i 0))
+    (while (and (< i 3)
+                (or (not limit) (< (+ point i) limit))
+                (eq (char-after (+ point i)) quote-char))
+      (setq i (1+ i)))
+    i))
+
+(defun gdscript-syntax-stringify ()
+  "Put `syntax-table' property correctly on single/triple quotes."
+  (let* ((ppss (save-excursion (backward-char 3) (syntax-ppss)))
+         (string-start (and (eq t (nth 3 ppss)) (nth 8 ppss)))
+         (quote-starting-pos (- (point) 3))
+         (quote-ending-pos (point)))
+    (cond ((or (nth 4 ppss)             ;Inside a comment
+               (and string-start
+                    ;; Inside of a string quoted with different triple quotes.
+                    (not (eql (char-after string-start)
+                              (char-after quote-starting-pos)))))
+           ;; Do nothing.
+           nil)
+          ((nth 5 ppss)
+           ;; The first quote is escaped, so it's not part of a triple quote!
+           (goto-char (1+ quote-starting-pos)))
+          ((null string-start)
+           ;; This set of quotes delimit the start of a string.
+           (put-text-property quote-starting-pos (1+ quote-starting-pos)
+                              'syntax-table (string-to-syntax "|")))
+          (t
+           ;; This set of quotes delimit the end of a string.
+           (put-text-property (1- quote-ending-pos) quote-ending-pos
+                              'syntax-table (string-to-syntax "|"))))))
+
+(defvar gdscript-mode-syntax-table
+  (let ((table (make-syntax-table)))
+    ;; Give punctuation syntax to ASCII that normally has symbol
+    ;; syntax or has word syntax and isn't a letter.
+    (let ((symbol (string-to-syntax "_"))
+          (sst (standard-syntax-table)))
+      (dotimes (i 128)
+        (unless (= i ?_)
+          (if (equal symbol (aref sst i))
+              (modify-syntax-entry i "." table)))))
+    (modify-syntax-entry ?$ "." table)
+    (modify-syntax-entry ?% "." table)
+    ;; exceptions
+    (modify-syntax-entry ?# "<" table)
+    (modify-syntax-entry ?\n ">" table)
+    (modify-syntax-entry ?' "\"" table)
+    (modify-syntax-entry ?` "$" table)
+    table)
+  "Syntax table for Gdscript files.")
+
+(defvar gdscript-dotty-syntax-table
+  (let ((table (make-syntax-table gdscript-mode-syntax-table)))
+    (modify-syntax-entry ?. "w" table)
+    (modify-syntax-entry ?_ "w" table)
+    table)
+  "Dotty syntax table for Gdscript files.
+It makes underscores and dots word constituent chars.")
 
 ;;; GDScript regex
 
@@ -333,7 +418,7 @@ This variant of `rx' supports common Gdscript named REGEXPS."
                                     (or "break" "continue" "pass" "return")
                                     symbol-end))
             (defun             (seq symbol-start
-                                    (or "def" "class")
+                                    (or "func" "class" "static")
                                     symbol-end))
             (symbol-name       (seq (any letter ?_) (* (any word ?_))))
             (open-paren        (or "{" "[" "("))
@@ -366,7 +451,7 @@ This variant of `rx' supports common Gdscript named REGEXPS."
 ;; Copied from python.el
 
 ;; user customization
-(defcustom gdscript-tabs-mode t
+(defcustom gdscript-tab-mode t
   "Use tabs (t) or spaces (nil)"
   :group 'gdscript
   :type 'boolean
@@ -2047,6 +2132,160 @@ position, else returns nil."
       (ignore (goto-char point)))))
 
 
+;;; Imenu
+
+(defvar gdscript-imenu-format-item-label-function
+  'gdscript-imenu-format-item-label
+  "Imenu function used to format an item label.
+It must be a function with two arguments: TYPE and NAME.")
+
+(defvar gdscript-imenu-format-parent-item-label-function
+  'gdscript-imenu-format-parent-item-label
+  "Imenu function used to format a parent item label.
+It must be a function with two arguments: TYPE and NAME.")
+
+(defvar gdscript-imenu-format-parent-item-jump-label-function
+  'gdscript-imenu-format-parent-item-jump-label
+  "Imenu function used to format a parent jump item label.
+It must be a function with two arguments: TYPE and NAME.")
+
+(defun gdscript-imenu-format-item-label (type name)
+  "Return Imenu label for single node using TYPE and NAME."
+  (format "%s (%s)" name type))
+
+(defun gdscript-imenu-format-parent-item-label (type name)
+  "Return Imenu label for parent node using TYPE and NAME."
+  (format "%s..." (gdscript-imenu-format-item-label type name)))
+
+(defun gdscript-imenu-format-parent-item-jump-label (type _name)
+  "Return Imenu label for parent node jump using TYPE and NAME."
+  (if (string= type "class")
+      "*class definition*"
+    "*function definition*"))
+
+(defun gdscript-imenu--get-defun-type-name ()
+  "Return defun type and name at current position."
+  (when (looking-at gdscript-nav-beginning-of-defun-regexp)
+    (let ((split (split-string (match-string-no-properties 0))))
+      (if (= (length split) 2)
+          split
+        (list (concat (car split) " " (cadr split))
+              (car (last split)))))))
+
+(defun gdscript-imenu--put-parent (type name pos tree)
+  "Add the parent with TYPE, NAME and POS to TREE."
+  (let ((label
+         (funcall gdscript-imenu-format-item-label-function type name))
+        (jump-label
+         (funcall gdscript-imenu-format-parent-item-jump-label-function type name)))
+    (if (not tree)
+        (cons label pos)
+      (cons label (cons (cons jump-label pos) tree)))))
+
+(defun gdscript-imenu--build-tree (&optional min-indent prev-indent tree)
+  "Recursively build the tree of nested definitions of a node.
+Arguments MIN-INDENT, PREV-INDENT and TREE are internal and should
+not be passed explicitly unless you know what you are doing."
+  (setq min-indent (or min-indent 0)
+        prev-indent (or prev-indent gdscript-indent-offset))
+  (let* ((pos (gdscript-nav-backward-defun))
+         (defun-type-name (and pos (gdscript-imenu--get-defun-type-name)))
+         (type (car defun-type-name))
+         (name (cadr defun-type-name))
+         (label (when name
+                  (funcall gdscript-imenu-format-item-label-function type name)))
+         (indent (current-indentation))
+         (children-indent-limit (+ gdscript-indent-offset min-indent)))
+    (cond ((not pos)
+           ;; Nothing found, probably near to bobp.
+           nil)
+          ((<= indent min-indent)
+           ;; The current indentation points that this is a parent
+           ;; node, add it to the tree and stop recursing.
+           (gdscript-imenu--put-parent type name pos tree))
+          (t
+           (gdscript-imenu--build-tree
+            min-indent
+            indent
+            (if (<= indent children-indent-limit)
+                ;; This lies within the children indent offset range,
+                ;; so it's a normal child of its parent (i.e., not
+                ;; a child of a child).
+                (cons (cons label pos) tree)
+              ;; Oh no, a child of a child?!  Fear not, we
+              ;; know how to roll.  We recursively parse these by
+              ;; swapping prev-indent and min-indent plus adding this
+              ;; newly found item to a fresh subtree.  This works, I
+              ;; promise.
+              (cons
+               (gdscript-imenu--build-tree
+                prev-indent indent (list (cons label pos)))
+               tree)))))))
+
+(defun gdscript-imenu-create-index ()
+  "Return tree Imenu alist for the current Gdscript buffer.
+Change `gdscript-imenu-format-item-label-function',
+`gdscript-imenu-format-parent-item-label-function',
+`gdscript-imenu-format-parent-item-jump-label-function' to
+customize how labels are formatted."
+  (goto-char (point-max))
+  (let ((index)
+        (tree))
+    (while (setq tree (gdscript-imenu--build-tree))
+      (setq index (cons tree index)))
+    index))
+
+(defun gdscript-imenu-create-flat-index (&optional alist prefix)
+  "Return flat outline of the current Gdscript buffer for Imenu.
+Optional argument ALIST is the tree to be flattened; when nil
+`gdscript-imenu-build-index' is used with
+`gdscript-imenu-format-parent-item-jump-label-function'
+`gdscript-imenu-format-parent-item-label-function'
+`gdscript-imenu-format-item-label-function' set to
+  (lambda (type name) name)
+Optional argument PREFIX is used in recursive calls and should
+not be passed explicitly.
+
+Converts this:
+
+    ((\"Foo\" . 103)
+     (\"Bar\" . 138)
+     (\"decorator\"
+      (\"decorator\" . 173)
+      (\"wrap\"
+       (\"wrap\" . 353)
+       (\"wrapped_f\" . 393))))
+
+To this:
+
+    ((\"Foo\" . 103)
+     (\"Bar\" . 138)
+     (\"decorator\" . 173)
+     (\"decorator.wrap\" . 353)
+     (\"decorator.wrapped_f\" . 393))"
+  ;; Inspired by imenu--flatten-index-alist removed in revno 21853.
+  (apply
+   'nconc
+   (mapcar
+    (lambda (item)
+      (let ((name (if prefix
+                      (concat prefix "." (car item))
+                    (car item)))
+            (pos (cdr item)))
+        (cond ((or (numberp pos) (markerp pos))
+               (list (cons name pos)))
+              ((listp pos)
+               (cons
+                (cons name (cdar pos))
+                (gdscript-imenu-create-flat-index (cddr item) name))))))
+    (or alist
+        (let* ((fn (lambda (_type name) name))
+               (gdscript-imenu-format-item-label-function fn)
+              (gdscript-imenu-format-parent-item-label-function fn)
+              (gdscript-imenu-format-parent-item-jump-label-function fn))
+          (gdscript-imenu-create-index))))))
+
+
 ;; Abbreviations
 (define-abbrev-table 'gdscript-abbrev-table
   '(
@@ -2060,17 +2299,100 @@ position, else returns nil."
 (abbrev-table-put gdscript-abbrev-table :system t)
 
 
-(define-derived-mode gdscript-mode
-  prog-mode
-  "GDScript"
-  :abbrev-table gdscript-abbrev-table
-  (setq-local indent-line-function 'gdscript-indent-line)
-  (setq-local comment-start "# ")
-  (setq-local comment-end "")
+(defun gdscript-electric-pair-string-delimiter ()
+  (when (and electric-pair-mode
+             (memq last-command-event '(?\" ?\'))
+             (let ((count 0))
+               (while (eq (char-before (- (point) count)) last-command-event)
+                 (cl-incf count))
+               (= count 3))
+             (eq (char-after) last-command-event))
+    (save-excursion (insert (make-string 2 last-command-event)))))
+
+(defvar electric-indent-inhibit)
+(defvar prettify-symbols-alist)
+
+(define-derived-mode gdscript-mode prog-mode "gdscript"
+  "major mode for editing gdscript files.
+
+\\{gdscript-mode-map}"
+  (setq-local tab-width gdscript-tab-width)
+  (setq-local indent-tabs-mode gdscript-tab-mode)
+
   (set-syntax-table gdscript-syntax-table)
+
+  (setq-local comment-start "# ")
+  (setq-local comment-start-skip "#+\\s-*")
+  (setq-local comment-end "")
+  (setq-local parse-sexp-lookup-properties t)
+  (setq-local parse-sexp-ignore-comments t)
+
+  (setq-local forward-sexp-function
+              'gdscript-nav-forward-sexp)
+
   (setq-local font-lock-defaults
               '(gdscript-font-lock))
-  (abbrev-mode 1))
+
+  (setq-local syntax-propertize-function
+              gdscript-syntax-propertize-function)
+
+  (setq-local indent-line-function
+              #'gdscript-indent-line-function)
+  (setq-local indent-region-function #'gdscript-indent-region)
+  ;; because indentation is not redundant, we cannot safely reindent code.
+  (setq-local electric-indent-inhibit t)
+  (setq-local electric-indent-chars
+              (cons ?: electric-indent-chars))
+
+  ;; add """ ... """ pairing to electric-pair-mode.
+  (add-hook 'post-self-insert-hook
+            #'gdscript-electric-pair-string-delimiter 'append t)
+
+  ;; (setq-local paragraph-start "\\s-*$")
+  ;; (setq-local fill-paragraph-function
+  ;;             #'gdscript-fill-paragraph)
+  ;; (setq-local normal-auto-fill-function #'gdscript-do-auto-fill)
+
+  (setq-local beginning-of-defun-function
+              #'gdscript-nav-beginning-of-defun)
+  (setq-local end-of-defun-function
+              #'gdscript-nav-end-of-defun)
+
+  (add-hook 'completion-at-point-functions
+            #'gdscript-completion-at-point nil 'local)
+
+  (add-hook 'post-self-insert-hook
+            #'gdscript-indent-post-self-insert-function 'append 'local)
+
+  (setq-local imenu-create-index-function
+              #'gdscript-imenu-create-index)
+
+  (setq-local add-log-current-defun-function
+              #'gdscript-info-current-defun)
+
+  (add-hook 'which-func-functions #'gdscript-info-current-defun nil t)
+
+  (add-to-list
+   'hs-special-modes-alist
+   '(gdscript-mode
+     "\\s-*\\_<\\(?:def\\|class\\)\\_>"
+     ;; use the empty string as end regexp so it doesn't default to
+     ;; "\\s)".  this way parens at end of defun are properly hidden.
+     ""
+     "#"
+     gdscript-hideshow-forward-sexp-function
+     nil))
+
+  (setq-local outline-regexp
+              (gdscript-rx (* space) block-start))
+  (setq-local outline-heading-end-regexp ":[^\n]*\n")
+  (setq-local outline-level
+              #'(lambda ()
+                  "`outline-level' function for gdscript mode."
+                  (1+ (/ (current-indentation) gdscript-indent-offset))))
+
+  (when gdscript-indent-guess-indent-offset
+    (gdscript-indent-guess-indent-offset)))
 
 (provide 'gdscript-mode)
 
