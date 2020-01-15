@@ -28,11 +28,19 @@ To install it:
 dotspacemacs-additional-packages '((gdscript-mode :location local))
 ```
 
-1. In your user-config function, require the package.
+3. In your user-config function, require the package.
 
 ```lisp
 (defun dotspacemacs/user-config ()
   (require 'gdscript-mode))
+```
+
+### Installing in Doom Emacs ###
+
+1. Add the following line to your .doom.d/packages.el file
+
+```lisp
+(package! gdscript-mode :recipe (:host github :repo "GDQuest/emacs-gdscript-mode"))
 ```
 
 ## Available features ##
