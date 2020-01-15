@@ -252,19 +252,23 @@
 
 ;;; Font-lock and syntax
 
-(eval-and-compile
-  (defun gdscript-syntax--context-compiler-macro (form type &optional syntax-ppss)
-    (pcase type
-      (''comment
-       `(let ((ppss (or ,syntax-ppss (syntax-ppss))))
-          (and (nth 4 ppss) (nth 8 ppss))))
-      (''string
-       `(let ((ppss (or ,syntax-ppss (syntax-ppss))))
-          (and (n
-th 3 ppss) (nth 8 ppss))))
-      (''paren
-       `(nth 1 (or ,syntax-ppss (syntax-ppss))))
-      (_ form))))
+(eval-and-compile (defun gdscript-syntax--context-compiler-macro (form type &optional syntax-ppss)
+                    (pcase type
+                      (''comment
+                       `(let ((ppss (or ,syntax-ppss
+                                        (syntax-ppss))))
+                          (and (nth 4 ppss)
+                               (nth 8 ppss))))
+                      (''string
+                       `(let ((ppss (or ,syntax-ppss
+                                        (syntax-ppss))))
+                          (and (nth 3 ppss)
+                               (nth 8 ppss))))
+                      (''paren
+                       `(nth 1
+                             (or ,syntax-ppss
+                                 (syntax-ppss))))
+                      (_ form))))
 
 ;; Controls font-face mappings or colors to highlight groups of keywords
 (defvar gdscript-font-lock `((,(regex-maker gdscript-keywords)
