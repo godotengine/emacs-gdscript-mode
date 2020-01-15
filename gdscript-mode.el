@@ -2,11 +2,12 @@
 ;; URL: https://github.com/GDQuest/emacs-gdscript-mode
 ;; Version: 202001141-git
 (add-to-list 'auto-mode-alist '("\\.gd\\'" . gdscript-mode))
+(add-to-list 'auto-mode-alist '("\\.tscn\\'" . conf-toml-mode))
 
 (defgroup gdscript nil
   "GDScript language support for Emacs."
   :group 'languages
-  :version "26.1"
+  :version "27"
   :link '(emacs-commentary-link "gdscript"))
 
 (defvar gdscript-mode-map (let ((map (make-sparse-keymap)))
@@ -22,7 +23,6 @@
                             map)
   "Keymap for `gdscript-mode'.")
 
-
 ;; Lists of keywords in the language
 (defvar gdscript-keywords '("if" "elif" "else" "for" "do" "while" "match"
                             "switch" "case" "break" "continue" "pass"
@@ -249,9 +249,7 @@
 (defun regex-maker (words)
   (regexp-opt words 'symbols))
 
-
 ;;; Font-lock and syntax
-
 (eval-and-compile (defun gdscript-syntax--context-compiler-macro (form type &optional syntax-ppss)
                     (pcase type
                       (''comment
