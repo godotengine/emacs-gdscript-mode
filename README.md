@@ -43,6 +43,12 @@ dotspacemacs-additional-packages '((gdscript-mode :location local))
 (package! gdscript-mode :recipe (:host github :repo "GDQuest/emacs-gdscript-mode"))
 ```
 
+2. Require the package in your .doom.d/config.el file
+
+```lisp
+(require 'gdscript-mode)
+```
+
 ## Available features ##
 
 - Syntax highlighting for all built-in functions and classes in Godot 3.2
