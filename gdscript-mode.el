@@ -412,7 +412,7 @@ It makes underscores and dots word constituent chars.")
   "Gdscript mode specialized rx macro.
 This variant of `rx' supports common Gdscript named REGEXPS."
   `(rx-let ((block-start       (seq symbol-start
-                                    (or "func" "class" "if" "elif" "else"
+                                    (or "func" "static" "class" "if" "elif" "else"
                                         "for" "while" "match")
                                     symbol-end))
             (dedenter          (seq symbol-start
