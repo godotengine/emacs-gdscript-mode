@@ -9,6 +9,11 @@
   :version "26.1"
   :link '(emacs-commentary-link "gdscript"))
 
+;; HACK To make this work in emacs-26 and below
+;; This is the definition ripped straight from emacs-27
+(if (version< emacs-version "27")
+    (require 'gdscript-rx))
+
 (defvar gdscript-mode-map (let ((map (make-sparse-keymap)))
                             ;; Movement
                             (define-key map [remap backward-sentence] 'gdscript-nav-backward-block)
