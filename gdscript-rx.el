@@ -1422,6 +1422,6 @@ following constructs:
 ;; Obsolete internal symbol, used in old versions of the `flycheck' package.
 (define-obsolete-function-alias 'rx-submatch-n 'rx-to-string "27.1")
 
-(provide 'rx)
+(provide 'gdscript-rx)
 
 ;;; rx.el ends here
