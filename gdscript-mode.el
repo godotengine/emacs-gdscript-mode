@@ -13,7 +13,32 @@
 ;; HACK To make this work in emacs-26 and below
 ;; This is the definition ripped straight from emacs-27
 (if (version< emacs-version "27")
-    (defmacro rx-let (bindings &rest body)
+    (defun rx--make-binding (name tail)
+      "Make a definitions entry out of TAIL.
+TAIL is on the form ([ARGLIST] DEFINITION)."
+      (unless (symbolp name)
+        (error "Bad `rx' definition name: %S" name))
+      ;; FIXME: Consider using a hash table or symbol property, for speed.
+      (when (memq name rx--builtin-names)
+        (error "Cannot redefine built-in rx name `%s'" name))
+      (pcase tail
+        (`(,def)
+         (list def))
+        (`(,args ,def)
+         (unless (and (listp args) (rx--every #'symbolp args))
+           (error "Bad argument list for `rx' definition %s: %S" name args))
+         (list args def))
+        (_ (error "Bad `rx' definition of %s: %S" name tail))))
+
+  (defun rx--make-named-binding (bindspec)
+    "Make a definitions entry out of BINDSPEC.
+BINDSPEC is on the form (NAME [ARGLIST] DEFINITION)."
+    (unless (consp bindspec)
+      (error "Bad `rx-let' binding: %S" bindspec))
+    (cons (car bindspec)
+          (rx--make-binding (car bindspec) (cdr bindspec))))
+ 
+  (defmacro rx-let (bindings &rest body)
       "Evaluate BODY with local BINDINGS for `rx'.
 BINDINGS is an unevaluated list of bindings each on the form
 (NAME [(ARGS...)] RX).
