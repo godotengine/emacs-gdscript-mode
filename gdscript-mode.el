@@ -13,58 +13,7 @@
 ;; HACK To make this work in emacs-26 and below
 ;; This is the definition ripped straight from emacs-27
 (if (version< emacs-version "27")
-    (defun rx--make-binding (name tail)
-      "Make a definitions entry out of TAIL.
-TAIL is on the form ([ARGLIST] DEFINITION)."
-      (unless (symbolp name)
-        (error "Bad `rx' definition name: %S" name))
-      ;; FIXME: Consider using a hash table or symbol property, for speed.
-      (when (memq name rx--builtin-names)
-        (error "Cannot redefine built-in rx name `%s'" name))
-      (pcase tail
-        (`(,def)
-         (list def))
-        (`(,args ,def)
-         (unless (and (listp args) (rx--every #'symbolp args))
-           (error "Bad argument list for `rx' definition %s: %S" name args))
-         (list args def))
-        (_ (error "Bad `rx' definition of %s: %S" name tail))))
-
-  (defun rx--make-named-binding (bindspec)
-    "Make a definitions entry out of BINDSPEC.
-BINDSPEC is on the form (NAME [ARGLIST] DEFINITION)."
-    (unless (consp bindspec)
-      (error "Bad `rx-let' binding: %S" bindspec))
-    (cons (car bindspec)
-          (rx--make-binding (car bindspec) (cdr bindspec))))
- 
-  (defmacro rx-let (bindings &rest body)
-      "Evaluate BODY with local BINDINGS for `rx'.
-BINDINGS is an unevaluated list of bindings each on the form
-(NAME [(ARGS...)] RX).
-They are bound lexically and are available in `rx' expressions in
-BODY only.
-
-For bindings without an ARGS list, NAME is defined as an alias
-for the `rx' expression RX.  Where ARGS is supplied, NAME is
-defined as an `rx' form with ARGS as argument list.  The
-parameters are bound from the values in the (NAME ...) form and
-are substituted in RX.  ARGS can contain `&rest' parameters,
-whose values are spliced into RX where the parameter name occurs.
-
-Any previous definitions with the same names are shadowed during
-the expansion of BODY only.
-For local extensions to `rx-to-string', use `rx-let-eval'.
-To make global rx extensions, use `rx-define'.
-For more details, see Info node `(elisp) Extending Rx'.
-
-\(fn BINDINGS BODY...)"
-      (declare (indent 1) (debug (sexp body)))
-      (let ((prev-locals (cdr (assq :rx-locals macroexpand-all-environment)))
-            (new-locals (mapcar #'rx--make-named-binding bindings)))
-        (macroexpand-all (cons 'progn body)
-                         (cons (cons :rx-locals (append new-locals prev-locals))
-                               macroexpand-all-environment)))))
+    (require 'gdscript-rx))
 
 (defvar gdscript-mode-map (let ((map (make-sparse-keymap)))
                             ;; Movement
