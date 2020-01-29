@@ -10,6 +10,37 @@
   :version "27"
   :link '(emacs-commentary-link "gdscript"))
 
+;; HACK To make this work in emacs-26 and below
+;; This is the definition ripped straight from emacs-27
+(if (version< emacs-version "27")
+    (defmacro rx-let (bindings &rest body)
+      "Evaluate BODY with local BINDINGS for `rx'.
+BINDINGS is an unevaluated list of bindings each on the form
+(NAME [(ARGS...)] RX).
+They are bound lexically and are available in `rx' expressions in
+BODY only.
+
+For bindings without an ARGS list, NAME is defined as an alias
+for the `rx' expression RX.  Where ARGS is supplied, NAME is
+defined as an `rx' form with ARGS as argument list.  The
+parameters are bound from the values in the (NAME ...) form and
+are substituted in RX.  ARGS can contain `&rest' parameters,
+whose values are spliced into RX where the parameter name occurs.
+
+Any previous definitions with the same names are shadowed during
+the expansion of BODY only.
+For local extensions to `rx-to-string', use `rx-let-eval'.
+To make global rx extensions, use `rx-define'.
+For more details, see Info node `(elisp) Extending Rx'.
+
+\(fn BINDINGS BODY...)"
+      (declare (indent 1) (debug (sexp body)))
+      (let ((prev-locals (cdr (assq :rx-locals macroexpand-all-environment)))
+            (new-locals (mapcar #'rx--make-named-binding bindings)))
+        (macroexpand-all (cons 'progn body)
+                         (cons (cons :rx-locals (append new-locals prev-locals))
+                               macroexpand-all-environment)))))
+
 (defvar gdscript-mode-map (let ((map (make-sparse-keymap)))
                             ;; Movement
                             (define-key map [remap backward-sentence] 'gdscript-nav-backward-block)
