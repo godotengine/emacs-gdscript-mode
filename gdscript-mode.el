@@ -23,6 +23,12 @@
                             map)
   "Keymap for `gdscript-mode'.")
 
+(defcustom gdscript-use-type-hints t
+  "If t, inserted snippets contain type hints"
+  :group 'gdscript
+  :type 'boolean)
+
+
 ;; Lists of keywords in the language
 (defvar gdscript-keywords '("if" "elif" "else" "for" "do" "while" "match"
                             "switch" "case" "break" "continue" "pass"
