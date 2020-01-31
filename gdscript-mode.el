@@ -2138,6 +2138,17 @@ position, else returns nil."
       (ignore (goto-char point)))))
 
 
+;;; Hideshow
+
+(defun gdscript-hideshow-forward-sexp-function (arg)
+  "Gdscript specific `forward-sexp' function for `hs-minor-mode'.
+Argument ARG is ignored."
+  arg  ; Shut up, byte compiler.
+  (gdscript-nav-end-of-defun)
+  (unless (gdscript-info-current-line-empty-p)
+    (backward-char)))
+
+
 ;;; Imenu
 
 (defvar gdscript-imenu-format-item-label-function
@@ -2381,7 +2392,7 @@ To this:
   (add-to-list
    'hs-special-modes-alist
    '(gdscript-mode
-     "\\s-*\\_<\\(?:def\\|class\\)\\_>"
+     "\\s-*\\_<\\(?:func\\|class\\)\\_>"
      ;; use the empty string as end regexp so it doesn't default to
      ;; "\\s)".  this way parens at end of defun are properly hidden.
      ""
