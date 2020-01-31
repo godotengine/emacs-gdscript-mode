@@ -4,6 +4,17 @@ This package adds support for the GDScript programming language from the Godot g
 
 This is currently a work in progress, and my first time creating an Emacs package. Feedback, tips, and contributions are more than welcome!
 
+## Features ##
+
+This mode already features all the essentials:
+
+- Syntax highlighting
+- Code folding
+- [Imenu](https://www.gnu.org/software/emacs/manual/html_node/emacs/Imenu.html)
+- Support for scenes (`.tscn`) and script (`.gd`) files
+- Comment wrapping when using `fill-paragraph`
+- Indentation and auto-indentation: tab-based (default) and space-based
+- Automatic pairing of parentheses, brackets, etc.
 
 ## How to install ##
 
