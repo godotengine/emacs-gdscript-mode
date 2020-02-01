@@ -352,7 +352,7 @@ The type returned can be `comment', `string' or `paren'."
 
 (define-inline gdscript-syntax-closing-paren-p ()
   "Return non-nil if char after point is a closing paren."
-  (eql (syntax-class (syntax-after (point)))
+  (eq (syntax-class (syntax-after (point)))
        (syntax-class (string-to-syntax ")"))))
 
 (defun gdscript-font-lock-syntactic-face-function (state)
@@ -389,8 +389,8 @@ is used to limit the scan."
     (cond ((or (nth 4 ppss)             ;Inside a comment
                (and string-start
                     ;; Inside of a string quoted with different triple quotes.
-                    (not (eql (char-after string-start)
-                              (char-after quote-starting-pos)))))
+                    (not (eq (char-after string-start)
+                             (char-after quote-starting-pos)))))
            ;; Do nothing.
            nil)
           ((nth 5 ppss)
