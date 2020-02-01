@@ -1368,20 +1368,6 @@ operator."
   (goto-char (point-min))
   (forward-line (1- line-number)))
 
-;; Stolen from org-mode
-(defun gdscript-util-clone-local-variables (from-buffer &optional regexp)
-  "Clone local variables from FROM-BUFFER.
-Optional argument REGEXP selects variables to clone and defaults
-to \"^gdscript-\"."
-  (mapc
-   (lambda (pair)
-     (and (symbolp (car pair))
-          (string-match (or regexp "^gdscript-")
-                        (symbol-name (car pair)))
-          (set (make-local-variable (car pair))
-               (cdr pair))))
-   (buffer-local-variables from-buffer)))
-
 (defun gdscript-util-forward-comment (&optional direction)
   "Gdscript mode specific version of `forward-comment'.
 Optional argument DIRECTION defines the direction to move to."
@@ -1434,54 +1420,6 @@ allowed files."
                               (funcall (or predicate #'identity) full-file-name))
                          (list full-file-name))))
                    (directory-files dir-name)))))
-
-(defun gdscript-util-list-packages (dir &optional max-depth)
-  "List packages in DIR, limited by MAX-DEPTH.
-When optional argument MAX-DEPTH is non-nil, stop searching when
-depth is reached, else don't limit."
-  (let* ((dir (expand-file-name dir))
-         (parent-dir (file-name-directory
-                      (directory-file-name
-                       (file-name-directory
-                        (file-name-as-directory dir)))))
-         (subpath-length (length parent-dir)))
-    (mapcar
-     (lambda (file-name)
-       (replace-regexp-in-string
-        (rx (or ?\\ ?/)) "." (substring file-name subpath-length)))
-     (gdscript-util-list-directories
-      (directory-file-name dir)
-      (lambda (dir)
-        (file-exists-p (expand-file-name "__init__.py" dir)))
-      max-depth))))
-
-(defun gdscript-util-popn (lst n)
-  "Return LST first N elements.
-N should be an integer, when negative its opposite is used.
-When N is bigger than the length of LST, the list is
-returned as is."
-  (let* ((n (min (abs n)))
-         (len (length lst))
-         (acc))
-    (if (> n len)
-        lst
-      (while (< 0 n)
-        (setq acc (cons (car lst) acc)
-              lst (cdr lst)
-              n (1- n)))
-      (reverse acc))))
-
-(defun gdscript-util-strip-string (string)
-  "Strip STRING whitespace and newlines from end and beginning."
-  (replace-regexp-in-string
-   (rx (or (: string-start (* (any whitespace ?\r ?\n)))
-           (: (* (any whitespace ?\r ?\n)) string-end)))
-   ""
-   string))
-
-(defun gdscript-util-valid-regexp-p (regexp)
-  "Return non-nil if REGEXP is valid."
-  (ignore-errors (string-match regexp "") t))
 
 
 ;;; Navigation
