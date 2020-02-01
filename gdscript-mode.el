@@ -1457,16 +1457,6 @@ to \"^gdscript-\"."
 
 (defvar comint-last-prompt-overlay)     ; Shut up, byte compiler.
 
-(defun gdscript-util-comint-last-prompt ()
-  "Return comint last prompt overlay start and end.
-This is for compatibility with Emacs < 24.4."
-  (cond ((bound-and-true-p comint-last-prompt-overlay)
-         (cons (overlay-start comint-last-prompt-overlay)
-               (overlay-end comint-last-prompt-overlay)))
-        ((bound-and-true-p comint-last-prompt)
-         comint-last-prompt)
-        (t nil)))
-
 (defun gdscript-util-forward-comment (&optional direction)
   "Gdscript mode specific version of `forward-comment'.
 Optional argument DIRECTION defines the direction to move to."
