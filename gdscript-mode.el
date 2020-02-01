@@ -1176,10 +1176,6 @@ parent defun name."
   (and (gdscript-info-end-of-statement-p)
        (gdscript-info-statement-ends-block-p)))
 
-(define-obsolete-function-alias
-  'gdscript-info-closing-block
-  'gdscript-info-dedenter-opening-block-position "24.4")
-
 (defun gdscript-info-dedenter-opening-block-position ()
   "Return the point of the closest block the current line closes.
 Returns nil if point is not on a dedenter statement or no opening
@@ -1248,10 +1244,6 @@ likely an invalid gdscript file."
                   (throw 'exit nil)))))
           ;; sort by closer
           (nreverse opening-blocks))))))
-
-(define-obsolete-function-alias
-  'gdscript-info-closing-block-message
-  'gdscript-info-dedenter-opening-block-message "24.4")
 
 (defun gdscript-info-dedenter-opening-block-message  ()
   "Message the first line of the block the current statement closes."
