@@ -524,7 +524,7 @@ This variant of `rx' supports common Gdscript named REGEXPS."
                  (not (gdscript-syntax-context-type))
                  (progn
                    (goto-char (line-end-position))
-                   (gdscript-util-forward-comment -1)
+                   (gdscript--util-forward-comment -1)
                    (if (equal (char-before) ?:)
                        t
                      (forward-line 1)
@@ -532,14 +532,14 @@ This variant of `rx' supports common Gdscript named REGEXPS."
                        (while (and (gdscript-info-continuation-line-p)
                                    (not (eobp)))
                          (forward-line 1))
-                       (gdscript-util-forward-comment -1)
+                       (gdscript--util-forward-comment -1)
                        (when (equal (char-before) ?:)
                          t)))))
             (setq block-end (point-marker))))
         (let ((indentation
                (when block-end
                  (goto-char block-end)
-                 (gdscript-util-forward-comment)
+                 (gdscript--util-forward-comment)
                  (current-indentation))))
           (if (and indentation (not (zerop indentation)))
               (set (make-local-variable 'gdscript-indent-offset) indentation)
@@ -633,7 +633,7 @@ keyword
                     (not
                      (= (line-number-at-pos)
                         (progn
-                          (gdscript-util-forward-comment)
+                          (gdscript--util-forward-comment)
                           (line-number-at-pos))))))))
           (when start
             (cond
@@ -721,7 +721,7 @@ keyword
        ;; After beginning of block.
        ((let ((start (save-excursion
                        (back-to-indentation)
-                       (gdscript-util-forward-comment -1)
+                       (gdscript--util-forward-comment -1)
                        (when (equal (char-before) ?:)
                          (gdscript-nav-beginning-of-block)))))
           (when start
@@ -742,7 +742,7 @@ keyword
                     :after-comment)
                    ((save-excursion
                       (goto-char (line-end-position))
-                      (gdscript-util-forward-comment -1)
+                      (gdscript--util-forward-comment -1)
                       (gdscript-nav-beginning-of-statement)
                       (looking-at (gdscript-rx block-ender)))
                     :after-block-end)
@@ -1238,7 +1238,7 @@ statement."
 With optional argument LINE-NUMBER, check that line instead."
   (save-excursion
       (when line-number
-        (gdscript-util-goto-line line-number))
+        (gdscript--util-goto-line line-number))
       (while (and (not (eobp))
                   (goto-char (line-end-position))
                   (gdscript-syntax-context 'paren)
@@ -1252,7 +1252,7 @@ With optional argument LINE-NUMBER, check that line instead."
 Optional argument LINE-NUMBER forces the line number to check against."
   (save-excursion
       (when line-number
-        (gdscript-util-goto-line line-number))
+        (gdscript--util-goto-line line-number))
       (when (gdscript-info-line-ends-backslash-p)
         (while (save-excursion
                  (goto-char (line-beginning-position))
@@ -1275,12 +1275,12 @@ where the continued line ends."
         (cond ((equal context-type 'paren)
                ;; Lines inside a paren are always a continuation line
                ;; (except the first one).
-               (gdscript-util-forward-comment -1)
+               (gdscript--util-forward-comment -1)
                (point-marker))
               ((member context-type '(string comment))
                ;; move forward an roll again
                (goto-char context-start)
-               (gdscript-util-forward-comment)
+               (gdscript--util-forward-comment)
                (gdscript-info-continuation-line-p))
               (t
                ;; Not within a paren, string or comment, the only way
@@ -1288,7 +1288,7 @@ where the continued line ends."
                ;; previous line contains a backslash, and this can
                ;; only be the previous line from current
                (back-to-indentation)
-               (gdscript-util-forward-comment -1)
+               (gdscript--util-forward-comment -1)
                (when (and (equal (1- line-start) (line-number-at-pos))
                           (gdscript-info-line-ends-backslash-p))
                  (point-marker)))))))
@@ -1363,12 +1363,12 @@ operator."
 
 ;;; Utility functions
 
-(defun gdscript-util-goto-line (line-number)
+(defun gdscript--util-goto-line (line-number)
   "Move point to LINE-NUMBER."
   (goto-char (point-min))
   (forward-line (1- line-number)))
 
-(defun gdscript-util-forward-comment (&optional direction)
+(defun gdscript--util-forward-comment (&optional direction)
   "Gdscript mode specific version of `forward-comment'.
 Optional argument DIRECTION defines the direction to move to."
   (let ((comment-start (gdscript-syntax-context 'comment))
@@ -1379,7 +1379,7 @@ Optional argument DIRECTION defines the direction to move to."
       (goto-char comment-start))
     (forward-comment factor)))
 
-(defun gdscript-util-list-directories (directory &optional predicate max-depth)
+(defun gdscript--util-list-directories (directory &optional predicate max-depth)
   "List DIRECTORY subdirs, filtered by PREDICATE and limited by MAX-DEPTH.
 Argument PREDICATE defaults to `identity' and must be a function
 that takes one argument (a full path) and returns non-nil for
@@ -1395,7 +1395,7 @@ searching when depth is reached, else don't limit."
         (when (funcall predicate current-dir)
           (setq tally (cons current-dir tally)))
         (setq to-scan (append (cdr to-scan)
-                              (gdscript-util-list-files
+                              (gdscript--util-list-files
                                current-dir #'file-directory-p)
                               nil))
         (when (and max-depth
@@ -1406,7 +1406,7 @@ searching when depth is reached, else don't limit."
           (setq to-scan nil))))
     (nreverse tally)))
 
-(defun gdscript-util-list-files (dir &optional predicate)
+(defun gdscript--util-list-files (dir &optional predicate)
   "List files in DIR, filtering with PREDICATE.
 Argument PREDICATE defaults to `identity' and must be a function
 that takes one argument (a full path) and returns non-nil for
@@ -1502,10 +1502,10 @@ Returns nil if point is not in a def or class."
       (setq beg-defun-indent (current-indentation))
       (while (progn
                (gdscript-nav-end-of-statement)
-               (gdscript-util-forward-comment 1)
+               (gdscript--util-forward-comment 1)
                (and (> (current-indentation) beg-defun-indent)
                     (not (eobp)))))
-      (gdscript-util-forward-comment -1)
+      (gdscript--util-forward-comment -1)
       (forward-line 1)
       ;; Ensure point moves forward.
       (and (> beg-pos (point)) (goto-char beg-pos)))))
@@ -1653,12 +1653,12 @@ backward to previous statement."
   (or arg (setq arg 1))
   (while (> arg 0)
     (gdscript-nav-end-of-statement)
-    (gdscript-util-forward-comment)
+    (gdscript--util-forward-comment)
     (gdscript-nav-beginning-of-statement)
     (setq arg (1- arg)))
   (while (< arg 0)
     (gdscript-nav-beginning-of-statement)
-    (gdscript-util-forward-comment -1)
+    (gdscript--util-forward-comment -1)
     (gdscript-nav-beginning-of-statement)
     (setq arg (1+ arg))))
 
@@ -1698,7 +1698,7 @@ backward to previous statement."
                            (or (gdscript-nav-end-of-statement) t))
                       (gdscript-info-current-line-comment-p)
                       (gdscript-info-current-line-empty-p))))
-      (gdscript-util-forward-comment -1)
+      (gdscript--util-forward-comment -1)
       (point-marker))))
 
 (defun gdscript-nav-backward-block (&optional arg)
@@ -1818,7 +1818,7 @@ expressions when looking at them in either direction."
           (if forward-p
               (cond ((and (not (eobp))
                           (gdscript-info-current-line-empty-p))
-                     (gdscript-util-forward-comment dir)
+                     (gdscript--util-forward-comment dir)
                      (gdscript-nav--forward-sexp dir safe skip-parens-p))
                     ((eq context 'block-start)
                      (gdscript-nav-end-of-block))
@@ -1838,7 +1838,7 @@ expressions when looking at them in either direction."
                     (t (goto-char next-sexp-pos)))
             (cond ((and (not (bobp))
                         (gdscript-info-current-line-empty-p))
-                   (gdscript-util-forward-comment dir)
+                   (gdscript--util-forward-comment dir)
                    (gdscript-nav--forward-sexp dir safe skip-parens-p))
                   ((eq context 'block-end)
                    (gdscript-nav-beginning-of-block))
