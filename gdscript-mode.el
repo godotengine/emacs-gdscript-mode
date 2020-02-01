@@ -1382,8 +1382,6 @@ to \"^gdscript-\"."
                (cdr pair))))
    (buffer-local-variables from-buffer)))
 
-(defvar comint-last-prompt-overlay)     ; Shut up, byte compiler.
-
 (defun gdscript-util-forward-comment (&optional direction)
   "Gdscript mode specific version of `forward-comment'.
 Optional argument DIRECTION defines the direction to move to."
