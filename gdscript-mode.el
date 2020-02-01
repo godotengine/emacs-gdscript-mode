@@ -324,12 +324,7 @@
                                    (group (1+ (or word ?_))))
                               (1 font-lock-variable-name-face))))
 
-(defvar gdscript-syntax-table nil)
-(if gdscript-syntax-table
-    ()
-  (setq gdscript-syntax-table (make-syntax-table))
-  (modify-syntax-entry ?\# "\<" gdscript-syntax-table)
-  (modify-syntax-entry ?\n ">" gdscript-syntax-table))
+(defvar gdscript-syntax-table (make-syntax-table))
 
 (defun gdscript-syntax-context (type &optional syntax-ppss)
   "Return non-nil if point is on TYPE using SYNTAX-PPSS.
@@ -2357,6 +2352,8 @@ To this:
   (setq-local indent-tabs-mode gdscript-use-tab-indents)
 
   (set-syntax-table gdscript-syntax-table)
+  (modify-syntax-entry ?\# "\<" gdscript-syntax-table)
+  (modify-syntax-entry ?\n ">" gdscript-syntax-table)
 
   (setq-local comment-start "# ")
   (setq-local comment-start-skip "#+\\s-*")
