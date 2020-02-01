@@ -459,7 +459,7 @@ This variant of `rx' supports common Gdscript named REGEXPS."
 ;; Copied from python.el
 
 ;; user customization
-(defcustom gdscript-use-tab-mode t
+(defcustom gdscript-use-tab-indents t
   "Use tabs (t) or spaces (nil)"
   :type 'boolean
   :group 'gdscript)
@@ -2334,7 +2334,7 @@ To this:
 
 \\{gdscript-mode-map}"
   (setq-local tab-width gdscript-tab-width)
-  (setq-local indent-tabs-mode gdscript-use-tab-mode)
+  (setq-local indent-tabs-mode gdscript-use-tab-indents)
 
   (set-syntax-table gdscript-syntax-table)
 
