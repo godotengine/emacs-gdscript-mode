@@ -355,14 +355,6 @@ The type returned can be `comment', `string' or `paren'."
   (eq (syntax-class (syntax-after (point)))
        (syntax-class (string-to-syntax ")"))))
 
-(defun gdscript-font-lock-syntactic-face-function (state)
-  "Return syntactic face given STATE."
-  (if (nth 3 state)
-      (if (gdscript-info-docstring-p state)
-          font-lock-doc-face
-        font-lock-string-face)
-    font-lock-comment-face))
-
 (defconst gdscript-syntax-propertize-function
   (syntax-propertize-rules
    ((rx (or "\"\"\"" "'''"))
@@ -630,9 +622,7 @@ keyword
        ;; Inside a string.
        ((let ((start (gdscript-syntax-context 'string ppss)))
           (when start
-            (cons (if (gdscript-info-docstring-p)
-                      :inside-docstring
-                    :inside-string) start))))
+            (cons :inside-string start))))
        ;; Inside a paren.
        ((let* ((start (gdscript-syntax-context 'paren ppss))
                (starts-in-newline
@@ -783,12 +773,6 @@ possibilities can be narrowed to specific indentation points."
              (current-indentation)
            ;; Align with opening paren.
            (current-column)))
-        (`(:inside-docstring . ,start)
-         (let* ((line-indentation (current-indentation))
-                (base-indent (progn
-                               (goto-char start)
-                               (current-indentation))))
-           (max line-indentation base-indent)))
         (`(,(or :after-block-start
                 :after-backslash-first-line
                 :after-backslash-assignment-continuation
@@ -931,16 +915,6 @@ Called from a program, START and END specify the region to indent."
                                  ;; Unless this line is a comment too.
                                  (not line-is-comment-p))
                             (gdscript-info-current-line-empty-p)))))
-                   ;; Don't mess with strings, unless it's the
-                   ;; enclosing set of quotes or a docstring.
-                   (or (not (gdscript-syntax-context 'string))
-                       (eq
-                        (syntax-after
-                         (+ (1- (point))
-                            (current-indentation)
-                            (gdscript-syntax-count-quotes (char-after) (point))))
-                        (string-to-syntax "|"))
-                       (gdscript-info-docstring-p))
                    ;; Skip if current line is a block start, a
                    ;; dedenter or block ender.
                    (save-excursion
@@ -1385,53 +1359,6 @@ operator."
                 (group (* not-newline))
                 (* whitespace) line-end))
     (string-equal "" (match-string-no-properties 1))))
-
-(defun gdscript-info-docstring-p (&optional syntax-ppss)
-  "Return non-nil if point is in a docstring.
-When optional argument SYNTAX-PPSS is given, use that instead of
-point's current `syntax-ppss'."
-  ;;; https://www.gdscript.org/dev/peps/pep-0257/#what-is-a-docstring
-  (save-excursion
-    (when (and syntax-ppss (gdscript-syntax-context 'string syntax-ppss))
-      (goto-char (nth 8 syntax-ppss)))
-    (gdscript-nav-beginning-of-statement)
-    (let ((counter 1)
-          (indentation (current-indentation))
-          (backward-sexp-point)
-          (re (concat "[uU]?[rR]?"
-                      (gdscript-rx string-delimiter))))
-      (when (and
-             (not (gdscript-info-assignment-statement-p))
-             (looking-at-p re)
-             ;; Allow up to two consecutive docstrings only.
-             (>=
-              2
-              (let (last-backward-sexp-point)
-                (while (save-excursion
-                         (gdscript-nav-backward-sexp)
-                         (setq backward-sexp-point (point))
-                         (and (= indentation (current-indentation))
-                              ;; Make sure we're always moving point.
-                              ;; If we get stuck in the same position
-                              ;; on consecutive loop iterations,
-                              ;; bail out.
-                              (prog1 (not (eql last-backward-sexp-point
-                                               backward-sexp-point))
-                                (setq last-backward-sexp-point
-                                      backward-sexp-point))
-                              (looking-at-p
-                               (concat "[uU]?[rR]?"
-                                       (gdscript-rx string-delimiter)))))
-                  ;; Previous sexp was a string, restore point.
-                  (goto-char backward-sexp-point)
-                  (cl-incf counter))
-                counter)))
-        (gdscript-util-forward-comment -1)
-        (gdscript-nav-beginning-of-statement)
-        (cond ((bobp))
-              ((gdscript-info-assignment-statement-p) t)
-              ((gdscript-info-looking-at-beginning-of-defun))
-              (t nil))))))
 
 
 ;;; Utility functions
