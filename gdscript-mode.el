@@ -346,11 +346,11 @@ The type returned can be `comment', `string' or `paren'."
      ((nth 8 ppss) (if (nth 4 ppss) 'comment 'string))
      ((nth 1 ppss) 'paren))))
 
-(defsubst gdscript-syntax-comment-or-string-p (&optional ppss)
+(define-inline gdscript-syntax-comment-or-string-p (&optional ppss)
   "Return non-nil if PPSS is inside comment or string."
   (nth 8 (or ppss (syntax-ppss))))
 
-(defsubst gdscript-syntax-closing-paren-p ()
+(define-inline gdscript-syntax-closing-paren-p ()
   "Return non-nil if char after point is a closing paren."
   (eql (syntax-class (syntax-after (point)))
        (syntax-class (string-to-syntax ")"))))
@@ -368,7 +368,7 @@ The type returned can be `comment', `string' or `paren'."
    ((rx (or "\"\"\"" "'''"))
     (0 (ignore (gdscript-syntax-stringify))))))
 
-(defsubst gdscript-syntax-count-quotes (quote-char &optional point limit)
+(define-inline gdscript-syntax-count-quotes (quote-char &optional point limit)
   "Count number of quotes around point (max is 3).
 QUOTE-CHAR is the quote char to count.  Optional argument POINT is
 the point where scan starts (defaults to current point), and LIMIT
