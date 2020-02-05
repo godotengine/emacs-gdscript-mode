@@ -31,12 +31,17 @@
 
 (add-to-list 'auto-mode-alist '("\\.gd\\'" . gdscript-mode))
 (add-to-list 'auto-mode-alist '("\\.tscn\\'" . conf-toml-mode))
+(add-to-list 'auto-mode-alist '("\\.tres\\'" . conf-toml-mode))
 
 (defgroup gdscript nil
   "GDScript language support for Emacs."
   :group 'languages
   :version "26"
   :link '(emacs-commentary-link "gdscript"))
+
+;; HACK To make this work in emacs-26 and below
+;; This is the definition ripped straight from emacs-27
+(require 'gdscript-rx)
 
 (defvar gdscript-mode-map (let ((map (make-sparse-keymap)))
                             ;; Movement
@@ -220,7 +225,7 @@
                                     "RID" "RigidBody2D" "RigidBody" "RootMotionView"
                                     "SceneState" "SceneTreeTimer" "SceneTree"
                                     "ScriptCreateDialog" "ScriptEditor" "Script"
-                                    "ScrollBar" "ScrollContainer" "SegmentShape2D"
+                                    "ScrollBar" "ScrollContainer" "SegmentShape2D"
                                     "Semaphore" "Separator" "ShaderMaterial" "Shader"
                                     "Shape2D" "Shape" "ShortCut" "Skeleton2D"
                                     "SkeletonIK" "Skeleton" "SkinReference" "Skin"
