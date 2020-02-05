@@ -1,4 +1,4 @@
-;;; rx.el --- S-exp notation for regexps           --*- lexical-binding: t -*-
+;;; gdscript-rx.el --- S-exp notation for regexps           --*- lexical-binding: t -*-
 
 ;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
 
@@ -1424,4 +1424,4 @@ following constructs:
 
 (provide 'gdscript-rx)
 
-;;; rx.el ends here
+;;; gdscript-rx.el ends here

@@ -2,6 +2,8 @@
 ;; URL: https://github.com/GDQuest/emacs-gdscript-mode
 ;; Version: 202001141-git
 (add-to-list 'auto-mode-alist '("\\.gd\\'" . gdscript-mode))
+(add-to-list 'auto-mode-alist '("\\.tscn\\'" . conf-toml-mode))
+(add-to-list 'auto-mode-alist '("\\.tres\\'" . conf-toml-mode))
 
 (defgroup gdscript nil
   "GDScript language support for Emacs."
@@ -11,8 +13,7 @@
 
 ;; HACK To make this work in emacs-26 and below
 ;; This is the definition ripped straight from emacs-27
-(if (version< emacs-version "27")
-    (require 'gdscript-rx))
+(require 'gdscript-rx)
 
 (defvar gdscript-mode-map (let ((map (make-sparse-keymap)))
                             ;; Movement
