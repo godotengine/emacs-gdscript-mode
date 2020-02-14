@@ -1,4 +1,4 @@
-;;; gdscript-mode.el --- GDScript mode                              -*- lexical-binding: t; -*-
+;;; gdscript-mode.el --- Major mode to add support for Godot's GDScript programming language. -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020 GDQuest, Free Software Foundation, Inc.
 
@@ -39,8 +39,8 @@
   :version "26"
   :link '(emacs-commentary-link "gdscript"))
 
-;; HACK To make this work in emacs-26 and below
-;; This is the definition ripped straight from emacs-27
+;; gdscript-rx is a copy of Emacs 27's rx module, to ensure compatibility with
+;; Emacs 26
 (if (version< emacs-version "27")
     (require 'gdscript-rx))
 
