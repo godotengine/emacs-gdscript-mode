@@ -42,6 +42,7 @@
 ;; HACK To make this work in emacs-26 and below
 ;; This is the definition ripped straight from emacs-27
 (if (version< emacs-version "27")
+    (load-file "gdscript-rx.el")
     (require 'gdscript-rx))
 
 (defvar gdscript-mode-map (let ((map (make-sparse-keymap)))
