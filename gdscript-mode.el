@@ -447,7 +447,7 @@ This variant of `rx' supports common Gdscript named REGEXPS."
                                     (or "break" "continue" "pass" "return")
                                     symbol-end))
             (defun             (seq symbol-start
-                                    (or "func" "class" "static")
+                                    (or "func" "class" "static func")
                                     symbol-end))
             (symbol-name       (seq (any letter ?_) (* (any word ?_))))
             (open-paren        (or "{" "[" "("))
