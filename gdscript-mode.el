@@ -66,11 +66,11 @@
 ;; Lists of keywords in the language
 (defvar gdscript-keywords '("if" "elif" "else" "for" "do" "while" "match"
                             "switch" "case" "break" "continue" "pass"
-                            "return" "class" "extends" "is" "self" "tool"
-                            "signal" "func" "static" "const" "enum" "var"
-                            "onready" "export" "setget" "breakpoint" "preload"
-                            "yield" "assert" "remote" "master" "slave"
-                            "sync"))
+                            "return" "class" "class_name" "extends" "is"
+                            "self" "tool" "signal" "func" "static" "const"
+                            "enum" "var" "onready" "export" "setget" "breakpoint"
+                            "preload" "yield" "assert" "remote" "master"
+                            "slave" "sync"))
 
 (defvar gdscript-built-in-constants '("PI" "TAU" "INF" "NAN"))
 
