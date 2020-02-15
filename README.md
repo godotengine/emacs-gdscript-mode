@@ -15,6 +15,7 @@ This mode already features all the essentials:
 - Comment wrapping when using `fill-paragraph`
 - Indentation and auto-indentation: tab-based (default) and space-based
 - Automatic pairing of parentheses, brackets, etc.
+- Code formatting using [gdformat](https://github.com/scony/godot-gdscript-toolkit/)
 
 ## How to install ##
 
@@ -60,18 +61,15 @@ dotspacemacs-additional-packages '((gdscript-mode :location local))
 (require 'gdscript-mode)
 ```
 
-## Available features ##
+## Formatting with gdformat ##
 
-- Syntax highlighting for all built-in functions and classes in Godot 3.2
-- Indentation
-- Imenu to jump to functions quickly
+You can call the `gdscript-format` function to format the current buffer with `gdformat`. This features requires the python package `gdtoolkit` to be installed and available on the system's PATH variable.
 
-## Planned features ##
+You can install gdtoolkit using the pip package manager from Python 3. Run this command in your shell to install it:
 
-1. Fixing the support for indentations.
-1. Functions to open the project in Godot.
-
-For auto-competition, we should rely on the GDScript language server coming in Godot 3.2. Another developer is working on it.
+```
+pip3 install gdtoolkit
+```
 
 ## Customization ##
 
@@ -81,11 +79,3 @@ Set the following variables to customize gdscript-mode:
 (setq gdscript-tabs-mode t) ;; If true, use tabs for indents. Default: t
 (setq gdscript-tab-width 4) ;; Controls the width of tab-based indents
 ```
-
-
-## Credits ##
-
-This is based on:
-
-1. The [gdscript-mode](https://github.com/akoaysigod/gdscript-mode) package that is not in active development anymore.
-1. Python support from Emacs 27. GDScript took inspiration from Python so a lot of the Python package works well for it.
