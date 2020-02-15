@@ -29,6 +29,8 @@
 
 ;;; Code:
 
+(require 'gdscript-imenu)
+
 (add-to-list 'auto-mode-alist '("\\.gd\\'" . gdscript-mode))
 (add-to-list 'auto-mode-alist '("\\.tscn\\'" . conf-toml-mode))
 (add-to-list 'auto-mode-alist '("\\.tres\\'" . conf-toml-mode))
