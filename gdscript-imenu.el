@@ -3,8 +3,6 @@
 ;; Copyright (C) 2020 GDQuest, Free Software Foundation, Inc.
 
 ;; Author: Nathan Lovato <nathan@gdquest.com>, Fabián E. Gallina <fgallina@gnu.org>
-
-;; Author: Pawel Lampe <pawel.lampe@gmail.com>, Nathan Lovato <nathan@gdquest.com>
 ;; URL: https://github.com/GDQuest/emacs-gdscript-mode/
 ;; Version: 1.0.0
 ;; Package-Requires: ((emacs "26.0"))
@@ -24,8 +22,6 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-;;; This code is derived from gdtoolkit, see https://github.com/Scony/godot-gdscript-toolkit
 
 ;;; Code:
 
