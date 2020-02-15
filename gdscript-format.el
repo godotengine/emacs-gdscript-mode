@@ -35,11 +35,11 @@
                                  buffer-output
                                  :stderr buffer-error
                                  :noquery t
-                                 :sentinel (lambda (process event)))))
+                                 :sentinel (lambda (_process _event)))))
       (set-process-query-on-exit-flag (get-buffer-process buffer-error)
                                       nil)
       (set-process-sentinel (get-buffer-process buffer-error)
-                            (lambda (process event)))
+                            (lambda (_process _event)))
       (save-restriction (widen)
                         (process-send-region process
                                              (point-min)
