@@ -189,16 +189,16 @@ the last command event was a string delimiter."
 
   (add-hook 'which-func-functions #'gdscript-info-current-defun nil t)
 
-  (add-to-list
-   'hs-special-modes-alist
-   '(gdscript-mode
-     "\\s-*\\_<\\(?:func\\|class\\)\\_>"
-     ;; use the empty string as end regexp so it doesn't default to
-     ;; "\\s)".  this way parens at end of defun are properly hidden.
-     ""
-     "#"
-     gdscript-hideshow-forward-sexp-function
-     nil))
+  (with-eval-after-load 'hideshow (add-to-list
+                                   'hs-special-modes-alist
+                                   '(gdscript-mode
+                                     "\\s-*\\_<\\(?:func\\|class\\)\\_>"
+                                     ;; use the empty string as end regexp so it doesn't default to
+                                     ;; "\\s)".  this way parens at end of defun are properly hidden.
+                                     ""
+                                     "#"
+                                     gdscript-hideshow-forward-sexp-function
+                                     nil)))
 
   (setq-local outline-regexp
               (gdscript-rx (* space) block-start))
