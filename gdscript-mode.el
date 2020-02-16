@@ -1,4 +1,5 @@
-;;; gdscript-mode.el --- Major mode to add support for Godot's GDScript programming language. -*- lexical-binding: t; -*-
+;;; gdscript-mode.el --- Major mode to add support for Godot's GDScript
+;;; programming language. -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020 GDQuest, Free Software Foundation, Inc.
 
@@ -34,6 +35,8 @@
 (require 'gdscript-indent-and-nav)
 (require 'gdscript-imenu)
 (require 'gdscript-fill-paragraph)
+(require 'gdscript-completion)
+
 ;; gdscript-rx is a copy of Emacs 27's rx module, to ensure compatibility with
 ;; Emacs 26
 (if (version< emacs-version "27")
@@ -95,8 +98,7 @@ This variant of `rx' supports common Gdscript named REGEXPS."
                                          (* ?\\ ?\\) (any ?\' ?\")))
                                 (* ?\\ ?\\)
                                 ;; Match single or triple quotes of any kind.
-                                (group (or  "\"\"\"" "\"" "'''" "'"))))
-            )
+                                (group (or  "\"\"\"" "\"" "'''" "'")))))
      (rx ,@regexps)))
 
 (defun gdscript-hideshow-forward-sexp-function (_arg)
@@ -106,32 +108,21 @@ Argument ARG is ignored."
   (unless (gdscript-info-current-line-empty-p)
     (backward-char)))
 
-
-;; Abbreviations
-(define-abbrev-table 'gdscript-abbrev-table
-  '(
-    ("p" "func _process(delta):\n" )
-    ("pp" "func _physics_process(delta):\n" )
-    )
-  "Table of abbreviations to use with abbrev-mode for `gdscript'"
-  )
-(abbrev-table-put gdscript-abbrev-table :regexp "\\([_-*0-9A-Za-z]+\\)")
-(abbrev-table-put gdscript-abbrev-table :case-fixed t)
-(abbrev-table-put gdscript-abbrev-table :system t)
-
-
 (defun gdscript-electric-pair-string-delimiter ()
+  "GDScript-specific string delimiter detection for 'electric-pair-mode'.
+Return a doubled string character for 'electric-pair-mode', if
+the last command event was a string delimiter."
   (when (and electric-pair-mode
-             (memq last-command-event '(?\" ?\'))
+             (memq last-command-event
+                   '(?\" ?\') )
              (let ((count 0))
-               (while (eq (char-before (- (point) count)) last-command-event)
+               (while (eq (char-before (- (point)
+                                          count)) last-command-event)
                  (cl-incf count))
                (= count 3))
              (eq (char-after) last-command-event))
-    (save-excursion (insert (make-string 2 last-command-event)))))
-
-(defvar electric-indent-inhibit)
-(defvar prettify-symbols-alist)
+    (save-excursion
+      (insert (make-string 2 last-command-event)))))
 
 (define-derived-mode gdscript-mode prog-mode "gdscript"
   "Major mode for editing Godot GDScript files."
@@ -217,5 +208,4 @@ Argument ARG is ignored."
     (gdscript-indent-guess-indent-offset)))
 
 (provide 'gdscript-mode)
-
 ;;; gdscript-mode.el ends here
