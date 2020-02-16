@@ -35,13 +35,13 @@ To install it:
 ### Installing in Spacemacs ###
 
 1. Clone the repository to the `private/local` subdirectory of your `.emacs.d` directory, where you installed spacemacs.
-2. Add the package to the `dotspacemacs-additional-packages` and mark is as local. That's Spacemacs' feature to make it easy to load locally installed packages. 
+2. Add the package to the `dotspacemacs-additional-packages` and mark it as local. That's Spacemacs' feature to make it easy to load locally installed packages. 
 
 ```lisp
 dotspacemacs-additional-packages '((gdscript-mode :location local))
 ```
 
-3. In your user-config function, require the package.
+3. In your `dotspacemacs/user-config` function, require the package.
 
 ```lisp
 (defun dotspacemacs/user-config ()
@@ -50,13 +50,16 @@ dotspacemacs-additional-packages '((gdscript-mode :location local))
 
 ### Installing in Doom Emacs ###
 
-1. Add the following line to your .doom.d/packages.el file
+Add the following package definition to your `.doom.d/packages.el` file:
 
 ```lisp
-(package! gdscript-mode :recipe (:host github :repo "GDQuest/emacs-gdscript-mode"))
+(package! gdscript-mode
+          :recipe (:host github
+                   :repo "GDQuest/emacs-gdscript-mode"
+                   :files ("*.el" "data/*.txt")))
 ```
 
-2. Require the package in your .doom.d/config.el file
+Require the package in your `.doom.d/config.el` file:
 
 ```lisp
 (require 'gdscript-mode)
@@ -64,7 +67,7 @@ dotspacemacs-additional-packages '((gdscript-mode :location local))
 
 ## Formatting with gdformat ##
 
-You can call the `gdscript-format` function to format the current buffer with `gdformat`. This features requires the python package `gdtoolkit` to be installed and available on the system's PATH variable.
+You can call the `gdscript-format` function to format the current buffer with `gdformat`. This feature requires the python package `gdtoolkit` to be installed and available on the system's PATH variable.
 
 You can install gdtoolkit using the pip package manager from Python 3. Run this command in your shell to install it:
 
