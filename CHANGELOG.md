@@ -2,6 +2,18 @@
 
 This document lists new features, improvements, changes, and bug fixes in each release of the package.
 
+## GDScript mode 1.0.1 ##
+
+This minor release fixes a bug with the GDScript keywords.
+
+### Improvements ###
+
+- Compile keywords for faster auto-completion and syntax highlighting.
+
+### Bug fixes ###
+
+- Fixed missing language keywords and constants lists.
+
 ## GDScript mode 1.0.0 ##
 
 This is the initial release of gdscript-mode, which adds support for the [Godot engine](https://godotengine.org/)'s GDScript programming language in Emacs.

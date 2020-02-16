@@ -30,7 +30,7 @@
 
 ;;; Code:
 
-(defun gdscript--get-package-file-content-as-string (file-path-relative)
+(defun gdscript--get-file-content-as-string (file-path-relative)
   "Returns the content of a file in this package as a list of
 strings. Used to retrieve lists of keywords for syntax
 highlighting.
@@ -40,7 +40,7 @@ file without the directory path. This is for compatibility with
 the Doom Emacs distribution, which flattens the package's
 structure."
   (with-temp-buffer
-    (setq this-directory (file-name-directory (or load-file-name buffer-file-name)))
+    (setq this-directory (file-name-directory "gdscript-mode.el"))
     (setq requested-path (concat this-directory file-path-relative))
     (setq file-path (if (file-readable-p requested-path)
                         requested-path
@@ -50,12 +50,16 @@ structure."
     (split-string (buffer-string)
                   "\n"
                   t)))
+
+
+(defconst gdscript-keywords (eval-when-compile (gdscript--get-file-content-as-string "data/keywords.txt")))
+(defconst gdscript-built-in-constants (eval-when-compile (gdscript--get-file-content-as-string "data/built-in-constants.txt")))
 ;; Only contains types that are not classes and that the Godot editor highlights
 ;; like built-in keywords
-(defconst gdscript-built-in-types (gdscript--get-package-file-content-as-string "data/built-in-types.txt"))
-(defconst gdscript-built-in-functions (gdscript--get-package-file-content-as-string "data/built-in-functions.txt"))
+(defconst gdscript-built-in-types (eval-when-compile (gdscript--get-file-content-as-string "data/built-in-types.txt")))
+(defconst gdscript-built-in-functions (eval-when-compile (gdscript--get-file-content-as-string "data/built-in-functions.txt")))
 ;; Contains all engine classes and node types, including vectors, transforms, etc.
-(defconst gdscript-built-in-classes (gdscript--get-package-file-content-as-string "data/built-in-classes.txt"))
+(defconst gdscript-built-in-classes (eval-when-compile (gdscript--get-file-content-as-string "data/built-in-classes.txt")))
 
 (defun regex-maker (words)
   (regexp-opt words 'symbols))
