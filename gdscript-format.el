@@ -1,4 +1,4 @@
-;;; gdscript-format.el --- Format a buffer containing GDScript code with the `gdformat' GDScript formatter. -*- lexical-binding: t; -*-
+;;; gdscript-format.el --- GDScript formatting with gdformat -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020 GDQuest, Pawel Lampe
 
@@ -23,12 +23,16 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-;;; This code is derived from gdtoolkit, see https://github.com/Scony/godot-gdscript-toolkit
+
+;;; Commentary:
+
+;; Format a buffer containing GDScript code with the gdformat GDScript formatter.
+;; This code is derived from gdtoolkit, see https://github.com/Scony/godot-gdscript-toolkit
 
 ;;; Code:
 
-(defun gdscript-run-gdformat (buffer-input buffer-output buffer-error)
-  "Call gdformat process"
+(defun gdscript-format--run-gdformat (buffer-input buffer-output buffer-error)
+  "Call gdformat process."
   (with-current-buffer buffer-input
     (let ((process (make-process :name "gdformat"
                                  :command (list "gdformat" "-"):buffer
@@ -51,7 +55,7 @@
       (process-exit-status process))))
 
 (defun gdscript-format-buffer ()
-  "Formats current buffer using 'gdformat'"
+  "Formats current buffer using 'gdformat'."
   (interactive)
   (let* ((buffer-start (current-buffer))
          (point-start (point))
@@ -62,9 +66,9 @@
       (with-current-buffer buf
         (erase-buffer)))
     (condition-case err
-        (if (/= 0 (gdscript-run-gdformat buffer-start buffer-temp
+        (if (/= 0 (gdscript-format--run-gdformat buffer-start buffer-temp
                                          buffer-error))
-            (error "gdscript formatter: failed, see buffer %s for details"
+            (error "GDSCript formatter: failed, see buffer %s for details"
                    (buffer-name buffer-error))
           (if (/= 0 (compare-buffer-substrings buffer-temp nil
                                                nil buffer-start nil nil))
@@ -85,3 +89,5 @@
              (pop-to-buffer buffer-error)))))
 
 (provide 'gdscript-format)
+
+;;; gdscript-format.el ends here

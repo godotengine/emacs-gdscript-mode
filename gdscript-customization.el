@@ -1,8 +1,8 @@
-;;; gdscript-customization.el --- Customizable variables for the GDScript language support. -*- lexical-binding: t; -*-
+;;; gdscript-customization.el --- Customizable variables for the GDScript language support  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2020 GDQuest, Free Software Foundation, Inc.
 
-;; Author: Nathan Lovato <nathan@gdquest.com>, Fabián E. Gallina <fgallina@gnu.org>
+;; Author: Nathan Lovato <nathan@gdquest.com>
 ;; URL: https://github.com/GDQuest/emacs-gdscript-mode/
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "26.0"))
@@ -10,18 +10,26 @@
 ;; Created: Jan 2020
 ;; Keywords: languages
 
-;; This program is free software; you can redistribute it and/or modify
+
+;; This file is not part of GNU Emacs
+
+;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or
-;; (at your option) any later version.
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
 
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
-;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+;; For a full copy of the GNU General Public License
+;; see <http://www.gnu.org/licenses/>.
+
+
+;;; Commentary:
+
+;; Contains all the defcustom for gdscript-mode
 
 ;;; Code:
 
@@ -32,16 +40,16 @@
   :link '(emacs-commentary-link "gdscript"))
 
 (defcustom gdscript-use-type-hints t
-  "If t, inserted snippets contain type hints"
+  "If t, inserted snippets contain type hints."
   :group 'gdscript
   :type 'boolean)
 
 ;; gdscript-indent
-(defcustom gdscript-use-tab-indents t "Use tabs (t) or spaces (nil)"
+(defcustom gdscript-use-tab-indents t "Use tabs (t) or spaces (nil)."
   :type 'boolean
   :group 'gdscript)
 
-(defcustom gdscript-tab-width 4 "Indentation width"
+(defcustom gdscript-tab-width 4 "Indentation width."
   :type 'integer
   :group 'gdscript)
 
@@ -68,21 +76,21 @@
   :type '(repeat symbol):group'gdscript)
 
 ;; gdscript-fill-paragraph.el
-(defcustom gdscript-fill-comment-function 'gdscript-fill-comment
+(defcustom gdscript-fill-comment-function 'gdscript-fill-paragraph-fill-comment
   "Function to fill comments.
 This is the function used by `gdscript-fill-paragraph' to
 fill comments."
   :type 'symbol
   :group 'gdscript)
 
-(defcustom gdscript-fill-string-function 'gdscript-fill-string
+(defcustom gdscript-fill-string-function 'gdscript-fill-paragraph-fill-string
   "Function to fill strings.
 This is the function used by `gdscript-fill-paragraph' to
 fill strings."
   :type 'symbol
   :group 'gdscript)
 
-(defcustom gdscript-fill-paren-function 'gdscript-fill-paren
+(defcustom gdscript-fill-paren-function 'gdscript-fill-paragraph-fill-paren
   "Function to fill parens.
 This is the function used by `gdscript-fill-paragraph' to
 fill parens."
@@ -90,3 +98,5 @@ fill parens."
   :group 'gdscript)
 
 (provide 'gdscript-customization)
+
+;;; gdscript-customization.el ends here

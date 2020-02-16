@@ -1,4 +1,4 @@
-;;; gdscript-completion.el --- Autocompletion for GDScript. -*- lexical-binding: t -*-
+;;; gdscript-completion.el --- Autocompletion for GDScript -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2020 GDQuest, Free Software Foundation, Inc.
 

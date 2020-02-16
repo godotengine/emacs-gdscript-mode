@@ -1,4 +1,4 @@
-;;; gdscript-utils.el --- Utility functions for the gdscript package. -*- lexical-binding: t; -*-
+;;; gdscript-utils.el --- Utility functions for gdscript-mode -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020 GDQuest, Free Software Foundation, Inc.
 
@@ -22,6 +22,11 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+
+;;; Commentary:
+
+;; Misc utility functions for GDScript mode.
 
 ;;; Code:
 
@@ -84,3 +89,5 @@ allowed files."
                    (directory-files dir-name)))))
 
 (provide 'gdscript-utils)
+
+;;; gdscript-utils.el ends here

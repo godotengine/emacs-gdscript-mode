@@ -1,5 +1,4 @@
-;;; gdscript-mode.el --- Major mode to add support for Godot's GDScript
-;;; programming language. -*- lexical-binding: t; -*-
+;;; gdscript-mode.el --- Major mode for Godot's GDScript language -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020 GDQuest, Free Software Foundation, Inc.
 
@@ -26,7 +25,8 @@
 
 ;;; Commentary:
 
-;; Support for the Godot GDScript programming language in Emacs.
+;; Adds support for the GDScript programming language from the Godot game
+;; engine. This is a domain-specific language dedicated to game programming.
 
 ;;; Code:
 
@@ -168,7 +168,7 @@ the last command event was a string delimiter."
   (setq-local paragraph-start "\\s-*$")
   (setq-local fill-paragraph-function
               #'gdscript-fill-paragraph)
-  (setq-local normal-auto-fill-function #'gdscript-do-auto-fill)
+  (setq-local normal-auto-fill-function #'gdscript-fill-paragraph-do-auto-fill)
 
   (setq-local beginning-of-defun-function
               #'gdscript-nav-beginning-of-defun)
@@ -212,4 +212,5 @@ the last command event was a string delimiter."
     (gdscript-indent-guess-indent-offset)))
 
 (provide 'gdscript-mode)
+
 ;;; gdscript-mode.el ends here

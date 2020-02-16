@@ -1,4 +1,4 @@
-;;; gdscript-imenu.el --- Adds imenu support for Godot GDScript. -*- lexical-binding: t; -*-
+;;; gdscript-imenu.el --- Imenu support for GDScript -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020 GDQuest, Free Software Foundation, Inc.
 
@@ -22,6 +22,11 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; Populates imenu with a list of headings: functions and subclasses in the
+;; current GDScript buffer.
 
 ;;; Code:
 
@@ -177,3 +182,5 @@ To this:
           (gdscript-imenu-create-index))))))
 
 (provide 'gdscript-imenu)
+
+;;; gdscript-imenu.el ends here

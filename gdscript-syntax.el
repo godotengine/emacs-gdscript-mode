@@ -1,4 +1,4 @@
-;;; gdscript-syntax.el --- Syntax highlighting and table for GDScript. -*- lexical-binding: t; -*-
+;;; gdscript-syntax.el --- Syntax highlighting for GDScript -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020 GDQuest, Free Software Foundation, Inc.
 
@@ -22,6 +22,11 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+
+;;; Commentary:
+
+;; Adds syntax highlighting and builds the syntax table for GDScript.
 
 ;;; Code:
 
@@ -188,3 +193,5 @@ is used to limit the scan."
 It makes underscores and dots word constituent chars.")
 
 (provide 'gdscript-syntax)
+
+;;; gdscript-syntax.el ends here

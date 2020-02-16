@@ -1,8 +1,8 @@
-;;; gdscript-fill-paragraph.el --- Major mode to add support for Godot's GDScript programming language. -*- lexical-binding: t; -*-
+;;; gdscript-fill-paragraph.el --- GDScript fill paragraph functions -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020 GDQuest, Free Software Foundation, Inc.
 
-;; Author: Nathan Lovato <nathan@gdquest.com>, Fabián E. Gallina <fgallina@gnu.org>
+;; Author: Nathan Lovato <nathan@gdquest.com>
 ;; URL: https://github.com/GDQuest/emacs-gdscript-mode/
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "26.0"))
@@ -10,22 +10,31 @@
 ;; Created: Jan 2020
 ;; Keywords: languages
 
-;; This program is free software; you can redistribute it and/or modify
+
+;; This file is not part of GNU Emacs
+
+;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or
-;; (at your option) any later version.
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
 
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
-;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+;; For a full copy of the GNU General Public License
+;; see <http://www.gnu.org/licenses/>.
+
+
+;;; Commentary:
+
+;; Code to fill paragraphs, fill strings and comments up to the fill-column.
 
 ;;; Code:
 
 (require 'gdscript-customization)
+(require 'gdscript-indent-and-nav)
 
 ;; NOTE: this and the fill docstring function can be simplified. They're
 ;; originally from the Python package, which supports multiple docstrings fill
@@ -62,12 +71,12 @@ Optional argument JUSTIFY defines if the paragraph should be justified."
       (funcall gdscript-fill-paren-function justify))
      (t t))))
 
-(defun gdscript-fill-comment (&optional justify)
+(defun gdscript-fill-paragraph-fill-comment (&optional justify)
   "Comment fill function for `gdscript-fill-paragraph'.
 JUSTIFY should be used (if applicable) as in `fill-paragraph'."
   (fill-comment-paragraph justify))
 
-(defun gdscript-fill-string (&optional justify)
+(defun gdscript-fill-paragraph-fill-string (&optional justify)
   "String fill function for `gdscript-fill-paragraph'.
 JUSTIFY should be used (if applicable) as in `fill-paragraph'."
   (let* ((str-start-pos
@@ -119,7 +128,7 @@ JUSTIFY should be used (if applicable) as in `fill-paragraph'."
              ;; Again indent only if a newline is added.
              (indent-according-to-mode))))) t)
 
-(defun gdscript-fill-paren (&optional justify)
+(defun gdscript-fill-paragraph-fill-paren (&optional justify)
   "Paren fill function for `gdscript-fill-paragraph'.
 JUSTIFY should be used (if applicable) as in `fill-paragraph'."
   (save-restriction
@@ -147,10 +156,12 @@ JUSTIFY should be used (if applicable) as in `fill-paragraph'."
       (goto-char (line-end-position))))
   t)
 
-(defun gdscript-do-auto-fill ()
+(defun gdscript-fill-paragraph-do-auto-fill ()
   "Like `do-auto-fill', but bind `fill-indent-according-to-mode'."
   ;; See Bug#36056.
   (let ((fill-indent-according-to-mode t))
     (do-auto-fill)))
 
 (provide 'gdscript-fill-paragraph)
+
+;;; gdscript-fill-paragraph.el ends here
