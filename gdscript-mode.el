@@ -42,8 +42,11 @@
 (if (version< emacs-version "27")
     (require 'gdscript-rx))
 
+;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.gd\\'" . gdscript-mode))
+;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.tscn\\'" . conf-toml-mode))
+;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.tres\\'" . conf-toml-mode))
 
 (defvar gdscript-mode-map (let ((map (make-sparse-keymap)))
@@ -124,6 +127,7 @@ the last command event was a string delimiter."
     (save-excursion
       (insert (make-string 2 last-command-event)))))
 
+;;;###autoload
 (define-derived-mode gdscript-mode prog-mode "gdscript"
   "Major mode for editing Godot GDScript files."
   (setq-local tab-width gdscript-tab-width)
