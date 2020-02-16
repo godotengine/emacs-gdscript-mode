@@ -8,11 +8,12 @@ This is the initial release of gdscript-mode, which adds support for the [Godot 
 
 Features:
 
-- Syntax highlighting
-- Code folding
-- Imenu
-- Indentation and auto-indentation: tab-based (default) and space-based
-- GDScript code formatting using [gdformat](https://github.com/scony/godot-gdscript-toolkit/)
+- Syntax highlighting.
+- Code folding.
+- Imenu.
+- Indentation and auto-indentation: tab-based (default) and space-based.
+- GDScript code formatting using [gdformat](https://github.com/scony/godot-gdscript-toolkit/).
 - Automatic pairing of parentheses, brackets, etc.
-- Comment wrapping when using fill-paragraph
-- Support for scenes (.tscn), resources (.tres) and GDScript (.gd) files
+- Comment wrapping when using fill-paragraph.
+- Support for scenes (.tscn), resources (.tres) and GDScript (.gd) files.
+- Basic code completion.

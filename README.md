@@ -8,14 +8,15 @@ This is currently a work in progress, and my first time creating an Emacs packag
 
 This mode already features all the essentials:
 
-- Syntax highlighting
-- Code folding
-- [Imenu](https://www.gnu.org/software/emacs/manual/html_node/emacs/Imenu.html)
-- Support for scenes (`.tscn`) and script (`.gd`) files
-- Comment wrapping when using `fill-paragraph`
-- Indentation and auto-indentation: tab-based (default) and space-based
+- Syntax highlighting.
+- Code folding.
+- [Imenu](https://www.gnu.org/software/emacs/manual/html_node/emacs/Imenu.html).
+- Support for scenes (`.tscn`) and script (`.gd`) files.
+- Comment wrapping when using `fill-paragraph`.
+- Indentation and auto-indentation: tab-based (default) and space-based.
 - Automatic pairing of parentheses, brackets, etc.
-- Code formatting using [gdformat](https://github.com/scony/godot-gdscript-toolkit/)
+- Code formatting using [gdformat](https://github.com/scony/godot-gdscript-toolkit/).
+- Auto-completion for all the keywords in the `data/` directory.
 
 ## How to install ##
 
