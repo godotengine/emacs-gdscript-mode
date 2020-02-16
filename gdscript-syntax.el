@@ -30,16 +30,26 @@
 
 ;;; Code:
 
-(defun gdscript--get-package-file-content-as-string (file-path)
+(defun gdscript--get-package-file-content-as-string (file-path-relative)
   "Returns the content of a file in this package as a list of
 strings. Used to retrieve lists of keywords for syntax
-highlighting."
-  (with-temp-buffer
-    (insert-file-contents (concat (file-name-directory (or load-file-name buffer-file-name)) file-path))
-    (split-string (buffer-string) "\n" t)))
+highlighting.
 
-(defconst gdscript-keywords (gdscript--get-package-file-content-as-string "data/keywords.txt"))
-(defconst gdscript-built-in-constants (gdscript--get-package-file-content-as-string "data/built-in-constants.txt"))
+If the file isn't available, the function tries to access the
+file without the directory path. This is for compatibility with
+the Doom Emacs distribution, which flattens the package's
+structure."
+  (with-temp-buffer
+    (setq this-directory (file-name-directory (or load-file-name buffer-file-name)))
+    (setq requested-path (concat this-directory file-path-relative))
+    (setq file-path (if (file-readable-p requested-path)
+                        requested-path
+                      (concat this-directory
+                              (file-name-nondirectory file-path-relative))))
+    (insert-file-contents file-path)
+    (split-string (buffer-string)
+                  "\n"
+                  t)))
 ;; Only contains types that are not classes and that the Godot editor highlights
 ;; like built-in keywords
 (defconst gdscript-built-in-types (gdscript--get-package-file-content-as-string "data/built-in-types.txt"))
