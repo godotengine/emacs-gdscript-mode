@@ -42,7 +42,8 @@
   (let* ((bounds (bounds-of-thing-at-point 'symbol))
          (start (car bounds))
          (end (cdr bounds)))
-    (list start end gdscript--completion-keywords . nil)))
+    (list start end gdscript-completion--all-keywords
+          . nil)))
 
 (provide 'gdscript-completion)
 

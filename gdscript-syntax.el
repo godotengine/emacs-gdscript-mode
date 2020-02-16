@@ -33,14 +33,14 @@ highlighting."
     (insert-file-contents (concat (file-name-directory (or load-file-name buffer-file-name)) file-path))
     (split-string (buffer-string) "\n" t)))
 
-(defvar gdscript-keywords (gdscript--get-package-file-content-as-string "data/keywords.txt"))
-(defvar gdscript-built-in-constants (gdscript--get-package-file-content-as-string "data/built-in-constants.txt"))
+(defconst gdscript-keywords (gdscript--get-package-file-content-as-string "data/keywords.txt"))
+(defconst gdscript-built-in-constants (gdscript--get-package-file-content-as-string "data/built-in-constants.txt"))
 ;; Only contains types that are not classes and that the Godot editor highlights
 ;; like built-in keywords
-(defvar gdscript-built-in-types (gdscript--get-package-file-content-as-string "data/built-in-types.txt"))
-(defvar gdscript-built-in-functions (gdscript--get-package-file-content-as-string "data/built-in-functions.txt"))
+(defconst gdscript-built-in-types (gdscript--get-package-file-content-as-string "data/built-in-types.txt"))
+(defconst gdscript-built-in-functions (gdscript--get-package-file-content-as-string "data/built-in-functions.txt"))
 ;; Contains all engine classes and node types, including vectors, transforms, etc.
-(defvar gdscript-built-in-classes (gdscript--get-package-file-content-as-string "data/built-in-classes.txt"))
+(defconst gdscript-built-in-classes (gdscript--get-package-file-content-as-string "data/built-in-classes.txt"))
 
 (defun regex-maker (words)
   (regexp-opt words 'symbols))
