@@ -40,16 +40,17 @@ file without the directory path. This is for compatibility with
 the Doom Emacs distribution, which flattens the package's
 structure."
   (with-temp-buffer
-    (setq this-directory (file-name-directory "gdscript-mode.el"))
-    (setq requested-path (concat this-directory file-path-relative))
-    (setq file-path (if (file-readable-p requested-path)
-                        requested-path
-                      (concat this-directory
-                              (file-name-nondirectory file-path-relative))))
-    (insert-file-contents file-path)
-    (split-string (buffer-string)
-                  "\n"
-                  t)))
+    (let (this-directory requested-path file-path)
+      (setq this-directory (file-name-directory "gdscript-mode.el"))
+      (setq requested-path (concat this-directory file-path-relative))
+      (setq file-path (if (file-readable-p requested-path)
+                          requested-path
+                        (concat this-directory
+                                (file-name-nondirectory file-path-relative))))
+      (insert-file-contents file-path)
+      (split-string (buffer-string)
+                    "\n"
+                    t))))
 
 
 (defconst gdscript-keywords (eval-when-compile (gdscript--get-file-content-as-string "data/keywords.txt")))
