@@ -61,7 +61,7 @@
   "Keymap for `gdscript-mode'.")
 
 (defun gdscript-hideshow-forward-sexp-function (_arg)
-  "Gdscript specific `forward-sexp' function for `hs-minor-mode'.
+  "Gdscript specific `forward-sexp' function for function `hs-minor-mode'.
 Argument ARG is ignored."
   (gdscript-nav-end-of-defun)
   (unless (gdscript-info-current-line-empty-p)

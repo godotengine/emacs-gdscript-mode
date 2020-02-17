@@ -32,7 +32,10 @@
 ;;; Code:
 
 (defun gdscript-format--run-gdformat (buffer-input buffer-output buffer-error)
-  "Call gdformat process."
+  "Call gdformat process.
+Argument BUFFER-INPUT reference to the input buffer to format.
+Argument BUFFER-OUTPUT the buffer to write the output of the gdformat call.
+Argument BUFFER-ERROR the buffer to write errors to."
   (with-current-buffer buffer-input
     (let ((process (make-process :name "gdformat"
                                  :command (list "gdformat" "-"):buffer

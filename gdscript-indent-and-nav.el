@@ -775,7 +775,7 @@ With optional argument LINE-NUMBER, check that line instead."
         (point-marker))))
 
 (defun gdscript-info-beginning-of-backslash (&optional line-number)
-  "Return the point where the backslashed line starts.
+  "Return the point where the backslashed line start.
 Optional argument LINE-NUMBER forces the line number to check against."
   (save-excursion
       (when line-number
