@@ -34,7 +34,10 @@
 
 (require 'gdscript-syntax)
 
-(defvar-local gdscript-completion--all-keywords (eval-when-compile (append gdscript-keywords gdscript-built-in-classes gdscript-built-in-constants gdscript-built-in-functions gdscript-built-in-types)))
+(defvar-local gdscript-completion--all-keywords
+  (eval-when-compile (append gdscript-keywords gdscript-built-in-classes
+                             gdscript-built-in-constants gdscript-built-in-functions
+                             gdscript-built-in-types)))
 
 (defun gdscript-completion-at-point ()
   "This is the function to be used for the hook `completion-at-point-functions'."
