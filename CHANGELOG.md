@@ -2,6 +2,17 @@
 
 This document lists new features, improvements, changes, and bug fixes in each release of the package.
 
+## GDScript mode 1.0.2 ##
+
+### Changes ###
+
+- Addressed linting and checkdoc errors for a release on the [MELPA](https://melpa.org/) package archive.
+- Split some more of the code to make the code easier to read and to maintain.
+
+### Bug fixes ###
+
+- Fixed `function-definition-void` errors in some cases due to a missing file import.
+
 ## GDScript mode 1.0.1 ##
 
 This minor release fixes a bug with the GDScript keywords.
