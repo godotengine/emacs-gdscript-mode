@@ -1,11 +1,11 @@
-;;; gdscript-syntax.el --- Syntax highlighting for GDScript -*- lexical-binding: t; -*-
+;;; gdscript-indent-and-nav.el --- Syntax highlighting for GDScript -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020 GDQuest, Free Software Foundation, Inc.
 
 ;; Author: Nathan Lovato <nathan@gdquest.com>, Fabián E. Gallina <fgallina@gnu.org>
 ;; URL: https://github.com/GDQuest/emacs-gdscript-mode/
 ;; Version: 1.0.0
-;; Package-Requires: ((emacs "26.0"))
+;; Package-Requires: ((emacs "26.3"))
 ;; Maintainer: nathan@gdquest.com
 ;; Created: Feb 2020
 ;; Keywords: languages
@@ -26,12 +26,17 @@
 
 ;;; Commentary:
 
-;; Sets up the syntax table and font-faces for GDScript.
+;; Functions copies from Emacs 27's built-in python.el to handle indents,
+;; querying info about the language's symbols or the context at point, and for
+;; navigation.
+;; There are dependencies between the *indent*, *info*, and *nav* functions that prevent us from splitting them into separate .el files at the moment.
 
 ;;; Code:
 
 (require 'gdscript-utils)
 (require 'gdscript-rx)
+(require 'gdscript-syntax)
+(require 'cl-lib)
 
 
 ;;; Indentation
@@ -1447,29 +1452,6 @@ This command assumes point is not in a string or comment."
   (interactive "^p")
   (or arg (setq arg 1))
   (gdscript-nav-up-list (- arg)))
-
-(defun gdscript-nav-if-name-main ()
-  "Move point at the beginning the __main__ block.
-When \"if __name__ == \\='__main__\\=':\" is found returns its
-position, else returns nil."
-  (interactive)
-  (let ((point (point))
-        (found (catch 'found
-                 (goto-char (point-min))
-                 (while (re-search-forward
-                         (gdscript-rx line-start
-                                    "if" (+ space)
-                                    "__name__" (+ space)
-                                    "==" (+ space)
-                                    (group-n 1 (or ?\" ?\'))
-                                    "__main__" (backref 1) (* space) ":")
-                         nil t)
-                   (when (not (gdscript-syntax-context-type))
-                     (beginning-of-line)
-                     (throw 'found t))))))
-    (if found
-        (point)
-      (ignore (goto-char point)))))
 
 (provide 'gdscript-indent-and-nav)
 
