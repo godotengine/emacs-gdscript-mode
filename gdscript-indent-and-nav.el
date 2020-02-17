@@ -31,6 +31,7 @@
 ;;; Code:
 
 (require 'gdscript-utils)
+(require 'gdscript-rx)
 
 
 ;;; Indentation

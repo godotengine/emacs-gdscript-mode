@@ -35,6 +35,7 @@
 
 (require 'gdscript-customization)
 (require 'gdscript-indent-and-nav)
+(require 'gdscript-rx)
 
 ;; NOTE: this and the fill docstring function can be simplified. They're
 ;; originally from the Python package, which supports multiple docstrings fill

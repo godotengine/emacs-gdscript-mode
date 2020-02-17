@@ -36,11 +36,8 @@
 (require 'gdscript-imenu)
 (require 'gdscript-fill-paragraph)
 (require 'gdscript-completion)
-
-;; gdscript-rx is a copy of Emacs 27's rx module, to ensure compatibility with
-;; Emacs 26
-(if (version< emacs-version "27")
-    (require 'gdscript-rx))
+(require 'gdscript-format)
+(require 'gdscript-rx)
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.gd\\'" . gdscript-mode))
@@ -59,50 +56,9 @@
                             ;; Indent specific
                             (define-key map "\177" 'gdscript-indent-dedent-line-backspace)
                             (define-key map (kbd "<backtab>") 'gdscript-indent-dedent-line)
+                            (define-key map (kbd "\t") 'company-complete)
                             map)
   "Keymap for `gdscript-mode'.")
-
-;;; GDScript regex
-(defmacro gdscript-rx (&rest regexps)
-  "Gdscript mode specialized rx macro.
-This variant of `rx' supports common Gdscript named REGEXPS."
-  `(rx-let ((block-start       (seq symbol-start
-                                    (or "func" "static" "class" "if" "elif" "else"
-                                        "for" "while" "match")
-                                    symbol-end))
-            (dedenter          (seq symbol-start
-                                    (or "elif" "else")
-                                    symbol-end))
-            (block-ender       (seq symbol-start
-                                    (or "break" "continue" "pass" "return")
-                                    symbol-end))
-            (defun             (seq symbol-start
-                                    (or "func" "class" "static func")
-                                    symbol-end))
-            (symbol-name       (seq (any letter ?_) (* (any word ?_))))
-            (open-paren        (or "{" "[" "("))
-            (close-paren       (or "}" "]" ")"))
-            (simple-operator   (any ?+ ?- ?/ ?& ?^ ?~ ?| ?* ?< ?> ?= ?%))
-            (not-simple-operator (not simple-operator))
-            ;; TODO: clean up operators that don't exist in GDScript
-            (operator          (or "==" ">=" "is" "not"
-                                   "**" "//" "<<" ">>" "<=" "!="
-                                   "+" "-" "/" "&" "^" "~" "|" "*" "<" ">"
-                                   "=" "%"))
-            (assignment-operator (or "+=" "-=" "*=" "/=" "//=" "%=" "**="
-                                     ">>=" "<<=" "&=" "^=" "|="
-                                     "="))
-            (string-delimiter  (seq
-                                ;; Match even number of backslashes.
-                                (or (not (any ?\\ ?\' ?\")) point
-                                    ;; Quotes might be preceded by an
-                                    ;; escaped quote.
-                                    (and (or (not (any ?\\)) point) ?\\
-                                         (* ?\\ ?\\) (any ?\' ?\")))
-                                (* ?\\ ?\\)
-                                ;; Match single or triple quotes of any kind.
-                                (group (or  "\"\"\"" "\"" "'''" "'")))))
-     (rx ,@regexps)))
 
 (defun gdscript-hideshow-forward-sexp-function (_arg)
   "Gdscript specific `forward-sexp' function for `hs-minor-mode'.
