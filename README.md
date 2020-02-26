@@ -5,6 +5,7 @@
 This package adds support for the GDScript programming language from the Godot game engine in Emacs. It gives syntax highlighting and indentations.
 
 This is currently a work in progress, and my first time creating an Emacs package. Feedback, tips, and contributions are more than welcome!
+[Contributors](#contributing) are welcome!
 
 ## Features ##
 
@@ -85,3 +86,14 @@ Set the following variables to customize gdscript-mode:
 (setq gdscript-tabs-mode t) ;; If true, use tabs for indents. Default: t
 (setq gdscript-tab-width 4) ;; Controls the width of tab-based indents
 ```
+
+## Contributing ##
+
+If you find a bug, or would like to suggest an improvement, [open an
+issue](issues/new).
+
+For code style, we follow the [Emacs lisp style
+guide](https://github.com/bbatsov/emacs-lisp-style-guide) by Bozhidar Batsov,
+and the [tips and
+conventions](https://www.gnu.org/software/emacs/manual/html_node/elisp/Tips.html)
+from the Emacs manual.
