@@ -1,10 +1,10 @@
 # GDScript mode for Emacs #
 
-![banner showing the "GDScript mode" title with GDScript code in the background](assets/banner.svg)
+![banner showing the "GDScript mode" title with GDScript code in the
+background](assets/banner.svg)
 
-This package adds support for the GDScript programming language from the Godot game engine in Emacs. It gives syntax highlighting and indentations.
-
-This is currently a work in progress, and my first time creating an Emacs package. Feedback, tips, and contributions are more than welcome!
+This package adds support for the GDScript programming language from the Godot
+game engine in Emacs. It gives syntax highlighting and indentations.
 [Contributors](#contributing) are welcome!
 
 ## Features ##
@@ -18,12 +18,14 @@ This mode already features all the essentials:
 - Comment wrapping when using `fill-paragraph`.
 - Indentation and auto-indentation: tab-based (default) and space-based.
 - Automatic pairing of parentheses, brackets, etc.
-- Code formatting using [gdformat](https://github.com/scony/godot-gdscript-toolkit/).
+- Code formatting using
+  [gdformat](https://github.com/scony/godot-gdscript-toolkit/).
 - Auto-completion for all the keywords in the `data/` directory.
 
 ## How to install ##
 
-As it is in development, the package is not available yet on Emacs package managers.
+As it is in development, the package is not available yet on Emacs package
+managers.
 
 To install it:
 
@@ -37,8 +39,11 @@ To install it:
 
 ### Installing in Spacemacs ###
 
-1. Clone the repository to the `private/local` subdirectory of your `.emacs.d` directory, where you installed spacemacs.
-2. Add the package to the `dotspacemacs-additional-packages` and mark it as local. That's Spacemacs' feature to make it easy to load locally installed packages. 
+1. Clone the repository to the `private/local` subdirectory of your `.emacs.d`
+   directory, where you installed spacemacs.
+2. Add the package to the `dotspacemacs-additional-packages` and mark it as
+   local. That's Spacemacs' feature to make it easy to load locally installed
+   packages.
 
 ```lisp
 dotspacemacs-additional-packages '((gdscript-mode :location local))
@@ -70,9 +75,12 @@ Require the package in your `.doom.d/config.el` file:
 
 ## Formatting with gdformat ##
 
-You can call the `gdscript-format` function to format the current buffer with `gdformat`. This feature requires the python package `gdtoolkit` to be installed and available on the system's PATH variable.
+You can call the `gdscript-format` function to format the current buffer with
+`gdformat`. This feature requires the python package `gdtoolkit` to be installed
+and available on the system's PATH variable.
 
-You can install gdtoolkit using the pip package manager from Python 3. Run this command in your shell to install it:
+You can install gdtoolkit using the pip package manager from Python 3. Run this
+command in your shell to install it:
 
 ```
 pip3 install gdtoolkit
