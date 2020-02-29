@@ -38,6 +38,7 @@
 (require 'gdscript-completion)
 (require 'gdscript-format)
 (require 'gdscript-rx)
+(require 'gdscript-flycheck)
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.gd\\'" . gdscript-mode))
