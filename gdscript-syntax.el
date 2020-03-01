@@ -41,7 +41,7 @@ the Doom Emacs distribution, which flattens the package's
 structure."
   (with-temp-buffer
     (let (this-directory requested-path file-path)
-      (setq this-directory (file-name-directory "gdscript-mode.el"))
+      (setq this-directory (file-name-directory (or load-file-name buffer-file-name)))
       (setq requested-path (concat this-directory file-path-relative))
       (setq file-path (if (file-readable-p requested-path)
                           requested-path
