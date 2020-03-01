@@ -35,3 +35,5 @@ master
 slave
 sync
 in
+true
+false
