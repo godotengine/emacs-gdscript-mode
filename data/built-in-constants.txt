@@ -1,4 +1,4 @@
-PI
-TAU
 INF
 NAN
+PI
+TAU
