@@ -12,6 +12,8 @@ This document lists new features, improvements, changes, and bug fixes in each r
 ### Bug fixes ###
 
 - Fixed `function-definition-void` errors in some cases due to a missing file import.
+- Fixed package loading error in some configurations.
+- Added syntax highlighting for the `in` keyword.
 
 ## GDScript mode 1.0.1 ##
 
