@@ -13,7 +13,8 @@ This document lists new features, improvements, changes, and bug fixes in each r
 
 - Fixed `function-definition-void` errors in some cases due to a missing file import.
 - Fixed package loading error in some configurations.
-- Added syntax highlighting for the `in` keyword.
+- Added syntax highlighting and completion for the following keywords: `in`, `and`, `or`, `not`, `true`, `false`.
+- Fixed incorrect auto-indentation in `match` blocks.
 
 ## GDScript mode 1.0.1 ##
 
