@@ -40,10 +40,10 @@
 (defmacro gdscript-rx (&rest regexps)
   "Gdscript mode specialized rx macro.
 This variant of `rx' supports common Gdscript named REGEXPS."
-  `(rx-let ((block-start       (seq symbol-start
-                                    (or "func" "static" "class" "if" "elif" "else"
-                                        "for" "while" "match")
-                                    symbol-end))
+  `(rx-let ((block-start       (seq (zero-or-more nonl)
+                                    ":"
+                                    (or (seq (zero-or-more " ") eol)
+                                        (seq (zero-or-more " ") "#" (zero-or-more nonl) eol))))
             (dedenter          (seq symbol-start
                                     (or "elif" "else")
                                     symbol-end))
