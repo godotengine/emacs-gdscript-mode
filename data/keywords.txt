@@ -1,3 +1,4 @@
+and
 assert
 break
 breakpoint
@@ -22,6 +23,7 @@ master
 match
 not
 onready
+or
 pass
 preload
 remote
