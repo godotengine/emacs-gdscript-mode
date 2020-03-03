@@ -73,6 +73,19 @@ Require the package in your `.doom.d/config.el` file:
 (require 'gdscript-mode)
 ```
 
+### Installing with `use-package` + `straight.el` ###
+
+Add the call to use-package to your Emacs configuration:
+
+```lisp
+(use-package gdscript-mode
+    :straight (gdscript-mode
+               :type git
+               :host github
+               :repo "GDQuest/emacs-gdscript-mode"
+               :files ("*.el" "data/*.txt")))
+```
+
 ## Formatting with gdformat ##
 
 You can call the `gdscript-format` function to format the current buffer with
