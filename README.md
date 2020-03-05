@@ -22,6 +22,21 @@ This mode already features all the essentials:
   [gdformat](https://github.com/scony/godot-gdscript-toolkit/).
 - Auto-completion for all the keywords in the `data/` directory.
 
+## Contributing ##
+
+Contributors are welcome! Check the [issues tab](issues) for tasks to work on and open a PR anytime.
+
+If you find a bug, or would like to suggest an improvement, [open a new
+issue](issues/new).
+
+For code style, we follow the [Emacs lisp style
+guide](https://github.com/bbatsov/emacs-lisp-style-guide) by Bozhidar Batsov,
+and the [tips and
+conventions](https://www.gnu.org/software/emacs/manual/html_node/elisp/Tips.html)
+from the Emacs manual.
+
+You should also check for errors and linter warnings in your code, e.g. with flymake or flycheck.
+
 ## How to install ##
 
 As it is in development, the package is not available yet on Emacs package
@@ -108,13 +123,3 @@ Set the following variables to customize gdscript-mode:
 (setq gdscript-tab-width 4) ;; Controls the width of tab-based indents
 ```
 
-## Contributing ##
-
-If you find a bug, or would like to suggest an improvement, [open an
-issue](issues/new).
-
-For code style, we follow the [Emacs lisp style
-guide](https://github.com/bbatsov/emacs-lisp-style-guide) by Bozhidar Batsov,
-and the [tips and
-conventions](https://www.gnu.org/software/emacs/manual/html_node/elisp/Tips.html)
-from the Emacs manual.
