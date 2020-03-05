@@ -88,7 +88,7 @@ structure."
 (defvar gdscript-font-lock `((,(regex-maker gdscript-keywords)
                               1
                               font-lock-keyword-face)
-                             (,(regex-maker (concatenate 'list gdscript-built-in-constants
+                             (,(regex-maker (cl-concatenate 'list gdscript-built-in-constants
                                                          gdscript-built-in-types gdscript-built-in-functions))
                               1
                               font-lock-builtin-face)
