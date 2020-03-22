@@ -52,7 +52,7 @@
 ;; Olin Shivers's SRE, with concessions to Emacs regexp peculiarities,
 ;; and the older Emacs package Sregex.
 
-;; The `rx--translate...' functions below return (REGEXP . PRECEDENCE),
+;; The `gdscript-rx--translate...' functions below return (REGEXP . PRECEDENCE),
 ;; where REGEXP is a list of string expressions that will be
 ;; concatenated into a regexp, and PRECEDENCE is one of
 ;;
@@ -73,7 +73,7 @@
 ;;          nil         lowest precedence
 
 
-(defconst rx--char-classes
+(defconst gdscript-rx--char-classes
   '((digit         . digit)
     (numeric       . digit)
     (num           . digit)
@@ -110,9 +110,9 @@
   "Alist mapping rx symbols to character classes.
 Most of the names are from SRE.")
 
-(defvar rx-constituents nil
+(defvar gdscript-rx-constituents nil
   "Alist of old-style rx extensions, for compatibility.
-For new code, use `rx-define', `rx-let' or `rx-let-eval'.
+For new code, use `gdscript-rx-define', `gdscript-rx-let' or `gdscript-rx-let-eval'.
 
 Each element is (SYMBOL . DEF).
 
@@ -129,32 +129,32 @@ If DEF is a list on the form (FUN MIN-ARGS MAX-ARGS PRED), then
    If PRED is non-nil, it is a predicate that all actual arguments must
    satisfy.")
 
-(defvar rx--local-definitions nil
+(defvar gdscript-rx--local-definitions nil
   "Alist of dynamic local rx definitions.
 Each entry is:
  (NAME DEF)      -- NAME is an rx symbol defined as the rx form DEF.
  (NAME ARGS DEF) -- NAME is an rx form with arglist ARGS, defined
                     as the rx form DEF (which can contain members of ARGS).")
 
-(defsubst rx--lookup-def (name)
+(defsubst gdscript-rx--lookup-def (name)
   "Current definition of NAME: (DEF) or (ARGS DEF), or nil if none."
-  (or (cdr (assq name rx--local-definitions))
-      (get name 'rx-definition)))
+  (or (cdr (assq name gdscript-rx--local-definitions))
+      (get name 'gdscript-rx-definition)))
 
-(defun rx--expand-def (form)
+(defun gdscript-rx--expand-def (form)
   "FORM expanded (once) if a user-defined construct; otherwise nil."
   (cond ((symbolp form)
-         (let ((def (rx--lookup-def form)))
+         (let ((def (gdscript-rx--lookup-def form)))
            (and def
                 (if (cdr def)
                     (error "Not an `rx' symbol definition: %s" form)
                   (car def)))))
         ((consp form)
          (let* ((op (car form))
-                (def (rx--lookup-def op)))
+                (def (gdscript-rx--lookup-def op)))
            (and def
                 (if (cdr def)
-                    (rx--expand-template
+                    (gdscript-rx--expand-template
                      op (cdr form) (nth 0 def) (nth 1 def))
                   (error "Not an `rx' form definition: %s" op)))))))
 
@@ -163,14 +163,14 @@ Each entry is:
 ;;   maybe `unordered-or'.  Useful for composition or generation of
 ;;   alternatives; permits more effective use of regexp-opt.
 
-(defun rx--translate-symbol (sym)
+(defun gdscript-rx--translate-symbol (sym)
   "Translate the rx symbol SYM. Return (REGEXP . PRECEDENCE)."
   (pcase sym
     ;; Use `list' instead of a quoted list to wrap the strings here,
     ;; since the return value may be mutated.
     ((or 'nonl 'not-newline 'any) (cons (list ".") t))
     ((or 'anychar 'anything)      (cons (list "[^z-a]") t))
-    ('unmatchable                 (rx--empty))
+    ('unmatchable                 (gdscript-rx--empty))
     ((or 'bol 'line-start)        (cons (list "^") 'lseq))
     ((or 'eol 'line-end)          (cons (list "$") 'rseq))
     ((or 'bos 'string-start 'bot 'buffer-start) (cons (list "\\`") t))
@@ -185,35 +185,35 @@ Each entry is:
     ('not-wordchar                (cons (list "\\W") t))
     (_
      (cond
-      ((let ((class (cdr (assq sym rx--char-classes))))
+      ((let ((class (cdr (assq sym gdscript-rx--char-classes))))
          (and class (cons (list (concat "[[:" (symbol-name class) ":]]")) t))))
 
-      ((let ((expanded (rx--expand-def sym)))
-         (and expanded (rx--translate expanded))))
+      ((let ((expanded (gdscript-rx--expand-def sym)))
+         (and expanded (gdscript-rx--translate expanded))))
 
       ;; For compatibility with old rx.
-      ((let ((entry (assq sym rx-constituents)))
+      ((let ((entry (assq sym gdscript-rx-constituents)))
          (and (progn
                 (while (and entry (not (stringp (cdr entry))))
                   (setq entry
                         (if (symbolp (cdr entry))
                             ;; Alias for another entry.
-                            (assq (cdr entry) rx-constituents)
+                            (assq (cdr entry) gdscript-rx-constituents)
                           ;; Wrong type, try further down the list.
                           (assq (car entry)
-                                (cdr (memq entry rx-constituents))))))
+                                (cdr (memq entry gdscript-rx-constituents))))))
                 entry)
               (cons (list (cdr entry)) nil))))
       (t (error "Unknown rx symbol `%s'" sym))))))
 
-(defun rx--enclose (left-str rexp right-str)
+(defun gdscript-rx--enclose (left-str rexp right-str)
   "Bracket REXP by LEFT-STR and RIGHT-STR."
   (append (list left-str) rexp (list right-str)))
 
-(defun rx--bracket (rexp)
-  (rx--enclose "\\(?:" rexp "\\)"))
+(defun gdscript-rx--bracket (rexp)
+  (gdscript-rx--enclose "\\(?:" rexp "\\)"))
 
-(defun rx--sequence (left right)
+(defun gdscript-rx--sequence (left right)
   "Return the concatenation of LEFT and RIGHT, translated items.
 Each item is of the form (REGEXP . PRECEDENCE), returning (REGEXP . PRECEDENCE)."
   ;; Concatenation rules:
@@ -225,10 +225,10 @@ Each item is of the form (REGEXP . PRECEDENCE), returning (REGEXP . PRECEDENCE).
         ((not (car right)) left)
         (t
          (let ((l (if (memq (cdr left) '(nil rseq))
-                      (cons (rx--bracket (car left)) t)
+                      (cons (gdscript-rx--bracket (car left)) t)
                     left))
                (r (if (memq (cdr right) '(nil lseq))
-                      (cons (rx--bracket (car right)) t)
+                      (cons (gdscript-rx--bracket (car right)) t)
                     right)))
            (cons (append (car l) (car r))
                  (if (eq (cdr l) 'lseq)
@@ -239,29 +239,29 @@ Each item is of the form (REGEXP . PRECEDENCE), returning (REGEXP . PRECEDENCE).
                        'rseq                   ; seq ++ rseq
                      'seq)))))))               ; seq ++ seq
 
-(defun rx--translate-seq (body)
+(defun gdscript-rx--translate-seq (body)
   "Translate the sequence BODY of zero or more rx items.
 Return (REGEXP . PRECEDENCE)."
   (if body
-      (let* ((items (mapcar #'rx--translate body))
+      (let* ((items (mapcar #'gdscript-rx--translate body))
              (result (car items)))
         (dolist (item (cdr items))
-          (setq result (rx--sequence result item)))
+          (setq result (gdscript-rx--sequence result item)))
         result)
     (cons nil 'seq)))
 
-(defun rx--empty ()
+(defun gdscript-rx--empty ()
   "Regexp that never match anything."
   (cons (list "\\`a\\`") 'seq))
 
 ;; `cl-every' replacement to avoid bootstrapping problems.
-(defun rx--every (pred list)
+(defun gdscript-rx--every (pred list)
   "Whether PRED is true for every element of LIST."
   (while (and list (funcall pred (car list)))
     (setq list (cdr list)))
   (null list))
 
-(defun rx--foldl (f x l)
+(defun gdscript-rx--foldl (f x l)
   "(F (F (F X L0) L1) L2) ...
 Left-fold the list L, starting with X, by the binary function F."
   (while l
@@ -269,7 +269,7 @@ Left-fold the list L, starting with X, by the binary function F."
     (setq l (cdr l)))
   x)
 
-(defun rx--translate-or (body)
+(defun gdscript-rx--translate-or (body)
   "Translate the or-pattern BODY of zero or more rx items.
 Return (REGEXP . PRECEDENCE)."
   ;; FIXME: Possible improvements:
@@ -301,37 +301,37 @@ Return (REGEXP . PRECEDENCE)."
   ;; Example: (or "a" (or "abc" "abd" "abe"))
   (cond
    ((null body)                    ; No items: a never-matching regexp.
-    (rx--empty))
+    (gdscript-rx--empty))
    ((null (cdr body))              ; Single item.
-    (rx--translate (car body)))
-   ((rx--every #'stringp body)     ; All strings.
+    (gdscript-rx--translate (car body)))
+   ((gdscript-rx--every #'stringp body)     ; All strings.
     (cons (list (regexp-opt body nil))
           t))
-   ((rx--every #'rx--charset-p body)  ; All charsets.
-    (rx--translate-union nil body))
+   ((gdscript-rx--every #'gdscript-rx--charset-p body)  ; All charsets.
+    (gdscript-rx--translate-union nil body))
    (t
-    (cons (append (car (rx--translate (car body)))
+    (cons (append (car (gdscript-rx--translate (car body)))
                   (mapcan (lambda (item)
-                            (cons "\\|" (car (rx--translate item))))
+                            (cons "\\|" (car (gdscript-rx--translate item))))
                           (cdr body)))
           nil))))
 
-(defun rx--charset-p (form)
+(defun gdscript-rx--charset-p (form)
   "Return t if FORM is like a charset.
 A charset only consists of character intervals and set operations."
   (or (and (consp form)
            (or (and (memq (car form) '(any 'in 'char))
-                    (rx--every (lambda (x) (not (symbolp x))) (cdr form)))
+                    (gdscript-rx--every (lambda (x) (not (symbolp x))) (cdr form)))
                (and (memq (car form) '(not or | intersection))
-                    (rx--every #'rx--charset-p (cdr form)))))
+                    (gdscript-rx--every #'gdscript-rx--charset-p (cdr form)))))
       (characterp form)
       (and (stringp form) (= (length form) 1))
       (and (or (symbolp form) (consp form))
-           (let ((expanded (rx--expand-def form)))
+           (let ((expanded (gdscript-rx--expand-def form)))
              (and expanded
-                  (rx--charset-p expanded))))))
+                  (gdscript-rx--charset-p expanded))))))
 
-(defun rx--string-to-intervals (str)
+(defun gdscript-rx--string-to-intervals (str)
   "Decode STR as intervals.
 A-Z becomes (?A . ?Z), and the single character X becomes (?X .
 ?X). Return the intervals in a list."
@@ -369,7 +369,7 @@ A-Z becomes (?A . ?Z), and the single character X becomes (?X .
              (setq i (+ i 1)))))
     intervals))
 
-(defun rx--condense-intervals (intervals)
+(defun gdscript-rx--condense-intervals (intervals)
   "Merge adjacent and overlapping intervals by mutation, preserving the order.
 INTERVALS is a list of (START . END) with START ≤ END, sorted by START."
   (let ((tail intervals)
@@ -382,7 +382,7 @@ INTERVALS is a list of (START . END) with START ≤ END, sorted by START."
         (setq tail d)))
     intervals))
 
-(defun rx--parse-any (body)
+(defun gdscript-rx--parse-any (body)
   "Parse arguments of an (any ...) construct.
 Return (INTERVALS . CLASSES), where INTERVALS is a sorted list of
 disjoint intervals (each a cons of chars), and CLASSES
@@ -403,18 +403,18 @@ a list of named character classes in the order they occur in BODY."
             ((characterp arg)
              (push (cons arg arg) conses))
             ((and (symbolp arg)
-                  (let ((class (cdr (assq arg rx--char-classes))))
+                  (let ((class (cdr (assq arg gdscript-rx--char-classes))))
                     (and class
                          (or (memq class classes)
                              (progn (push class classes) t))))))
             (t (error "Invalid rx `any' argument: %s" arg))))
-    (cons (rx--condense-intervals
+    (cons (gdscript-rx--condense-intervals
            (sort (append conses
-                         (mapcan #'rx--string-to-intervals strings))
+                         (mapcan #'gdscript-rx--string-to-intervals strings))
                  #'car-less-than-car))
           (reverse classes))))
 
-(defun rx--generate-alt (negated intervals classes)
+(defun gdscript-rx--generate-alt (negated intervals classes)
   "Generate a character alternative.  Return (REGEXP . PRECEDENCE).
 If NEGATED is non-nil, negate the result; INTERVALS is a sorted
 list of disjoint intervals and CLASSES a list of named character
@@ -457,8 +457,8 @@ classes."
      ;; Empty set: if negated, any char, otherwise match-nothing.
      ((null items)
       (if negated
-          (rx--translate-symbol 'anything)
-        (rx--empty)))
+          (gdscript-rx--translate-symbol 'anything)
+        (gdscript-rx--empty)))
      ;; Single non-negated character.
      ((and (null (cdr items))
            (consp (car items))
@@ -486,13 +486,13 @@ classes."
          "]"))
        t)))))
 
-(defun rx--translate-any (negated body)
+(defun gdscript-rx--translate-any (negated body)
   "Translate the (any ...) construct BODY.  Return (REGEXP . PRECEDENCE).
 If NEGATED, negate the sense."
-  (let ((parsed (rx--parse-any body)))
-    (rx--generate-alt negated (car parsed) (cdr parsed))))
+  (let ((parsed (gdscript-rx--parse-any body)))
+    (gdscript-rx--generate-alt negated (car parsed) (cdr parsed))))
 
-(defun rx--intervals-to-alt (negated intervals)
+(defun gdscript-rx--intervals-to-alt (negated intervals)
   "Generate a character alternative from an interval set.
 Return (REGEXP . PRECEDENCE).
 INTERVALS is a sorted list of disjoint intervals.
@@ -501,18 +501,18 @@ If NEGATED, negate the sense."
   ;; complemented form.  This is not just a matter of aesthetics: any
   ;; range from ASCII to raw bytes will automatically exclude the
   ;; entire non-ASCII Unicode range by the regexp engine.
-  (if (rx--every (lambda (iv) (not (<= (car iv) #x3ffeff (cdr iv))))
+  (if (gdscript-rx--every (lambda (iv) (not (<= (car iv) #x3ffeff (cdr iv))))
                  intervals)
-      (rx--generate-alt negated intervals nil)
-    (rx--generate-alt
-     (not negated) (rx--complement-intervals intervals) nil)))
+      (gdscript-rx--generate-alt negated intervals nil)
+    (gdscript-rx--generate-alt
+     (not negated) (gdscript-rx--complement-intervals intervals) nil)))
 
 ;; FIXME: Consider turning `not' into a variadic operator, following SRE:
 ;; (not A B) = (not (or A B)) = (intersection (not A) (not B)), and
 ;; (not) = anychar.
 ;; Maybe allow singleton characters as arguments.
 
-(defun rx--translate-not (negated body)
+(defun gdscript-rx--translate-not (negated body)
   "Translate the (not ...) construct BODY.  Return (REGEXP . PRECEDENCE).
 If NEGATED, negate the sense (thus making it positive)."
   (unless (and body (null (cdr body)))
@@ -522,34 +522,34 @@ If NEGATED, negate the sense (thus making it positive)."
      ((and (consp arg)
            (pcase (car arg)
              ((or 'any 'in 'char)
-              (rx--translate-any      (not negated) (cdr arg)))
+              (gdscript-rx--translate-any      (not negated) (cdr arg)))
              ('syntax
-              (rx--translate-syntax   (not negated) (cdr arg)))
+              (gdscript-rx--translate-syntax   (not negated) (cdr arg)))
              ('category
-              (rx--translate-category (not negated) (cdr arg)))
+              (gdscript-rx--translate-category (not negated) (cdr arg)))
              ('not
-              (rx--translate-not      (not negated) (cdr arg)))
+              (gdscript-rx--translate-not      (not negated) (cdr arg)))
              ((or 'or '|)
-              (rx--translate-union    (not negated) (cdr arg)))
+              (gdscript-rx--translate-union    (not negated) (cdr arg)))
              ('intersection
-              (rx--translate-intersection (not negated) (cdr arg))))))
-     ((let ((class (cdr (assq arg rx--char-classes))))
+              (gdscript-rx--translate-intersection (not negated) (cdr arg))))))
+     ((let ((class (cdr (assq arg gdscript-rx--char-classes))))
         (and class
-             (rx--generate-alt (not negated) nil (list class)))))
+             (gdscript-rx--generate-alt (not negated) nil (list class)))))
      ((eq arg 'word-boundary)
-      (rx--translate-symbol
+      (gdscript-rx--translate-symbol
        (if negated 'word-boundary 'not-word-boundary)))
      ((characterp arg)
-      (rx--generate-alt (not negated) (list (cons arg arg)) nil))
+      (gdscript-rx--generate-alt (not negated) (list (cons arg arg)) nil))
      ((and (stringp arg) (= (length arg) 1))
       (let ((char (string-to-char arg)))
-        (rx--generate-alt (not negated) (list (cons char char)) nil)))
-     ((let ((expanded (rx--expand-def arg)))
+        (gdscript-rx--generate-alt (not negated) (list (cons char char)) nil)))
+     ((let ((expanded (gdscript-rx--expand-def arg)))
         (and expanded
-             (rx--translate-not negated (list expanded)))))
+             (gdscript-rx--translate-not negated (list expanded)))))
      (t (error "Illegal argument to rx `not': %S" arg)))))
 
-(defun rx--complement-intervals (intervals)
+(defun gdscript-rx--complement-intervals (intervals)
   "Complement of the interval list INTERVALS."
   (let ((compl nil)
         (c 0))
@@ -561,7 +561,7 @@ If NEGATED, negate the sense (thus making it positive)."
       (push (cons c (max-char)) compl))
     (nreverse compl)))
 
-(defun rx--intersect-intervals (ivs-a ivs-b)
+(defun gdscript-rx--intersect-intervals (ivs-a ivs-b)
   "Intersection of the interval lists IVS-A and IVS-B."
   (let ((isect nil))
     (while (and ivs-a ivs-b)
@@ -584,72 +584,72 @@ If NEGATED, negate the sense (thus making it positive)."
                        ivs-a)))))))
     (nreverse isect)))
 
-(defun rx--union-intervals (ivs-a ivs-b)
+(defun gdscript-rx--union-intervals (ivs-a ivs-b)
   "Union of the interval lists IVS-A and IVS-B."
-  (rx--complement-intervals
-   (rx--intersect-intervals
-    (rx--complement-intervals ivs-a)
-    (rx--complement-intervals ivs-b))))
+  (gdscript-rx--complement-intervals
+   (gdscript-rx--intersect-intervals
+    (gdscript-rx--complement-intervals ivs-a)
+    (gdscript-rx--complement-intervals ivs-b))))
 
-(defun rx--charset-intervals (charset)
+(defun gdscript-rx--charset-intervals (charset)
   "Return a sorted list of non-adjacent disjoint intervals from CHARSET.
 CHARSET is any expression allowed in a character set expression:
 characters, single-char strings, `any' forms (no classes permitted),
 or `not', `or' or `intersection' forms whose arguments are charsets."
   (pcase charset
     (`(,(or 'any 'in 'char) . ,body)
-     (let ((parsed (rx--parse-any body)))
+     (let ((parsed (gdscript-rx--parse-any body)))
        (when (cdr parsed)
          (error
           "Character class not permitted in set operations: %S"
           (cadr parsed)))
        (car parsed)))
-    (`(not ,x) (rx--complement-intervals (rx--charset-intervals x)))
-    (`(,(or 'or '|) . ,body) (rx--charset-union body))
-    (`(intersection . ,body) (rx--charset-intersection body))
+    (`(not ,x) (gdscript-rx--complement-intervals (gdscript-rx--charset-intervals x)))
+    (`(,(or 'or '|) . ,body) (gdscript-rx--charset-union body))
+    (`(intersection . ,body) (gdscript-rx--charset-intersection body))
     ((pred characterp)
      (list (cons charset charset)))
     ((guard (and (stringp charset) (= (length charset) 1)))
      (let ((char (string-to-char charset)))
        (list (cons char char))))
-    (_ (let ((expanded (rx--expand-def charset)))
+    (_ (let ((expanded (gdscript-rx--expand-def charset)))
          (if expanded
-             (rx--charset-intervals expanded)
+             (gdscript-rx--charset-intervals expanded)
            (error "Bad character set: %S" charset))))))
 
-(defun rx--charset-union (charsets)
+(defun gdscript-rx--charset-union (charsets)
   "Union of CHARSETS, as a set of intervals."
-  (rx--foldl #'rx--union-intervals nil
-             (mapcar #'rx--charset-intervals charsets)))
+  (gdscript-rx--foldl #'gdscript-rx--union-intervals nil
+             (mapcar #'gdscript-rx--charset-intervals charsets)))
 
-(defconst rx--charset-all (list (cons 0 (max-char))))
+(defconst gdscript-rx--charset-all (list (cons 0 (max-char))))
 
-(defun rx--charset-intersection (charsets)
+(defun gdscript-rx--charset-intersection (charsets)
   "Intersection of CHARSETS, as a set of intervals."
-  (rx--foldl #'rx--intersect-intervals rx--charset-all
-             (mapcar #'rx--charset-intervals charsets)))
+  (gdscript-rx--foldl #'gdscript-rx--intersect-intervals gdscript-rx--charset-all
+             (mapcar #'gdscript-rx--charset-intervals charsets)))
 
-(defun rx--translate-union (negated body)
+(defun gdscript-rx--translate-union (negated body)
   "Translate the (or ...) construct of charsets BODY.
 Return (REGEXP . PRECEDENCE). If NEGATED, negate the sense."
-  (rx--intervals-to-alt negated (rx--charset-union body)))
+  (gdscript-rx--intervals-to-alt negated (gdscript-rx--charset-union body)))
 
-(defun rx--translate-intersection (negated body)
+(defun gdscript-rx--translate-intersection (negated body)
   "Translate the (intersection ...) construct BODY.
 Return (REGEXP . PRECEDENCE). If NEGATED, negate the sense."
-  (rx--intervals-to-alt negated (rx--charset-intersection body)))
+  (gdscript-rx--intervals-to-alt negated (gdscript-rx--charset-intersection body)))
 
-(defun rx--atomic-regexp (item)
+(defun gdscript-rx--atomic-regexp (item)
   "ITEM is (REGEXP . PRECEDENCE); return a regexp of precedence t."
   (if (eq (cdr item) t)
       (car item)
-    (rx--bracket (car item))))
+    (gdscript-rx--bracket (car item))))
 
-(defun rx--translate-counted-repetition (min-count max-count body)
-  (let ((operand (rx--translate-seq body)))
+(defun gdscript-rx--translate-counted-repetition (min-count max-count body)
+  (let ((operand (gdscript-rx--translate-seq body)))
     (if (car operand)
         (cons (append
-               (rx--atomic-regexp operand)
+               (gdscript-rx--atomic-regexp operand)
                (list (concat "\\{"
                              (number-to-string min-count)
                              (cond ((null max-count) ",")
@@ -659,7 +659,7 @@ Return (REGEXP . PRECEDENCE). If NEGATED, negate the sense."
               t)
       operand)))
 
-(defun rx--check-repeat-arg (name min-args body)
+(defun gdscript-rx--check-repeat-arg (name min-args body)
   (unless (>= (length body) min-args)
     (error "The rx `%s' requires at least %d argument%s"
            name min-args (if (= min-args 1) "" "s")))
@@ -667,7 +667,7 @@ Return (REGEXP . PRECEDENCE). If NEGATED, negate the sense."
   (unless (natnump (car body))
     (error "The rx `%s' first argument must be nonnegative" name)))
 
-(defun rx--translate-bounded-repetition (name body)
+(defun gdscript-rx--translate-bounded-repetition (name body)
   (let ((min-count (car body))
         (max-count (cadr body))
         (items (cddr body)))
@@ -675,68 +675,68 @@ Return (REGEXP . PRECEDENCE). If NEGATED, negate the sense."
                  (natnump max-count)
                  (<= min-count max-count))
       (error "Range error `%s'" name))
-    (rx--translate-counted-repetition min-count max-count items)))
+    (gdscript-rx--translate-counted-repetition min-count max-count items)))
 
-(defun rx--translate-repeat (body)
-  (rx--check-repeat-arg 'repeat 2 body)
+(defun gdscript-rx--translate-repeat (body)
+  (gdscript-rx--check-repeat-arg 'repeat 2 body)
   (if (= (length body) 2)
-      (rx--translate-counted-repetition (car body) (car body) (cdr body))
-    (rx--translate-bounded-repetition 'repeat body)))
+      (gdscript-rx--translate-counted-repetition (car body) (car body) (cdr body))
+    (gdscript-rx--translate-bounded-repetition 'repeat body)))
 
-(defun rx--translate-** (body)
-  (rx--check-repeat-arg '** 2 body)
-  (rx--translate-bounded-repetition '** body))
+(defun gdscript-rx--translate-** (body)
+  (gdscript-rx--check-repeat-arg '** 2 body)
+  (gdscript-rx--translate-bounded-repetition '** body))
 
-(defun rx--translate->= (body)
-  (rx--check-repeat-arg '>= 1 body)
-  (rx--translate-counted-repetition (car body) nil (cdr body)))
+(defun gdscript-rx--translate->= (body)
+  (gdscript-rx--check-repeat-arg '>= 1 body)
+  (gdscript-rx--translate-counted-repetition (car body) nil (cdr body)))
 
-(defun rx--translate-= (body)
-  (rx--check-repeat-arg '= 1 body)
-  (rx--translate-counted-repetition (car body) (car body) (cdr body)))
+(defun gdscript-rx--translate-= (body)
+  (gdscript-rx--check-repeat-arg '= 1 body)
+  (gdscript-rx--translate-counted-repetition (car body) (car body) (cdr body)))
 
-(defvar rx--greedy t)
+(defvar gdscript-rx--greedy t)
 
-(defun rx--translate-rep (op-string greedy body)
+(defun gdscript-rx--translate-rep (op-string greedy body)
   "Translate the repetition BODY; OP-STRING is one of \"*\", \"+\" or \"?\".
 GREEDY is a boolean.  Return (REGEXP . PRECEDENCE)."
-  (let ((operand (rx--translate-seq body)))
+  (let ((operand (gdscript-rx--translate-seq body)))
     (if (car operand)
-        (cons (append (rx--atomic-regexp operand)
+        (cons (append (gdscript-rx--atomic-regexp operand)
                       (list (concat op-string (unless greedy "?"))))
               ;; The result has precedence seq to avoid (? (* "a")) -> "a*?"
               'seq)
       operand)))
 
-(defun rx--control-greedy (greedy body)
+(defun gdscript-rx--control-greedy (greedy body)
   "Translate the sequence BODY with greediness GREEDY.
 Return (REGEXP . PRECEDENCE)."
-  (let ((rx--greedy greedy))
-    (rx--translate-seq body)))
+  (let ((gdscript-rx--greedy greedy))
+    (gdscript-rx--translate-seq body)))
 
-(defun rx--translate-group (body)
+(defun gdscript-rx--translate-group (body)
   "Translate the `group' form BODY.  Return (REGEXP . PRECEDENCE)."
-  (cons (rx--enclose "\\("
-                     (car (rx--translate-seq body))
+  (cons (gdscript-rx--enclose "\\("
+                     (car (gdscript-rx--translate-seq body))
                      "\\)")
         t))
 
-(defun rx--translate-group-n (body)
+(defun gdscript-rx--translate-group-n (body)
   "Translate the `group-n' form BODY.  Return (REGEXP . PRECEDENCE)."
   (unless (and (integerp (car body)) (> (car body) 0))
     (error "The rx `group-n' requires a positive number as first argument"))
-  (cons (rx--enclose (concat "\\(?" (number-to-string (car body)) ":")
-                     (car (rx--translate-seq (cdr body)))
+  (cons (gdscript-rx--enclose (concat "\\(?" (number-to-string (car body)) ":")
+                     (car (gdscript-rx--translate-seq (cdr body)))
                      "\\)")
         t))
 
-(defun rx--translate-backref (body)
+(defun gdscript-rx--translate-backref (body)
   "Translate the `backref' form BODY.  Return (REGEXP . PRECEDENCE)."
   (unless (and (= (length body) 1) (integerp (car body)) (<= 1 (car body) 9))
     (error "The rx `backref' requires an argument in the range 1..9"))
   (cons (list "\\" (number-to-string (car body))) t))
 
-(defconst rx--syntax-codes
+(defconst gdscript-rx--syntax-codes
   '((whitespace         . ?-)           ; SPC also accepted
     (punctuation        . ?.)
     (word               . ?w)           ; W also accepted
@@ -753,30 +753,30 @@ Return (REGEXP . PRECEDENCE)."
     (string-delimiter   . ?|)
     (comment-delimiter  . ?!)))
 
-(defun rx--translate-syntax (negated body)
+(defun gdscript-rx--translate-syntax (negated body)
   "Translate the `syntax' form BODY.  Return (REGEXP . PRECEDENCE)."
   (unless (and body (null (cdr body)))
     (error "The rx `syntax' form takes exactly one argument"))
   (let* ((sym (car body))
-         (syntax (cdr (assq sym rx--syntax-codes))))
+         (syntax (cdr (assq sym gdscript-rx--syntax-codes))))
     (unless syntax
       (cond
        ;; Syntax character directly (sregex compatibility)
-       ((and (characterp sym) (rassq sym rx--syntax-codes))
+       ((and (characterp sym) (rassq sym gdscript-rx--syntax-codes))
         (setq syntax sym))
        ;; Syntax character as symbol (sregex compatibility)
        ((symbolp sym)
         (let ((name (symbol-name sym)))
           (when (= (length name) 1)
             (let ((char (string-to-char name)))
-              (when (rassq char rx--syntax-codes)
+              (when (rassq char gdscript-rx--syntax-codes)
                 (setq syntax char)))))))
       (unless syntax
         (error "Unknown rx syntax name `%s'" sym)))
     (cons (list (string ?\\ (if negated ?S ?s) syntax))
           t)))
 
-(defconst rx--categories
+(defconst gdscript-rx--categories
   '((space-for-indent           . ?\s)
     (base                       . ?.)
     (consonant                  . ?0)
@@ -822,14 +822,14 @@ Return (REGEXP . PRECEDENCE)."
     (cyrillic                   . ?y)
     (can-break                  . ?|)))
 
-(defun rx--translate-category (negated body)
+(defun gdscript-rx--translate-category (negated body)
   "Translate the `category' form BODY.  Return (REGEXP . PRECEDENCE)."
   (unless (and body (null (cdr body)))
     (error "The rx `category' form takes exactly one argument"))
   (let* ((arg (car body))
          (category
           (cond ((symbolp arg)
-                 (let ((cat (assq arg rx--categories)))
+                 (let ((cat (assq arg gdscript-rx--categories)))
                    (unless cat
                      (error "Unknown rx category `%s'" arg))
                    (cdr cat)))
@@ -838,29 +838,29 @@ Return (REGEXP . PRECEDENCE)."
     (cons (list (string ?\\ (if negated ?C ?c) category))
           t)))
 
-(defvar rx--delayed-evaluation nil
+(defvar gdscript-rx--delayed-evaluation nil
   "Whether to allow certain forms to be evaluated at runtime.")
 
-(defun rx--translate-literal (body)
+(defun gdscript-rx--translate-literal (body)
   "Translate the `literal' form BODY.  Return (REGEXP . PRECEDENCE)."
   (unless (and body (null (cdr body)))
     (error "The rx `literal' form takes exactly one argument"))
   (let ((arg (car body)))
     (cond ((stringp arg)
            (cons (list (regexp-quote arg)) (if (= (length arg) 1) t 'seq)))
-          (rx--delayed-evaluation
+          (gdscript-rx--delayed-evaluation
            (cons (list (list 'regexp-quote arg)) 'seq))
           (t (error "The rx `literal' form with non-string argument")))))
 
-(defun rx--translate-eval (body)
+(defun gdscript-rx--translate-eval (body)
   "Translate the `eval' form BODY.  Return (REGEXP . PRECEDENCE)."
   (unless (and body (null (cdr body)))
     (error "The rx `eval' form takes exactly one argument"))
-  (rx--translate (eval (car body))))
+  (gdscript-rx--translate (eval (car body))))
 
-(defvar rx--regexp-atomic-regexp nil)
+(defvar gdscript-rx--regexp-atomic-regexp nil)
 
-(defun rx--translate-regexp (body)
+(defun gdscript-rx--translate-regexp (body)
   "Translate the `regexp' form BODY.  Return (REGEXP . PRECEDENCE)."
   (unless (and body (null (cdr body)))
     (error "The rx `regexp' form takes exactly one argument"))
@@ -868,12 +868,12 @@ Return (REGEXP . PRECEDENCE)."
     (cond ((stringp arg)
            ;; Generate the regexp when needed, since rx isn't
            ;; necessarily present in the byte-compilation environment.
-           (unless rx--regexp-atomic-regexp
-             (setq rx--regexp-atomic-regexp
+           (unless gdscript-rx--regexp-atomic-regexp
+             (setq gdscript-rx--regexp-atomic-regexp
                    ;; Match atomic (precedence t) regexps: may give
                    ;; false negatives but no false positives, assuming
                    ;; the target string is syntactically correct.
-                   (rx-to-string
+                   (gdscript-rx-to-string
                     '(seq
                       bos
                       (or (seq "["
@@ -893,13 +893,13 @@ Return (REGEXP . PRECEDENCE)."
                       eos)
                     t)))
            (cons (list arg)
-                 (if (string-match-p rx--regexp-atomic-regexp arg) t nil)))
-          (rx--delayed-evaluation
+                 (if (string-match-p gdscript-rx--regexp-atomic-regexp arg) t nil)))
+          (gdscript-rx--delayed-evaluation
            (cons (list arg) nil))
           (t (error "The rx `regexp' form with non-string argument")))))
 
-(defun rx--translate-compat-form (def form)
-  "Translate a compatibility form from `rx-constituents'.
+(defun gdscript-rx--translate-compat-form (def form)
+  "Translate a compatibility form from `gdscript-rx-constituents'.
 DEF is the definition tuple.  Return (REGEXP . PRECEDENCE)."
   (let* ((fn (nth 0 def))
          (min-args (nth 1 def))
@@ -912,7 +912,7 @@ DEF is the definition tuple.  Return (REGEXP . PRECEDENCE)."
     (when (and max-args (> nargs max-args))
       (error "The `%s' form takes at most %d argument(s)"
              (car form) max-args))
-    (when (and predicate (not (rx--every predicate (cdr form))))
+    (when (and predicate (not (gdscript-rx--every predicate (cdr form))))
       (error "The `%s' form requires arguments satisfying `%s'"
              (car form) predicate))
     (let ((regexp (funcall fn form)))
@@ -920,7 +920,7 @@ DEF is the definition tuple.  Return (REGEXP . PRECEDENCE)."
         (error "The `%s' form did not expand to a string" (car form)))
       (cons (list regexp) nil))))
 
-(defun rx--substitute (bindings form)
+(defun gdscript-rx--substitute (bindings form)
   "Substitute BINDINGS in FORM.  BINDINGS is an alist of (NAME . VALUES)
 where VALUES is a list to splice into FORM wherever NAME occurs.
 Return the substitution result wrapped in a list, since a single value
@@ -935,11 +935,11 @@ can expand to any number of values."
              ;; Proper list.  We substitute variables even in the head
              ;; position -- who knows, might be handy one day.
              (list (mapcan (lambda (x) (copy-sequence
-                                        (rx--substitute bindings x)))
+                                        (gdscript-rx--substitute bindings x)))
                            form))
            ;; Cons pair (presumably an interval).
-           (let ((first (rx--substitute bindings (car form)))
-                 (second (rx--substitute bindings (cdr form))))
+           (let ((first (gdscript-rx--substitute bindings (car form)))
+                 (second (gdscript-rx--substitute bindings (cdr form))))
              (if (and first (not (cdr first))
                       second (not (cdr second)))
                  (list (cons (car first) (car second)))
@@ -951,7 +951,7 @@ can expand to any number of values."
 ;; arguments are passed unevaluated to code that returns the rx form
 ;; to use.  Example:
 ;;
-;;   (rx-let ((radix-digit (radix)
+;;   (gdscript-rx-let ((radix-digit (radix)
 ;;             :lisp (list 'any (cons ?0 (+ ?0 (eval radix) -1)))))
 ;;     (rx (radix-digit (+ 5 3))))
 ;; =>
@@ -973,9 +973,9 @@ can expand to any number of values."
 ;; like traditional lisp arglist constructs (defun, defmacro).
 ;; Since it's a Scheme-like syntax, &rest parameters could be done using
 ;; dotted lists:
-;;  (rx-let (((name arg1 arg2 . rest) ...definition...)) ...)
+;;  (gdscript-rx-let (((name arg1 arg2 . rest) ...definition...)) ...)
 
-(defun rx--expand-template (op values arglist template)
+(defun gdscript-rx--expand-template (op values arglist template)
   "Return TEMPLATE with variables in ARGLIST replaced with VALUES."
   (let ((bindings nil)
         (value-tail values)
@@ -1003,79 +1003,79 @@ can expand to any number of values."
       (error
        "Expanding rx def `%s': too many arguments (got %d, need %d)"
        op (length values) (length arglist)))
-    (let ((subst (rx--substitute bindings template)))
+    (let ((subst (gdscript-rx--substitute bindings template)))
       (if (and subst (not (cdr subst)))
           (car subst)
         (error "Expanding rx def `%s': must result in a single value" op)))))
 
-(defun rx--translate-form (form)
+(defun gdscript-rx--translate-form (form)
   "Translate an rx FORM (list structure).  Return (REGEXP . PRECEDENCE)."
   (let ((body (cdr form)))
     (pcase (car form)
-      ((or 'seq : 'and 'sequence) (rx--translate-seq body))
-      ((or 'or '|)              (rx--translate-or body))
-      ((or 'any 'in 'char)      (rx--translate-any nil body))
-      ('not-char                (rx--translate-any t body))
-      ('not                     (rx--translate-not nil body))
-      ('intersection            (rx--translate-intersection nil body))
+      ((or 'seq : 'and 'sequence) (gdscript-rx--translate-seq body))
+      ((or 'or '|)              (gdscript-rx--translate-or body))
+      ((or 'any 'in 'char)      (gdscript-rx--translate-any nil body))
+      ('not-char                (gdscript-rx--translate-any t body))
+      ('not                     (gdscript-rx--translate-not nil body))
+      ('intersection            (gdscript-rx--translate-intersection nil body))
 
-      ('repeat                  (rx--translate-repeat body))
-      ('=                       (rx--translate-= body))
-      ('>=                      (rx--translate->= body))
-      ('**                      (rx--translate-** body))
+      ('repeat                  (gdscript-rx--translate-repeat body))
+      ('=                       (gdscript-rx--translate-= body))
+      ('>=                      (gdscript-rx--translate->= body))
+      ('**                      (gdscript-rx--translate-** body))
 
-      ((or 'zero-or-more '0+)           (rx--translate-rep "*" rx--greedy body))
-      ((or 'one-or-more '1+)            (rx--translate-rep "+" rx--greedy body))
-      ((or 'zero-or-one 'opt 'optional) (rx--translate-rep "?" rx--greedy body))
+      ((or 'zero-or-more '0+)           (gdscript-rx--translate-rep "*" gdscript-rx--greedy body))
+      ((or 'one-or-more '1+)            (gdscript-rx--translate-rep "+" gdscript-rx--greedy body))
+      ((or 'zero-or-one 'opt 'optional) (gdscript-rx--translate-rep "?" gdscript-rx--greedy body))
 
-      ('*                       (rx--translate-rep "*" t body))
-      ('+                       (rx--translate-rep "+" t body))
-      ((or '\? ?\s)             (rx--translate-rep "?" t body))
+      ('*                       (gdscript-rx--translate-rep "*" t body))
+      ('+                       (gdscript-rx--translate-rep "+" t body))
+      ((or '\? ?\s)             (gdscript-rx--translate-rep "?" t body))
 
-      ('*?                      (rx--translate-rep "*" nil body))
-      ('+?                      (rx--translate-rep "+" nil body))
-      ((or '\?? ??)             (rx--translate-rep "?" nil body))
+      ('*?                      (gdscript-rx--translate-rep "*" nil body))
+      ('+?                      (gdscript-rx--translate-rep "+" nil body))
+      ((or '\?? ??)             (gdscript-rx--translate-rep "?" nil body))
 
-      ('minimal-match           (rx--control-greedy nil body))
-      ('maximal-match           (rx--control-greedy t   body))
+      ('minimal-match           (gdscript-rx--control-greedy nil body))
+      ('maximal-match           (gdscript-rx--control-greedy t   body))
 
-      ((or 'group 'submatch)     (rx--translate-group body))
-      ((or 'group-n 'submatch-n) (rx--translate-group-n body))
-      ('backref                  (rx--translate-backref body))
+      ((or 'group 'submatch)     (gdscript-rx--translate-group body))
+      ((or 'group-n 'submatch-n) (gdscript-rx--translate-group-n body))
+      ('backref                  (gdscript-rx--translate-backref body))
 
-      ('syntax                  (rx--translate-syntax nil body))
-      ('not-syntax              (rx--translate-syntax t body))
-      ('category                (rx--translate-category nil body))
+      ('syntax                  (gdscript-rx--translate-syntax nil body))
+      ('not-syntax              (gdscript-rx--translate-syntax t body))
+      ('category                (gdscript-rx--translate-category nil body))
 
-      ('literal                 (rx--translate-literal body))
-      ('eval                    (rx--translate-eval body))
-      ((or 'regexp 'regex)      (rx--translate-regexp body))
+      ('literal                 (gdscript-rx--translate-literal body))
+      ('eval                    (gdscript-rx--translate-eval body))
+      ((or 'regexp 'regex)      (gdscript-rx--translate-regexp body))
 
       (op
        (cond
         ((not (symbolp op)) (error "Bad rx operator `%S'" op))
 
-        ((let ((expanded (rx--expand-def form)))
+        ((let ((expanded (gdscript-rx--expand-def form)))
            (and expanded
-                (rx--translate expanded))))
+                (gdscript-rx--translate expanded))))
 
         ;; For compatibility with old rx.
-        ((let ((entry (assq op rx-constituents)))
+        ((let ((entry (assq op gdscript-rx-constituents)))
            (and (progn
                   (while (and entry (not (consp (cdr entry))))
                     (setq entry
                           (if (symbolp (cdr entry))
                               ;; Alias for another entry.
-                              (assq (cdr entry) rx-constituents)
+                              (assq (cdr entry) gdscript-rx-constituents)
                             ;; Wrong type, try further down the list.
                             (assq (car entry)
-                                  (cdr (memq entry rx-constituents))))))
+                                  (cdr (memq entry gdscript-rx-constituents))))))
                   entry)
-                (rx--translate-compat-form (cdr entry) form))))
+                (gdscript-rx--translate-compat-form (cdr entry) form))))
 
         (t (error "Unknown rx form `%s'" op)))))))
 
-(defconst rx--builtin-forms
+(defconst gdscript-rx--builtin-forms
   '(seq sequence : and or | any in char not-char not intersection
     repeat = >= **
     zero-or-more 0+ *
@@ -1088,22 +1088,22 @@ can expand to any number of values."
     literal eval regexp regex)
   "List of built-in rx function-like symbols.")
 
-(defconst rx--builtin-symbols
+(defconst gdscript-rx--builtin-symbols
   (append '(nonl not-newline any anychar anything unmatchable
             bol eol line-start line-end
             bos eos string-start string-end
             bow eow word-start word-end
             symbol-start symbol-end
             point word-boundary not-word-boundary not-wordchar)
-          (mapcar #'car rx--char-classes))
+          (mapcar #'car gdscript-rx--char-classes))
   "List of built-in rx variable-like symbols.")
 
-(defconst rx--builtin-names
-  (append rx--builtin-forms rx--builtin-symbols)
+(defconst gdscript-rx--builtin-names
+  (append gdscript-rx--builtin-forms gdscript-rx--builtin-symbols)
   "List of built-in rx names.  These cannot be redefined by the user.")
 
-(defun rx--translate (item)
-  "Translate the rx-expression ITEM.  Return (REGEXP . PRECEDENCE)."
+(defun gdscript-rx--translate (item)
+  "Translate the gdscript-rx-expression ITEM.  Return (REGEXP . PRECEDENCE)."
   (cond
    ((stringp item)
     (if (= (length item) 0)
@@ -1112,31 +1112,31 @@ can expand to any number of values."
    ((characterp item)
     (cons (list (regexp-quote (char-to-string item))) t))
    ((symbolp item)
-    (rx--translate-symbol item))
+    (gdscript-rx--translate-symbol item))
    ((consp item)
-    (rx--translate-form item))
+    (gdscript-rx--translate-form item))
    (t (error "Bad rx expression: %S" item))))
 
 
 ;;;###autoload
-(defun rx-to-string (form &optional no-group)
+(defun gdscript-rx-to-string (form &optional no-group)
   "Translate FORM from `rx' sexp syntax into a string regexp.
 The arguments to `literal' and `regexp' forms inside FORM must be
 constant strings.
 If NO-GROUP is non-nil, don't bracket the result in a non-capturing
 group.
 
-For extending the `rx' notation in FORM, use `rx-define' or `rx-let-eval'."
-  (let* ((item (rx--translate form))
+For extending the `rx' notation in FORM, use `gdscript-rx-define' or `gdscript-rx-let-eval'."
+  (let* ((item (gdscript-rx--translate form))
          (exprs (if no-group
                     (car item)
-                  (rx--atomic-regexp item))))
+                  (gdscript-rx--atomic-regexp item))))
     (apply #'concat exprs)))
 
-(defun rx--to-expr (form)
-  "Translate the rx-expression FORM to a Lisp expression yielding a regexp."
-  (let* ((rx--delayed-evaluation t)
-         (elems (car (rx--translate form)))
+(defun gdscript-rx--to-expr (form)
+  "Translate the gdscript-rx-expression FORM to a Lisp expression yielding a regexp."
+  (let* ((gdscript-rx--delayed-evaluation t)
+         (elems (car (gdscript-rx--translate form)))
          (args nil))
     ;; Merge adjacent strings.
     (while elems
@@ -1160,7 +1160,7 @@ For extending the `rx' notation in FORM, use `rx-define' or `rx-let-eval'."
   "Translate regular expressions REGEXPS in sexp form to a regexp string.
 Each argument is one of the forms below; RX is a subform, and RX... stands
 for zero or more RXs.  For details, see Info node `(elisp) Rx Notation'.
-See `rx-to-string' for the corresponding function.
+See `gdscript-rx-to-string' for the corresponding function.
 
 STRING         Match a literal string.
 CHAR           Match a literal character.
@@ -1260,51 +1260,51 @@ Zero-width assertions: these all match the empty string in specific places.
 \(regexp EXPR)  Match the string regexp from evaluating EXPR at run time.
 \(eval EXPR)    Match the rx sexp from evaluating EXPR at compile time.
 
-Additional constructs can be defined using `rx-define' and `rx-let',
+Additional constructs can be defined using `gdscript-rx-define' and `gdscript-rx-let',
 which see.
 
 \(fn REGEXPS...)"
   ;; Retrieve local definitions from the macroexpansion environment.
-  ;; (It's unclear whether the previous value of `rx--local-definitions'
+  ;; (It's unclear whether the previous value of `gdscript-rx--local-definitions'
   ;; should be included, and if so, in which order.)
-  (let ((rx--local-definitions
-         (cdr (assq :rx-locals macroexpand-all-environment))))
-    (rx--to-expr (cons 'seq regexps))))
+  (let ((gdscript-rx--local-definitions
+         (cdr (assq :gdscript-rx-locals macroexpand-all-environment))))
+    (gdscript-rx--to-expr (cons 'seq regexps))))
 
-(defun rx--make-binding (name tail)
+(defun gdscript-rx--make-binding (name tail)
   "Make a definitions entry out of TAIL.
 TAIL is on the form ([ARGLIST] DEFINITION)."
   (unless (symbolp name)
     (error "Bad `rx' definition name: %S" name))
   ;; FIXME: Consider using a hash table or symbol property, for speed.
-  (when (memq name rx--builtin-names)
+  (when (memq name gdscript-rx--builtin-names)
     (error "Cannot redefine built-in rx name `%s'" name))
   (pcase tail
     (`(,def)
      (list def))
     (`(,args ,def)
-     (unless (and (listp args) (rx--every #'symbolp args))
+     (unless (and (listp args) (gdscript-rx--every #'symbolp args))
        (error "Bad argument list for `rx' definition %s: %S" name args))
      (list args def))
     (_ (error "Bad `rx' definition of %s: %S" name tail))))
 
-(defun rx--make-named-binding (bindspec)
+(defun gdscript-rx--make-named-binding (bindspec)
   "Make a definitions entry out of BINDSPEC.
 BINDSPEC is on the form (NAME [ARGLIST] DEFINITION)."
   (unless (consp bindspec)
-    (error "Bad `rx-let' binding: %S" bindspec))
+    (error "Bad `gdscript-rx-let' binding: %S" bindspec))
   (cons (car bindspec)
-        (rx--make-binding (car bindspec) (cdr bindspec))))
+        (gdscript-rx--make-binding (car bindspec) (cdr bindspec))))
 
-(defun rx--extend-local-defs (bindspecs)
-  (append (mapcar #'rx--make-named-binding bindspecs)
-          rx--local-definitions))
+(defun gdscript-rx--extend-local-defs (bindspecs)
+  (append (mapcar #'gdscript-rx--make-named-binding bindspecs)
+          gdscript-rx--local-definitions))
 
 ;;;###autoload
-(defmacro rx-let-eval (bindings &rest body)
-  "Evaluate BODY with local BINDINGS for `rx-to-string'.
+(defmacro gdscript-rx-let-eval (bindings &rest body)
+  "Evaluate BODY with local BINDINGS for `gdscript-rx-to-string'.
 BINDINGS, after evaluation, is a list of definitions each on the form
-\(NAME [(ARGS...)] RX), in effect for calls to `rx-to-string'
+\(NAME [(ARGS...)] RX), in effect for calls to `gdscript-rx-to-string'
 in BODY.
 
 For bindings without an ARGS list, NAME is defined as an alias
@@ -1316,18 +1316,18 @@ whose values are spliced into RX where the parameter name occurs.
 
 Any previous definitions with the same names are shadowed during
 the expansion of BODY only.
-For extensions when using the `rx' macro, use `rx-let'.
-To make global rx extensions, use `rx-define'.
+For extensions when using the `rx' macro, use `gdscript-rx-let'.
+To make global rx extensions, use `gdscript-rx-define'.
 For more details, see Info node `(elisp) Extending Rx'.
 
 \(fn BINDINGS BODY...)"
   (declare (indent 1) (debug (form body)))
-  ;; FIXME: this way, `rx--extend-local-defs' may need to be autoloaded.
-  `(let ((rx--local-definitions (rx--extend-local-defs ,bindings)))
+  ;; FIXME: this way, `gdscript-rx--extend-local-defs' may need to be autoloaded.
+  `(let ((gdscript-rx--local-definitions (gdscript-rx--extend-local-defs ,bindings)))
      ,@body))
 
 ;;;###autoload
-(defmacro rx-let (bindings &rest body)
+(defmacro gdscript-rx-let (bindings &rest body)
   "Evaluate BODY with local BINDINGS for `rx'.
 BINDINGS is an unevaluated list of bindings each on the form
 \(NAME [(ARGS...)] RX).
@@ -1343,20 +1343,20 @@ whose values are spliced into RX where the parameter name occurs.
 
 Any previous definitions with the same names are shadowed during
 the expansion of BODY only.
-For local extensions to `rx-to-string', use `rx-let-eval'.
-To make global rx extensions, use `rx-define'.
+For local extensions to `gdscript-rx-to-string', use `gdscript-rx-let-eval'.
+To make global rx extensions, use `gdscript-rx-define'.
 For more details, see Info node `(elisp) Extending Rx'.
 
 \(fn BINDINGS BODY...)"
   (declare (indent 1) (debug (sexp body)))
-  (let ((prev-locals (cdr (assq :rx-locals macroexpand-all-environment)))
-        (new-locals (mapcar #'rx--make-named-binding bindings)))
+  (let ((prev-locals (cdr (assq :gdscript-rx-locals macroexpand-all-environment)))
+        (new-locals (mapcar #'gdscript-rx--make-named-binding bindings)))
     (macroexpand-all (cons 'progn body)
-                     (cons (cons :rx-locals (append new-locals prev-locals))
+                     (cons (cons :gdscript-rx-locals (append new-locals prev-locals))
                            macroexpand-all-environment))))
 
 ;;;###autoload
-(defmacro rx-define (name &rest definition)
+(defmacro gdscript-rx-define (name &rest definition)
   "Define NAME as a global `rx' definition.
 If the ARGS list is omitted, define NAME as an alias for the `rx'
 expression RX.
@@ -1368,47 +1368,47 @@ ARGS can contain `&rest' parameters, whose values are spliced
 into RX where the parameter name occurs.
 
 Any previous global definition of NAME is overwritten with the new one.
-To make local rx extensions, use `rx-let' for `rx',
-`rx-let-eval' for `rx-to-string'.
+To make local rx extensions, use `gdscript-rx-let' for `rx',
+`gdscript-rx-let-eval' for `gdscript-rx-to-string'.
 For more details, see Info node `(elisp) Extending Rx'.
 
 \(fn NAME [(ARGS...)] RX)"
   (declare (indent 1))
   `(eval-and-compile
-     (put ',name 'rx-definition ',(rx--make-binding name definition))
+     (put ',name 'gdscript-rx-definition ',(gdscript-rx--make-binding name definition))
      ',name))
 
-;; During `rx--pcase-transform', list of defined variables in right-to-left
+;; During `gdscript-rx--pcase-transform', list of defined variables in right-to-left
 ;; order.
-(defvar rx--pcase-vars)
+(defvar gdscript-rx--pcase-vars)
 
 ;; FIXME: The rewriting strategy for pcase works so-so with extensions;
 ;; definitions cannot expand to `let' or named `backref'.  If this ever
 ;; becomes a problem, we can handle those forms in the ordinary parser,
 ;; using a dynamic variable for activating the augmented forms.
 
-(defun rx--pcase-transform (rx)
-  "Transform RX into a plain rx-expression.
-RX is an rx-expression augmented with `let' and named `backref',
- collecting names into `rx--pcase-vars'."
+(defun gdscript-rx--pcase-transform (rx)
+  "Transform RX into a plain gdscript-rx-expression.
+RX is an gdscript-rx-expression augmented with `let' and named `backref',
+ collecting names into `gdscript-rx--pcase-vars'."
   (pcase rx
     (`(let ,name . ,body)
-     (let* ((index (length (memq name rx--pcase-vars)))
+     (let* ((index (length (memq name gdscript-rx--pcase-vars)))
             (i (if (zerop index)
-                   (length (push name rx--pcase-vars))
+                   (length (push name gdscript-rx--pcase-vars))
                  index)))
-       `(group-n ,i ,(rx--pcase-transform (cons 'seq body)))))
+       `(group-n ,i ,(gdscript-rx--pcase-transform (cons 'seq body)))))
     ((and `(backref ,ref)
           (guard (symbolp ref)))
-     (let ((index (length (memq ref rx--pcase-vars))))
+     (let ((index (length (memq ref gdscript-rx--pcase-vars))))
        (when (zerop index)
          (error "The rx `backref' variable must be one of: %s"
-                (mapconcat #'symbol-name rx--pcase-vars " ")))
+                (mapconcat #'symbol-name gdscript-rx--pcase-vars " ")))
        `(backref ,index)))
     ((and `(,head . ,rest)
           (guard (and (symbolp head)
                       (not (memq head '(literal regexp regex eval))))))
-     (cons head (mapcar #'rx--pcase-transform rest)))
+     (cons head (mapcar #'gdscript-rx--pcase-transform rest)))
     (_ rx)))
 
 (pcase-defmacro rx (&rest regexps)
@@ -1427,20 +1427,20 @@ following constructs:
                    REF can be a number, as usual, or a name
                    introduced by a previous (let REF ...)
                    construct."
-  (let* ((rx--pcase-vars nil)
-         (regexp (rx--to-expr (rx--pcase-transform (cons 'seq regexps)))))
+  (let* ((gdscript-rx--pcase-vars nil)
+         (regexp (gdscript-rx--to-expr (gdscript-rx--pcase-transform (cons 'seq regexps)))))
     `(and (pred (string-match ,regexp))
           ,@(let ((i 0))
               (mapcar (lambda (name)
                         (setq i (1+ i))
                         `(app (match-string ,i) ,name))
-                      (reverse rx--pcase-vars))))))
+                      (reverse gdscript-rx--pcase-vars))))))
 
 ;; gdscript-rx's unique code starts here
 (defmacro gdscript-rx (&rest regexps)
   "Gdscript mode specialized rx macro.
 This variant of `rx' supports common Gdscript named REGEXPS."
-  `(rx-let ((block-start       (seq (zero-or-more nonl)
+  `(gdscript-rx-let ((block-start       (seq (zero-or-more nonl)
                                     ":"
                                     (or (seq (zero-or-more " ") eol)
                                         (seq (zero-or-more " ") "#" (zero-or-more nonl) eol))))
