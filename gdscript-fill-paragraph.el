@@ -1,6 +1,6 @@
 ;;; gdscript-fill-paragraph.el --- GDScript fill paragraph functions -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020 GDQuest, Free Software Foundation, Inc.
+;; Copyright (C) 2020 GDQuest
 
 ;; Author: Nathan Lovato <nathan@gdquest.com>
 ;; URL: https://github.com/GDQuest/emacs-gdscript-mode/

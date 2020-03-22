@@ -1,6 +1,6 @@
 ;;; gdscript-customization.el --- Customizable variables for the GDScript language support  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020 GDQuest, Free Software Foundation, Inc.
+;; Copyright (C) 2020 GDQuest
 
 ;; Author: Nathan Lovato <nathan@gdquest.com>
 ;; URL: https://github.com/GDQuest/emacs-gdscript-mode/

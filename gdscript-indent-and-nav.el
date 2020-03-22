@@ -1,6 +1,6 @@
 ;;; gdscript-indent-and-nav.el --- Syntax highlighting for GDScript -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020 GDQuest, Free Software Foundation, Inc.
+;; Copyright (C) 2020 GDQuest
 
 ;; Author: Nathan Lovato <nathan@gdquest.com>, Fabián E. Gallina <fgallina@gnu.org>
 ;; URL: https://github.com/GDQuest/emacs-gdscript-mode/
@@ -39,9 +39,13 @@
 (require 'gdscript-syntax)
 (require 'cl-lib)
 
-
-;;; Indentation
+(defvar gdscript-nav-beginning-of-defun-regexp
+  (gdscript-rx line-start (* space) defun (+ space) (group symbol-name))
+  "Regexp matching class or function definition.
+The name of the defun should be grouped so it can be retrieved
+via `match-string'.")
 
+;;; Indentation
 (defun gdscript-indent-guess-indent-offset ()
   "Guess and set `gdscript-indent-offset' for the current buffer."
   (interactive)
@@ -203,7 +207,7 @@ keyword
                         (skip-syntax-forward " ")
                         (point))))))))
        ;; After backslash.
-       ((let ((start (when (not (gdscript-syntax-comment-or-string-p ppss))
+       ((let ((start (unless (gdscript-syntax-comment-or-string-p ppss)
                        (gdscript-info-line-ends-backslash-p
                         (1- (line-number-at-pos))))))
           (when start
@@ -552,9 +556,7 @@ the line will be re-indented automatically if needed."
                 ;; Reindent region if this is a multiline statement
                 (gdscript-indent-region start end))))))))))
 
-
 ;;; Misc helpers
-
 (defun gdscript-info-current-defun (&optional include-type)
   "Return name of surrounding function with Gdscript compatible dotty syntax.
 Optional argument INCLUDE-TYPE indicates to include the type of the defun.
@@ -615,7 +617,7 @@ since it returns nil if point is not inside a defun."
             (and (= (current-indentation) 0) (throw 'exit t))))
         (and names
              (concat (and type (format "%s " type))
-                     (mapconcat 'identity names ".")))))))
+                     (mapconcat #'identity names ".")))))))
 
 (defun gdscript-info-current-symbol (&optional replace-self)
   "Return current symbol using dotty syntax.
@@ -895,12 +897,6 @@ operator."
 
 ;;; Navigation
 
-(defvar gdscript-nav-beginning-of-defun-regexp
-  (gdscript-rx line-start (* space) defun (+ space) (group symbol-name))
-  "Regexp matching class or function definition.
-The name of the defun should be grouped so it can be retrieved
-via `match-string'.")
-
 (defun gdscript-nav--beginning-of-defun (&optional arg)
   "Internal implementation of `gdscript-nav-beginning-of-defun'.
 With positive ARG search backwards, else search forwards."
@@ -1005,7 +1001,7 @@ be skipped."
                  (throw 'found (point-marker)))
                 ((and newpos context)
                  (setq prev-pos (point)))
-                (t (when (not newpos) (goto-char start-pos))
+                (t (unless newpos (goto-char start-pos))
                    (throw 'found nil))))))))
 
 (defun gdscript-nav--forward-defun (arg)

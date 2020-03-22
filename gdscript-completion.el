@@ -1,6 +1,6 @@
 ;;; gdscript-completion.el --- Autocompletion for GDScript -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020 GDQuest, Free Software Foundation, Inc.
+;; Copyright (C) 2020 GDQuest
 
 ;; Author: Nathan Lovato <nathan@gdquest.com>, Fabián E. Gallina <fgallina@gnu.org>
 ;; URL: https://github.com/GDQuest/emacs-gdscript-mode/
