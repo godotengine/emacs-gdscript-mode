@@ -24,7 +24,7 @@
 ;; GNU General Public License for more details.
 
 ;; For a full copy of the GNU General Public License
-;; see <http://www.gnu.org/licenses/>.
+;; see <https://www.gnu.org/licenses/>.
 
 
 ;;; Commentary:
@@ -40,7 +40,6 @@
 ;; NOTE: this and the fill docstring function can be simplified. They're
 ;; originally from the Python package, which supports multiple docstrings fill
 ;; style.
-(setq-local delimiters-style (cons nil 1))
 
 (defun gdscript-fill-paragraph (&optional justify)
   "`fill-paragraph-function' handling multi-line strings and possibly comments.
@@ -61,8 +60,7 @@ Optional argument JUSTIFY defines if the paragraph should be justified."
       (funcall gdscript-fill-string-function justify))
      ;; Decorators
      ((equal (char-after (save-excursion
-                           (gdscript-nav-beginning-of-statement))) ?@)
-      (funcall gdscript-fill-decorator-function justify))
+                           (gdscript-nav-beginning-of-statement))) ?@))
      ;; Parens
      ((or (gdscript-syntax-context 'paren)
           (looking-at (gdscript-rx open-paren))
@@ -95,39 +93,12 @@ JUSTIFY should be used (if applicable) as in `fill-paragraph'."
             (or (re-search-forward (rx (syntax string-delimiter)) nil t)
                 (goto-char (point-max)))
             (point-marker)))
-         (multi-line-p
-          ;; Docstring styles may vary for oneliners and multi-liners.
-          (> (count-matches "\n" str-start-pos str-end-pos) 0))
          (fill-paragraph-function))
+    
     (save-restriction
       (narrow-to-region str-start-pos str-end-pos)
-      (fill-paragraph justify))
-    (save-excursion
-      (when (and (gdscript-info-docstring-p) gdscript-fill-triple-string-style)
-        ;; Add the number of newlines indicated by the selected style
-        ;; at the start of the docstring.
-        (goto-char (+ str-start-pos num-quotes))
-        (delete-region (point) (progn
-                                 (skip-syntax-forward "> ")
-                                 (point)))
-        (and (car delimiters-style)
-             (or (newline (car delimiters-style)) t)
-             ;; Indent only if a newline is added.
-             (indent-according-to-mode))
-        ;; Add the number of newlines indicated by the selected style
-        ;; at the end of the docstring.
-        (goto-char (if (not (= str-end-pos (point-max)))
-                       (- str-end-pos num-quotes)
-                     str-end-pos))
-        (delete-region (point) (progn
-                                 (skip-syntax-backward "> ")
-                                 (point)))
-        (and (cdr delimiters-style)
-             ;; Add newlines only if string ends.
-             (not (= str-end-pos (point-max)))
-             (or (newline (cdr delimiters-style)) t)
-             ;; Again indent only if a newline is added.
-             (indent-according-to-mode))))) t)
+      (fill-paragraph justify)
+     t)))
 
 (defun gdscript-fill-paragraph-fill-paren (&optional justify)
   "Paren fill function for `gdscript-fill-paragraph'.
@@ -138,9 +109,9 @@ JUSTIFY should be used (if applicable) as in `fill-paragraph'."
                           (goto-char (1- (point))))
                         (line-beginning-position))
                       (progn
-                        (when (not (gdscript-syntax-context 'paren))
+                        (unless (gdscript-syntax-context 'paren)
                           (end-of-line)
-                          (when (not (gdscript-syntax-context 'paren))
+                          (unless (gdscript-syntax-context 'paren)
                             (skip-syntax-backward "^)")))
                         (while (and (gdscript-syntax-context 'paren)
                                     (not (eobp)))

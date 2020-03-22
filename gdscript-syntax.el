@@ -31,8 +31,9 @@
 ;;; Code:
 
 (defun gdscript--get-file-content-as-string (file-path-relative)
-  "Returns the content of a file in this package as a list of
-strings. Used to retrieve lists of keywords for syntax
+  "Return the content of a file in this package as a list of strings.
+FILE-PATH-RELATIVE is the path of the data file to parse relative
+to this package. Used to retrieve lists of keywords for syntax
 highlighting.
 
 If the file isn't available, the function tries to access the

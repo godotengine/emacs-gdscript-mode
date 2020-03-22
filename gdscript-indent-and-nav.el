@@ -33,6 +33,7 @@
 
 ;;; Code:
 
+(require 'gdscript-customization)
 (require 'gdscript-utils)
 (require 'gdscript-rx)
 (require 'gdscript-syntax)
@@ -892,7 +893,6 @@ operator."
                 (* whitespace) line-end))
     (string-equal "" (match-string-no-properties 1))))
 
-
 ;;; Navigation
 
 (defvar gdscript-nav-beginning-of-defun-regexp

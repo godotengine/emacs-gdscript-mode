@@ -24,7 +24,7 @@
 ;; GNU General Public License for more details.
 
 ;; For a full copy of the GNU General Public License
-;; see <http://www.gnu.org/licenses/>.
+;; see <https://www.gnu.org/licenses/>.
 
 
 ;;; Commentary:
@@ -96,6 +96,12 @@ This is the function used by `gdscript-fill-paragraph' to
 fill parens."
   :type 'symbol
   :group 'gdscript)
+
+(defcustom gdscript-indent-def-block-scale 2
+  "Multiplier applied to indentation inside multi-line def blocks."
+  :version "26.1"
+  :type 'integer
+  :safe 'natnump)
 
 (provide 'gdscript-customization)
 
