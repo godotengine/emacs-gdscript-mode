@@ -156,7 +156,6 @@ the last command event was a string delimiter."
 
   (setq-local outline-regexp
               (gdscript-rx (* space) block-start))
-  (setq-local outline-heading-end-regexp ":[^\n]*\n")
   (setq-local outline-level
               #'(lambda ()
                   "`outline-level' function for gdscript mode."
