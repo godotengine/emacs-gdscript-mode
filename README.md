@@ -35,7 +35,17 @@ and the [tips and
 conventions](https://www.gnu.org/software/emacs/manual/html_node/elisp/Tips.html)
 from the Emacs manual.
 
-You should also check for errors and linter warnings in your code, e.g. with flymake or flycheck.
+You should also check for errors and linter warnings in your code. You can do so in Emacs with flymake or flycheck but we recommend running the tool `makem.sh` provided with the repository:
+
+``` sh
+./makem.sh lint-compile
+```
+
+This program will tell you if there is any problem with your code. If there's no output, everything is fine. You can run all tests like so, but note it might give you spelling errors that aren't relevant in this project:
+
+``` sh
+./makem.sh all
+```
 
 ## How to install ##
 
