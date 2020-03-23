@@ -53,7 +53,6 @@ structure."
                     "\n"
                     t))))
 
-
 (defconst gdscript-keywords (eval-when-compile (gdscript--get-file-content-as-string "data/keywords.txt")))
 (defconst gdscript-built-in-constants (eval-when-compile (gdscript--get-file-content-as-string "data/built-in-constants.txt")))
 ;; Only contains types that are not classes and that the Godot editor highlights

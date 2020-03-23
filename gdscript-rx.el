@@ -112,7 +112,8 @@ Most of the names are from SRE.")
 
 (defvar gdscript-rx-constituents nil
   "Alist of old-style rx extensions, for compatibility.
-For new code, use `gdscript-rx-define', `gdscript-rx-let' or `gdscript-rx-let-eval'.
+For new code, use `gdscript-rx-define', `gdscript-rx-let',
+or `gdscript-rx-let-eval'.
 
 Each element is (SYMBOL . DEF).
 
@@ -754,7 +755,8 @@ Return (REGEXP . PRECEDENCE)."
     (comment-delimiter  . ?!)))
 
 (defun gdscript-rx--translate-syntax (negated body)
-  "Translate the `syntax' form BODY.  Return (REGEXP . PRECEDENCE)."
+  "Translate the `syntax' form BODY.  Return (REGEXP . PRECEDENCE).
+If NEGATED, inverse the effect."
   (unless (and body (null (cdr body)))
     (error "The rx `syntax' form takes exactly one argument"))
   (let* ((sym (car body))
@@ -823,7 +825,8 @@ Return (REGEXP . PRECEDENCE)."
     (can-break                  . ?|)))
 
 (defun gdscript-rx--translate-category (negated body)
-  "Translate the `category' form BODY.  Return (REGEXP . PRECEDENCE)."
+  "Translate the `category' form BODY.  Return (REGEXP . PRECEDENCE).
+If NEGATED, inverse the effect."
   (unless (and body (null (cdr body)))
     (error "The rx `category' form takes exactly one argument"))
   (let* ((arg (car body))
@@ -1157,10 +1160,11 @@ For extending the `rx' notation in FORM, use `gdscript-rx-define' or `gdscript-r
 
 ;;;###autoload
 (defmacro rx (&rest regexps)
-  "Translate regular expressions REGEXPS in sexp form to a regexp string.
-Each argument is one of the forms below; RX is a subform, and RX... stands
-for zero or more RXs.  For details, see Info node `(elisp) Rx Notation'.
-See `gdscript-rx-to-string' for the corresponding function.
+  "Translate regex REGEXPS in sexp form to a regexp string.
+Each argument is one of the forms below; RX is a subform, and
+RX... stands for zero or more RXs. For details, see Info
+node `(elisp) Rx Notation'. See `gdscript-rx-to-string' for the
+corresponding function.
 
 STRING         Match a literal string.
 CHAR           Match a literal character.
@@ -1170,7 +1174,8 @@ CHAR           Match a literal character.
 
 \(zero-or-more RX...) Match RXs zero or more times.  Alias: 0+.
 \(one-or-more RX...)  Match RXs one or more times.  Alias: 1+.
-\(zero-or-one RX...)  Match RXs or the empty string.  Alias: opt, optional.
+\(zero-or-one RX...)  Match RXs or the empty string.
+Alias: opt, optional.
 \(* RX...)       Match RXs zero or more times; greedy.
 \(+ RX...)       Match RXs one or more times; greedy.
 \(? RX...)       Match RXs or the empty string; greedy.
@@ -1260,8 +1265,8 @@ Zero-width assertions: these all match the empty string in specific places.
 \(regexp EXPR)  Match the string regexp from evaluating EXPR at run time.
 \(eval EXPR)    Match the rx sexp from evaluating EXPR at compile time.
 
-Additional constructs can be defined using `gdscript-rx-define' and `gdscript-rx-let',
-which see.
+Additional constructs can be defined using `gdscript-rx-define' and
+`gdscript-rx-let',which see.
 
 \(fn REGEXPS...)"
   ;; Retrieve local definitions from the macroexpansion environment.
@@ -1272,7 +1277,7 @@ which see.
     (gdscript-rx--to-expr (cons 'seq regexps))))
 
 (defun gdscript-rx--make-binding (name tail)
-  "Make a definitions entry out of TAIL.
+  "Make a definitions entry named NAME out of TAIL.
 TAIL is on the form ([ARGLIST] DEFINITION)."
   (unless (symbolp name)
     (error "Bad `rx' definition name: %S" name))
@@ -1358,13 +1363,13 @@ For more details, see Info node `(elisp) Extending Rx'.
 ;;;###autoload
 (defmacro gdscript-rx-define (name &rest definition)
   "Define NAME as a global `rx' definition.
-If the ARGS list is omitted, define NAME as an alias for the `rx'
+If the DEFINITION args list is omitted, define NAME as an alias for the `rx'
 expression RX.
 
-If the ARGS list is supplied, define NAME as an `rx' form with
-ARGS as argument list.  The parameters are bound from the values
+If the args list is supplied, define NAME as an `rx' form with
+args as argument list.  The parameters are bound from the values
 in the (NAME ...) form and are substituted in RX.
-ARGS can contain `&rest' parameters, whose values are spliced
+args can contain `&rest' parameters, whose values are spliced
 into RX where the parameter name occurs.
 
 Any previous global definition of NAME is overwritten with the new one.
@@ -1372,7 +1377,7 @@ To make local rx extensions, use `gdscript-rx-let' for `rx',
 `gdscript-rx-let-eval' for `gdscript-rx-to-string'.
 For more details, see Info node `(elisp) Extending Rx'.
 
-\(fn NAME [(ARGS...)] RX)"
+\(fn NAME [(args...)] RX)"
   (declare (indent 1))
   `(eval-and-compile
      (put ',name 'gdscript-rx-definition ',(gdscript-rx--make-binding name definition))
@@ -1411,7 +1416,7 @@ RX is an gdscript-rx-expression augmented with `let' and named `backref',
      (cons head (mapcar #'gdscript-rx--pcase-transform rest)))
     (_ rx)))
 
-(pcase-defmacro rx (&rest regexps)
+(pcase-defmacro gdscript-rx (&rest regexps)
   "A pattern that matches strings against `rx' REGEXPS in sexp form.
 REGEXPS are interpreted as in `rx'.  The pattern matches any
 string that is a match for REGEXPS, as if by `string-match'.

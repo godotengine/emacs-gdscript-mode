@@ -30,6 +30,8 @@
 
 ;;; Code:
 
+(require 'gdscript-syntax)
+
 (defun gdscript--util-goto-line (line-number)
   "Move point to LINE-NUMBER."
   (goto-char (point-min))

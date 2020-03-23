@@ -30,6 +30,8 @@
 
 ;;; Code:
 
+(require 'gdscript-indent-and-nav)
+
 (defvar gdscript-imenu-format-item-label-function
   'gdscript-imenu-format-item-label
   "Imenu function used to format an item label.
