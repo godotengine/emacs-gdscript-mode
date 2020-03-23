@@ -70,7 +70,7 @@ Argument BUFFER-ERROR the buffer to write errors to."
         (erase-buffer)))
     (condition-case err
         (if (/= 0 (gdscript-format--run-gdformat buffer-start buffer-temp
-                                         buffer-error))
+                                                 buffer-error))
             (error "GDSCript formatter: failed, see buffer %s for details"
                    (buffer-name buffer-error))
           (if (/= 0 (compare-buffer-substrings buffer-temp nil

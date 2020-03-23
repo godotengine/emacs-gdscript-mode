@@ -98,7 +98,7 @@ JUSTIFY should be used (if applicable) as in `fill-paragraph'."
     (save-restriction
       (narrow-to-region str-start-pos str-end-pos)
       (fill-paragraph justify)
-     t)))
+      t)))
 
 (defun gdscript-fill-paragraph-fill-paren (&optional justify)
   "Paren fill function for `gdscript-fill-paragraph'.

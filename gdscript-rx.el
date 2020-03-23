@@ -503,7 +503,7 @@ If NEGATED, negate the sense."
   ;; range from ASCII to raw bytes will automatically exclude the
   ;; entire non-ASCII Unicode range by the regexp engine.
   (if (gdscript-rx--every (lambda (iv) (not (<= (car iv) #x3ffeff (cdr iv))))
-                 intervals)
+                          intervals)
       (gdscript-rx--generate-alt negated intervals nil)
     (gdscript-rx--generate-alt
      (not negated) (gdscript-rx--complement-intervals intervals) nil)))
@@ -621,14 +621,14 @@ or `not', `or' or `intersection' forms whose arguments are charsets."
 (defun gdscript-rx--charset-union (charsets)
   "Union of CHARSETS, as a set of intervals."
   (gdscript-rx--foldl #'gdscript-rx--union-intervals nil
-             (mapcar #'gdscript-rx--charset-intervals charsets)))
+                      (mapcar #'gdscript-rx--charset-intervals charsets)))
 
 (defconst gdscript-rx--charset-all (list (cons 0 (max-char))))
 
 (defun gdscript-rx--charset-intersection (charsets)
   "Intersection of CHARSETS, as a set of intervals."
   (gdscript-rx--foldl #'gdscript-rx--intersect-intervals gdscript-rx--charset-all
-             (mapcar #'gdscript-rx--charset-intervals charsets)))
+                      (mapcar #'gdscript-rx--charset-intervals charsets)))
 
 (defun gdscript-rx--translate-union (negated body)
   "Translate the (or ...) construct of charsets BODY.
@@ -718,8 +718,8 @@ Return (REGEXP . PRECEDENCE)."
 (defun gdscript-rx--translate-group (body)
   "Translate the `group' form BODY.  Return (REGEXP . PRECEDENCE)."
   (cons (gdscript-rx--enclose "\\("
-                     (car (gdscript-rx--translate-seq body))
-                     "\\)")
+                              (car (gdscript-rx--translate-seq body))
+                              "\\)")
         t))
 
 (defun gdscript-rx--translate-group-n (body)
@@ -727,8 +727,8 @@ Return (REGEXP . PRECEDENCE)."
   (unless (and (integerp (car body)) (> (car body) 0))
     (error "The rx `group-n' requires a positive number as first argument"))
   (cons (gdscript-rx--enclose (concat "\\(?" (number-to-string (car body)) ":")
-                     (car (gdscript-rx--translate-seq (cdr body)))
-                     "\\)")
+                              (car (gdscript-rx--translate-seq (cdr body)))
+                              "\\)")
         t))
 
 (defun gdscript-rx--translate-backref (body)
@@ -1080,24 +1080,24 @@ can expand to any number of values."
 
 (defconst gdscript-rx--builtin-forms
   '(seq sequence : and or | any in char not-char not intersection
-    repeat = >= **
-    zero-or-more 0+ *
-    one-or-more 1+ +
-    zero-or-one opt optional \?
-    *? +? \??
-    minimal-match maximal-match
-    group submatch group-n submatch-n backref
-    syntax not-syntax category
-    literal eval regexp regex)
+        repeat = >= **
+        zero-or-more 0+ *
+        one-or-more 1+ +
+        zero-or-one opt optional \?
+        *? +? \??
+        minimal-match maximal-match
+        group submatch group-n submatch-n backref
+        syntax not-syntax category
+        literal eval regexp regex)
   "List of built-in rx function-like symbols.")
 
 (defconst gdscript-rx--builtin-symbols
   (append '(nonl not-newline any anychar anything unmatchable
-            bol eol line-start line-end
-            bos eos string-start string-end
-            bow eow word-start word-end
-            symbol-start symbol-end
-            point word-boundary not-word-boundary not-wordchar)
+                 bol eol line-start line-end
+                 bos eos string-start string-end
+                 bow eow word-start word-end
+                 symbol-start symbol-end
+                 point word-boundary not-word-boundary not-wordchar)
           (mapcar #'car gdscript-rx--char-classes))
   "List of built-in rx variable-like symbols.")
 
@@ -1446,41 +1446,41 @@ following constructs:
   "Gdscript mode specialized rx macro.
 This variant of `rx' supports common Gdscript named REGEXPS."
   `(gdscript-rx-let ((block-start       (seq (zero-or-more nonl)
-                                    ":"
-                                    (or (seq (zero-or-more " ") eol)
-                                        (seq (zero-or-more " ") "#" (zero-or-more nonl) eol))))
-            (dedenter          (seq symbol-start
-                                    (or "elif" "else")
-                                    symbol-end))
-            (block-ender       (seq symbol-start
-                                    (or "break" "continue" "pass" "return")
-                                    symbol-end))
-            (defun             (seq symbol-start
-                                    (or "func" "class" "static func")
-                                    symbol-end))
-            (symbol-name       (seq (any letter ?_) (* (any word ?_))))
-            (open-paren        (or "{" "[" "("))
-            (close-paren       (or "}" "]" ")"))
-            (simple-operator   (any ?+ ?- ?/ ?& ?^ ?~ ?| ?* ?< ?> ?= ?%))
-            (not-simple-operator (not simple-operator))
-            ;; TODO: clean up operators that don't exist in GDScript
-            (operator          (or "==" ">=" "is" "not"
-                                   "**" "//" "<<" ">>" "<=" "!="
-                                   "+" "-" "/" "&" "^" "~" "|" "*" "<" ">"
-                                   "=" "%"))
-            (assignment-operator (or "+=" "-=" "*=" "/=" "//=" "%=" "**="
-                                     ">>=" "<<=" "&=" "^=" "|="
-                                     "="))
-            (string-delimiter  (seq
-                                ;; Match even number of backslashes.
-                                (or (not (any ?\\ ?\' ?\")) point
-                                    ;; Quotes might be preceded by an
-                                    ;; escaped quote.
-                                    (and (or (not (any ?\\)) point) ?\\
-                                         (* ?\\ ?\\) (any ?\' ?\")))
-                                (* ?\\ ?\\)
-                                ;; Match single or triple quotes of any kind.
-                                (group (or  "\"\"\"" "\"" "'''" "'")))))
+                                             ":"
+                                             (or (seq (zero-or-more " ") eol)
+                                                 (seq (zero-or-more " ") "#" (zero-or-more nonl) eol))))
+                     (dedenter          (seq symbol-start
+                                             (or "elif" "else")
+                                             symbol-end))
+                     (block-ender       (seq symbol-start
+                                             (or "break" "continue" "pass" "return")
+                                             symbol-end))
+                     (defun             (seq symbol-start
+                                             (or "func" "class" "static func")
+                                             symbol-end))
+                     (symbol-name       (seq (any letter ?_) (* (any word ?_))))
+                     (open-paren        (or "{" "[" "("))
+                     (close-paren       (or "}" "]" ")"))
+                     (simple-operator   (any ?+ ?- ?/ ?& ?^ ?~ ?| ?* ?< ?> ?= ?%))
+                     (not-simple-operator (not simple-operator))
+                     ;; TODO: clean up operators that don't exist in GDScript
+                     (operator          (or "==" ">=" "is" "not"
+                                            "**" "//" "<<" ">>" "<=" "!="
+                                            "+" "-" "/" "&" "^" "~" "|" "*" "<" ">"
+                                            "=" "%"))
+                     (assignment-operator (or "+=" "-=" "*=" "/=" "//=" "%=" "**="
+                                              ">>=" "<<=" "&=" "^=" "|="
+                                              "="))
+                     (string-delimiter  (seq
+                                         ;; Match even number of backslashes.
+                                         (or (not (any ?\\ ?\' ?\")) point
+                                             ;; Quotes might be preceded by an
+                                             ;; escaped quote.
+                                             (and (or (not (any ?\\)) point) ?\\
+                                                  (* ?\\ ?\\) (any ?\' ?\")))
+                                         (* ?\\ ?\\)
+                                         ;; Match single or triple quotes of any kind.
+                                         (group (or  "\"\"\"" "\"" "'''" "'")))))
      (rx ,@regexps)))
 
 (provide 'gdscript-rx)

@@ -149,142 +149,142 @@ keyword
 :at-dedenter-block-start
  - Point is on a line starting a dedenter block.
  - START is the position where the dedenter block starts."
-    (let ((ppss (save-excursion
-                  (beginning-of-line)
-                  (syntax-ppss))))
-      (cond
-       ;; Beginning of buffer.
-       ((= (line-number-at-pos) 1)
-        (cons :no-indent 0))
-       ;; Inside a string.
-       ((let ((start (gdscript-syntax-context 'string ppss)))
-          (when start
-            (cons :inside-string start))))
-       ;; Inside a paren.
-       ((let* ((start (gdscript-syntax-context 'paren ppss))
-               (starts-in-newline
-                (when start
-                  (save-excursion
-                    (goto-char start)
-                    (forward-char)
-                    (not
-                     (= (line-number-at-pos)
-                        (progn
-                          (gdscript--util-forward-comment)
-                          (line-number-at-pos))))))))
-          (when start
-            (cond
-             ;; Current line only holds the closing paren.
-             ((save-excursion
-                (skip-syntax-forward " ")
-                (when (and (gdscript-syntax-closing-paren-p)
-                           (progn
-                             (forward-char 1)
-                             (not (gdscript-syntax-context 'paren))))
-                  (cons :inside-paren-at-closing-paren start))))
-             ;; Current line only holds a closing paren for nested.
-             ((save-excursion
-                (back-to-indentation)
-                (gdscript-syntax-closing-paren-p))
-              (cons :inside-paren-at-closing-nested-paren start))
-             ;; This line starts from an opening block in its own line.
-             ((save-excursion
-                (goto-char start)
-                (when (and
-                       starts-in-newline
-                       (save-excursion
-                         (back-to-indentation)
-                         (looking-at (gdscript-rx block-start))))
-                  (cons
-                   :inside-paren-newline-start-from-block start))))
+  (let ((ppss (save-excursion
+                (beginning-of-line)
+                (syntax-ppss))))
+    (cond
+     ;; Beginning of buffer.
+     ((= (line-number-at-pos) 1)
+      (cons :no-indent 0))
+     ;; Inside a string.
+     ((let ((start (gdscript-syntax-context 'string ppss)))
+        (when start
+          (cons :inside-string start))))
+     ;; Inside a paren.
+     ((let* ((start (gdscript-syntax-context 'paren ppss))
              (starts-in-newline
-              (cons :inside-paren-newline-start start))
-             ;; General case.
-             (t (cons :inside-paren
-                      (save-excursion
-                        (goto-char (1+ start))
-                        (skip-syntax-forward "(" 1)
-                        (skip-syntax-forward " ")
-                        (point))))))))
-       ;; After backslash.
-       ((let ((start (unless (gdscript-syntax-comment-or-string-p ppss)
-                       (gdscript-info-line-ends-backslash-p
-                        (1- (line-number-at-pos))))))
-          (when start
-            (cond
-             ;; Continuation of dotted expression.
-             ((save-excursion
-                (back-to-indentation)
-                (when (eq (char-after) ?\.)
-                  ;; Move point back until it's not inside a paren.
-                  (while (prog2
-                             (forward-line -1)
-                             (and (not (bobp))
-                                  (gdscript-syntax-context 'paren))))
-                  (goto-char (line-end-position))
-                  (while (and (search-backward
-                               "." (line-beginning-position) t)
-                              (gdscript-syntax-context-type)))
-                  ;; Ensure previous statement has dot to align with.
-                  (when (and (eq (char-after) ?\.)
-                             (not (gdscript-syntax-context-type)))
-                    (cons :after-backslash-dotted-continuation (point))))))
-             ;; Continuation of block definition.
-             ((let ((block-continuation-start
-                     (gdscript-info-block-continuation-line-p)))
-                (when block-continuation-start
-                  (save-excursion
-                    (goto-char block-continuation-start)
-                    (re-search-forward
-                     (gdscript-rx block-start (* space))
-                     (line-end-position) t)
-                    (cons :after-backslash-block-continuation (point))))))
-             ;; Continuation of assignment.
-             ((let ((assignment-continuation-start
-                     (gdscript-info-assignment-continuation-line-p)))
-                (when assignment-continuation-start
-                  (save-excursion
-                    (goto-char assignment-continuation-start)
-                    (cons :after-backslash-assignment-continuation (point))))))
-             ;; First line after backslash continuation start.
-             ((save-excursion
-                (goto-char start)
-                (when (or (= (line-number-at-pos) 1)
-                          (not (gdscript-info-beginning-of-backslash
-                                (1- (line-number-at-pos)))))
-                  (cons :after-backslash-first-line start))))
-             ;; General case.
-             (t (cons :after-backslash start))))))
-       ;; After beginning of block.
-       ((let ((start (save-excursion
+              (when start
+                (save-excursion
+                  (goto-char start)
+                  (forward-char)
+                  (not
+                   (= (line-number-at-pos)
+                      (progn
+                        (gdscript--util-forward-comment)
+                        (line-number-at-pos))))))))
+        (when start
+          (cond
+           ;; Current line only holds the closing paren.
+           ((save-excursion
+              (skip-syntax-forward " ")
+              (when (and (gdscript-syntax-closing-paren-p)
+                         (progn
+                           (forward-char 1)
+                           (not (gdscript-syntax-context 'paren))))
+                (cons :inside-paren-at-closing-paren start))))
+           ;; Current line only holds a closing paren for nested.
+           ((save-excursion
+              (back-to-indentation)
+              (gdscript-syntax-closing-paren-p))
+            (cons :inside-paren-at-closing-nested-paren start))
+           ;; This line starts from an opening block in its own line.
+           ((save-excursion
+              (goto-char start)
+              (when (and
+                     starts-in-newline
+                     (save-excursion
                        (back-to-indentation)
-                       (gdscript--util-forward-comment -1)
-                       (when (equal (char-before) ?:)
-                         (gdscript-nav-beginning-of-block)))))
-          (when start
-            (cons :after-block-start start))))
-       ;; At dedenter statement.
-       ((let ((start (gdscript-info-dedenter-statement-p)))
-          (when start
-            (cons :at-dedenter-block-start start))))
-       ;; After normal line, comment or ender (default case).
-       ((save-excursion
-          (back-to-indentation)
-          (skip-chars-backward " \t\n")
-          (if (bobp)
-              (cons :no-indent 0)
-            (gdscript-nav-beginning-of-statement)
-            (cons
-             (cond ((gdscript-info-current-line-comment-p)
-                    :after-comment)
-                   ((save-excursion
-                      (goto-char (line-end-position))
-                      (gdscript--util-forward-comment -1)
-                      (gdscript-nav-beginning-of-statement)
-                      (looking-at (gdscript-rx block-ender)))
-                    :after-block-end)
-                   (t :after-line))
-             (point))))))))
+                       (looking-at (gdscript-rx block-start))))
+                (cons
+                 :inside-paren-newline-start-from-block start))))
+           (starts-in-newline
+            (cons :inside-paren-newline-start start))
+           ;; General case.
+           (t (cons :inside-paren
+                    (save-excursion
+                      (goto-char (1+ start))
+                      (skip-syntax-forward "(" 1)
+                      (skip-syntax-forward " ")
+                      (point))))))))
+     ;; After backslash.
+     ((let ((start (unless (gdscript-syntax-comment-or-string-p ppss)
+                     (gdscript-info-line-ends-backslash-p
+                      (1- (line-number-at-pos))))))
+        (when start
+          (cond
+           ;; Continuation of dotted expression.
+           ((save-excursion
+              (back-to-indentation)
+              (when (eq (char-after) ?\.)
+                ;; Move point back until it's not inside a paren.
+                (while (prog2
+                           (forward-line -1)
+                           (and (not (bobp))
+                                (gdscript-syntax-context 'paren))))
+                (goto-char (line-end-position))
+                (while (and (search-backward
+                             "." (line-beginning-position) t)
+                            (gdscript-syntax-context-type)))
+                ;; Ensure previous statement has dot to align with.
+                (when (and (eq (char-after) ?\.)
+                           (not (gdscript-syntax-context-type)))
+                  (cons :after-backslash-dotted-continuation (point))))))
+           ;; Continuation of block definition.
+           ((let ((block-continuation-start
+                   (gdscript-info-block-continuation-line-p)))
+              (when block-continuation-start
+                (save-excursion
+                  (goto-char block-continuation-start)
+                  (re-search-forward
+                   (gdscript-rx block-start (* space))
+                   (line-end-position) t)
+                  (cons :after-backslash-block-continuation (point))))))
+           ;; Continuation of assignment.
+           ((let ((assignment-continuation-start
+                   (gdscript-info-assignment-continuation-line-p)))
+              (when assignment-continuation-start
+                (save-excursion
+                  (goto-char assignment-continuation-start)
+                  (cons :after-backslash-assignment-continuation (point))))))
+           ;; First line after backslash continuation start.
+           ((save-excursion
+              (goto-char start)
+              (when (or (= (line-number-at-pos) 1)
+                        (not (gdscript-info-beginning-of-backslash
+                              (1- (line-number-at-pos)))))
+                (cons :after-backslash-first-line start))))
+           ;; General case.
+           (t (cons :after-backslash start))))))
+     ;; After beginning of block.
+     ((let ((start (save-excursion
+                     (back-to-indentation)
+                     (gdscript--util-forward-comment -1)
+                     (when (equal (char-before) ?:)
+                       (gdscript-nav-beginning-of-block)))))
+        (when start
+          (cons :after-block-start start))))
+     ;; At dedenter statement.
+     ((let ((start (gdscript-info-dedenter-statement-p)))
+        (when start
+          (cons :at-dedenter-block-start start))))
+     ;; After normal line, comment or ender (default case).
+     ((save-excursion
+        (back-to-indentation)
+        (skip-chars-backward " \t\n")
+        (if (bobp)
+            (cons :no-indent 0)
+          (gdscript-nav-beginning-of-statement)
+          (cons
+           (cond ((gdscript-info-current-line-comment-p)
+                  :after-comment)
+                 ((save-excursion
+                    (goto-char (line-end-position))
+                    (gdscript--util-forward-comment -1)
+                    (gdscript-nav-beginning-of-statement)
+                    (looking-at (gdscript-rx block-ender)))
+                  :after-block-end)
+                 (t :after-line))
+           (point))))))))
 
 (defun gdscript-indent--calculate-indentation ()
   "Internal implementation of `gdscript-indent-calculate-indentation'.
@@ -292,56 +292,56 @@ May return an integer for the maximum possible indentation at
 current context or a list of integers.  The latter case is only
 happening for :at-dedenter-block-start context since the
 possibilities can be narrowed to specific indentation points."
-    (save-excursion
-      (pcase (gdscript-indent-context)
-        (`(:no-indent . ,_) (prog-first-column)) ; usually 0
-        (`(,(or :after-line
-                :after-comment
-                :inside-string
-                :after-backslash) . ,start)
-         ;; Copy previous indentation.
-         (goto-char start)
-         (current-indentation))
-        (`(,(or :inside-paren-at-closing-paren
-                :inside-paren-at-closing-nested-paren) . ,start)
-         (goto-char (+ 1 start))
-         (if (looking-at "[ \t]*\\(?:#\\|$\\)")
-             ;; Copy previous indentation.
-             (current-indentation)
-           ;; Align with opening paren.
-           (current-column)))
-        (`(,(or :after-block-start
-                :after-backslash-first-line
-                :after-backslash-assignment-continuation
-                :inside-paren-newline-start) . ,start)
-         ;; Add one indentation level.
-         (goto-char start)
-         (+ (current-indentation) gdscript-indent-offset))
-        (`(,(or :inside-paren
-                :after-backslash-block-continuation
-                :after-backslash-dotted-continuation) . ,start)
-         ;; Use the column given by the context.
-         (goto-char start)
-         (current-column))
-        (`(:after-block-end . ,start)
-         ;; Subtract one indentation level.
-         (goto-char start)
-         (- (current-indentation) gdscript-indent-offset))
-        (`(:at-dedenter-block-start . ,_)
-         ;; List all possible indentation levels from opening blocks.
-         (let ((opening-block-start-points
-                (gdscript-info-dedenter-opening-block-positions)))
-           (if (not opening-block-start-points)
-               (prog-first-column) ; if not found default to first column
-             (mapcar (lambda (pos)
-                       (save-excursion
-                         (goto-char pos)
-                         (current-indentation)))
-                     opening-block-start-points))))
-        (`(,(or :inside-paren-newline-start-from-block) . ,start)
-         (goto-char start)
-         (+ (current-indentation)
-            (* gdscript-indent-offset gdscript-indent-def-block-scale))))))
+  (save-excursion
+    (pcase (gdscript-indent-context)
+      (`(:no-indent . ,_) (prog-first-column)) ; usually 0
+      (`(,(or :after-line
+              :after-comment
+              :inside-string
+              :after-backslash) . ,start)
+       ;; Copy previous indentation.
+       (goto-char start)
+       (current-indentation))
+      (`(,(or :inside-paren-at-closing-paren
+              :inside-paren-at-closing-nested-paren) . ,start)
+       (goto-char (+ 1 start))
+       (if (looking-at "[ \t]*\\(?:#\\|$\\)")
+           ;; Copy previous indentation.
+           (current-indentation)
+         ;; Align with opening paren.
+         (current-column)))
+      (`(,(or :after-block-start
+              :after-backslash-first-line
+              :after-backslash-assignment-continuation
+              :inside-paren-newline-start) . ,start)
+       ;; Add one indentation level.
+       (goto-char start)
+       (+ (current-indentation) gdscript-indent-offset))
+      (`(,(or :inside-paren
+              :after-backslash-block-continuation
+              :after-backslash-dotted-continuation) . ,start)
+       ;; Use the column given by the context.
+       (goto-char start)
+       (current-column))
+      (`(:after-block-end . ,start)
+       ;; Subtract one indentation level.
+       (goto-char start)
+       (- (current-indentation) gdscript-indent-offset))
+      (`(:at-dedenter-block-start . ,_)
+       ;; List all possible indentation levels from opening blocks.
+       (let ((opening-block-start-points
+              (gdscript-info-dedenter-opening-block-positions)))
+         (if (not opening-block-start-points)
+             (prog-first-column) ; if not found default to first column
+           (mapcar (lambda (pos)
+                     (save-excursion
+                       (goto-char pos)
+                       (current-indentation)))
+                   opening-block-start-points))))
+      (`(,(or :inside-paren-newline-start-from-block) . ,start)
+       (goto-char start)
+       (+ (current-indentation)
+          (* gdscript-indent-offset gdscript-indent-def-block-scale))))))
 
 (defun gdscript-indent--calculate-levels (indentation)
   "Calculate levels list given INDENTATION.
@@ -414,10 +414,10 @@ indentation levels from right to left."
   "De-indent current line."
   (interactive "*")
   (when (and (not (bolp))
-           (not (gdscript-syntax-comment-or-string-p))
-           (= (current-indentation) (current-column)))
-      (gdscript-indent-line t)
-      t))
+             (not (gdscript-syntax-comment-or-string-p))
+             (= (current-indentation) (current-column)))
+    (gdscript-indent-line t)
+    t))
 
 (defun gdscript-indent-dedent-line-backspace (arg)
   "De-indent current line.
@@ -753,10 +753,10 @@ likely an invalid gdscript file."
   "Message the first line of the block the current statement closes."
   (let ((point (gdscript-info-dedenter-opening-block-position)))
     (when point
-        (message "Closes %s" (save-excursion
-                               (goto-char point)
-                               (buffer-substring
-                                (point) (line-end-position)))))))
+      (message "Closes %s" (save-excursion
+                             (goto-char point)
+                             (buffer-substring
+                              (point) (line-end-position)))))))
 
 (defun gdscript-info-dedenter-statement-p ()
   "Return point if current statement is a dedenter.
@@ -772,61 +772,61 @@ statement."
   "Return non-nil if current line ends with backslash.
 With optional argument LINE-NUMBER, check that line instead."
   (save-excursion
-      (when line-number
-        (gdscript--util-goto-line line-number))
-      (while (and (not (eobp))
-                  (goto-char (line-end-position))
-                  (gdscript-syntax-context 'paren)
-                  (not (equal (char-before (point)) ?\\)))
-        (forward-line 1))
-      (when (equal (char-before) ?\\)
-        (point-marker))))
+    (when line-number
+      (gdscript--util-goto-line line-number))
+    (while (and (not (eobp))
+                (goto-char (line-end-position))
+                (gdscript-syntax-context 'paren)
+                (not (equal (char-before (point)) ?\\)))
+      (forward-line 1))
+    (when (equal (char-before) ?\\)
+      (point-marker))))
 
 (defun gdscript-info-beginning-of-backslash (&optional line-number)
   "Return the point where the backslashed line start.
 Optional argument LINE-NUMBER forces the line number to check against."
   (save-excursion
-      (when line-number
-        (gdscript--util-goto-line line-number))
-      (when (gdscript-info-line-ends-backslash-p)
-        (while (save-excursion
-                 (goto-char (line-beginning-position))
-                 (gdscript-syntax-context 'paren))
-          (forward-line -1))
-        (back-to-indentation)
-        (point-marker))))
+    (when line-number
+      (gdscript--util-goto-line line-number))
+    (when (gdscript-info-line-ends-backslash-p)
+      (while (save-excursion
+               (goto-char (line-beginning-position))
+               (gdscript-syntax-context 'paren))
+        (forward-line -1))
+      (back-to-indentation)
+      (point-marker))))
 
 (defun gdscript-info-continuation-line-p ()
   "Check if current line is continuation of another.
 When current line is continuation of another return the point
 where the continued line ends."
   (save-excursion
-      (let* ((context-type (progn
-                             (back-to-indentation)
-                             (gdscript-syntax-context-type)))
-             (line-start (line-number-at-pos))
-             (context-start (when context-type
-                              (gdscript-syntax-context context-type))))
-        (cond ((equal context-type 'paren)
-               ;; Lines inside a paren are always a continuation line
-               ;; (except the first one).
-               (gdscript--util-forward-comment -1)
-               (point-marker))
-              ((member context-type '(string comment))
-               ;; move forward an roll again
-               (goto-char context-start)
-               (gdscript--util-forward-comment)
-               (gdscript-info-continuation-line-p))
-              (t
-               ;; Not within a paren, string or comment, the only way
-               ;; we are dealing with a continuation line is that
-               ;; previous line contains a backslash, and this can
-               ;; only be the previous line from current
-               (back-to-indentation)
-               (gdscript--util-forward-comment -1)
-               (when (and (equal (1- line-start) (line-number-at-pos))
-                          (gdscript-info-line-ends-backslash-p))
-                 (point-marker)))))))
+    (let* ((context-type (progn
+                           (back-to-indentation)
+                           (gdscript-syntax-context-type)))
+           (line-start (line-number-at-pos))
+           (context-start (when context-type
+                            (gdscript-syntax-context context-type))))
+      (cond ((equal context-type 'paren)
+             ;; Lines inside a paren are always a continuation line
+             ;; (except the first one).
+             (gdscript--util-forward-comment -1)
+             (point-marker))
+            ((member context-type '(string comment))
+             ;; move forward an roll again
+             (goto-char context-start)
+             (gdscript--util-forward-comment)
+             (gdscript-info-continuation-line-p))
+            (t
+             ;; Not within a paren, string or comment, the only way
+             ;; we are dealing with a continuation line is that
+             ;; previous line contains a backslash, and this can
+             ;; only be the previous line from current
+             (back-to-indentation)
+             (gdscript--util-forward-comment -1)
+             (when (and (equal (1- line-start) (line-number-at-pos))
+                        (gdscript-info-line-ends-backslash-p))
+               (point-marker)))))))
 
 (defun gdscript-info-block-continuation-line-p ()
   "Return non-nil if current line is a continuation of a block."
@@ -848,8 +848,8 @@ continuations, just check the if current line is an assignment."
         (gdscript-nav-beginning-of-statement))
       (while (and
               (re-search-forward (gdscript-rx not-simple-operator
-                                            assignment-operator
-                                            (group not-simple-operator))
+                                              assignment-operator
+                                              (group not-simple-operator))
                                  (line-end-position) t)
               (not found))
         (save-excursion
@@ -891,8 +891,8 @@ operator."
     (beginning-of-line 1)
     (looking-at
      (gdscript-rx line-start (* whitespace)
-                (group (* not-newline))
-                (* whitespace) line-end))
+                  (group (* not-newline))
+                  (* whitespace) line-end))
     (string-equal "" (match-string-no-properties 1))))
 
 ;;; Navigation

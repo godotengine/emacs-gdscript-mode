@@ -179,8 +179,8 @@ To this:
     (or alist
         (let* ((fn (lambda (_type name) name))
                (gdscript-imenu-format-item-label-function fn)
-              (gdscript-imenu-format-parent-item-label-function fn)
-              (gdscript-imenu-format-parent-item-jump-label-function fn))
+               (gdscript-imenu-format-parent-item-label-function fn)
+               (gdscript-imenu-format-parent-item-jump-label-function fn))
           (gdscript-imenu-create-index))))))
 
 (provide 'gdscript-imenu)
