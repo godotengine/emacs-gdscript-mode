@@ -30,37 +30,7 @@
 
 ;;; Code:
 
-(defun gdscript--get-file-content-as-string (file-path-relative)
-  "Return the content of a file in this package as a list of strings.
-FILE-PATH-RELATIVE is the path of the data file to parse relative
-to this package. Used to retrieve lists of keywords for syntax
-highlighting.
-
-If the file isn't available, the function tries to access the
-file without the directory path. This is for compatibility with
-the Doom Emacs distribution, which flattens the package's
-structure."
-  (with-temp-buffer
-    (let (this-directory requested-path file-path)
-      (setq this-directory (file-name-directory (or load-file-name buffer-file-name)))
-      (setq requested-path (concat this-directory file-path-relative))
-      (setq file-path (if (file-readable-p requested-path)
-                          requested-path
-                        (concat this-directory
-                                (file-name-nondirectory file-path-relative))))
-      (insert-file-contents file-path)
-      (split-string (buffer-string)
-                    "\n"
-                    t))))
-
-(defconst gdscript-keywords (eval-when-compile (gdscript--get-file-content-as-string "data/keywords.txt")))
-(defconst gdscript-built-in-constants (eval-when-compile (gdscript--get-file-content-as-string "data/built-in-constants.txt")))
-;; Only contains types that are not classes and that the Godot editor highlights
-;; like built-in keywords
-(defconst gdscript-built-in-types (eval-when-compile (gdscript--get-file-content-as-string "data/built-in-types.txt")))
-(defconst gdscript-built-in-functions (eval-when-compile (gdscript--get-file-content-as-string "data/built-in-functions.txt")))
-;; Contains all engine classes and node types, including vectors, transforms, etc.
-(defconst gdscript-built-in-classes (eval-when-compile (gdscript--get-file-content-as-string "data/built-in-classes.txt")))
+(require 'gdscript-keywords)
 
 (defun regex-maker (words)
   (regexp-opt words 'symbols))
@@ -142,7 +112,7 @@ The type returned can be `comment', `string' or `paren'."
    ((rx (or "\"\"\"" "'''"))
     (0 (ignore (gdscript-syntax-stringify))))))
 
-(define-inline gdscript-syntax-count-quotes (quote-char &optional point limit)
+(defun gdscript-syntax-count-quotes (quote-char &optional point limit)
   "Count number of quotes around point (max is 3).
 QUOTE-CHAR is the quote char to count.  Optional argument POINT is
 the point where scan starts (defaults to current point), and LIMIT

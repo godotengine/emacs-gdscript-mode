@@ -1,4 +1,0 @@
-INF
-NAN
-PI
-TAU

@@ -20,7 +20,7 @@ This mode already features all the essentials:
 - Automatic pairing of parentheses, brackets, etc.
 - Code formatting using
   [gdformat](https://github.com/scony/godot-gdscript-toolkit/).
-- Auto-completion for all the keywords in the `data/` directory.
+- Auto-completion for all the keywords in the `gdscript-keywords.el` file.
 
 ## Contributing ##
 
@@ -78,8 +78,7 @@ Add the following package definition to your `.doom.d/packages.el` file:
 ```lisp
 (package! gdscript-mode
           :recipe (:host github
-                   :repo "GDQuest/emacs-gdscript-mode"
-                   :files ("*.el" "data/*.txt")))
+                   :repo "GDQuest/emacs-gdscript-mode"))
 ```
 
 Require the package in your `.doom.d/config.el` file:
@@ -97,8 +96,7 @@ Add the call to use-package to your Emacs configuration:
     :straight (gdscript-mode
                :type git
                :host github
-               :repo "GDQuest/emacs-gdscript-mode"
-               :files ("*.el" "data/*.txt")))
+               :repo "GDQuest/emacs-gdscript-mode"))
 ```
 
 ## Formatting with gdformat ##
