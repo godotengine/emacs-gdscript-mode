@@ -1159,7 +1159,7 @@ For extending the `rx' notation in FORM, use `gdscript-rx-define' or `gdscript-r
 
 
 ;;;###autoload
-(defmacro rx (&rest regexps)
+(defmacro gdscript-rx-build-rx (&rest regexps)
   "Translate regex REGEXPS in sexp form to a regexp string.
 Each argument is one of the forms below; RX is a subform, and
 RX... stands for zero or more RXs. For details, see Info
@@ -1481,7 +1481,7 @@ This variant of `rx' supports common Gdscript named REGEXPS."
                                          (* ?\\ ?\\)
                                          ;; Match single or triple quotes of any kind.
                                          (group (or  "\"\"\"" "\"" "'''" "'")))))
-     (rx ,@regexps)))
+     (gdscript-rx-build-rx ,@regexps)))
 
 (provide 'gdscript-rx)
 
