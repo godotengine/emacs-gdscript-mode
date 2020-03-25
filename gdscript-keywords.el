@@ -1,18 +1,30 @@
 ;;; gdscript-keywords.el --- Cached keywords for the GDScript language -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2020 Nathan
-;;
-;; Author: Nathan <http://github/gdquest>
-;; Maintainer: Nathan <gdquest@pop-os>
-;; Created: March 23, 2020
-;; Modified: March 23, 2020
-;; Version: 0.0.1
-;; Keywords:
-;; Homepage: https://github.com/gdquest/gdscript-keywords
-;; Package-Requires: ((emacs 27.0.90) (cl-lib "0.5"))
-;;
+;; Copyright (C) 2020 GDQuest
+
+;; Author: Nathan Lovato <nathan@gdquest.com>
+;; URL: https://github.com/GDQuest/emacs-gdscript-mode/
+;; Version: 0.1.0
+;; Package-Requires: ((emacs "26.3"))
+;; Maintainer: nathan@gdquest.com
+;; Created: Mar 2020
+;; Keywords: languages
+
 ;; This file is not part of GNU Emacs.
-;;
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 ;;; Commentary:
 ;;
 ;;  Cached keywords for the GDScript language, used for syntax highlighting and auto-completion.
