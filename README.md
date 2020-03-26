@@ -58,7 +58,7 @@ To install it:
 1. In your init.el file, add a call to load and require the package.
 
 ```lisp
-(add-to-list 'load-path "/path/to/gdscript-mode.el")
+(add-to-list 'load-path "/path/to/repository")
 (require 'gdscript-mode)
 ```
 
