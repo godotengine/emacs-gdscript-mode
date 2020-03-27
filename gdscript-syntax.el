@@ -32,7 +32,7 @@
 
 (require 'gdscript-keywords)
 
-(defun regex-maker (words)
+(defun gdscript-syntax-regex-maker (words)
   (regexp-opt words 'symbols))
 
 ;;; Font-lock and syntax
@@ -55,14 +55,14 @@
                       (_ form))))
 
 ;; Controls font-face mappings or colors to highlight groups of keywords
-(defvar gdscript-font-lock `((,(regex-maker gdscript-keywords)
+(defvar gdscript-font-lock `((,(gdscript-syntax-regex-maker gdscript-keywords)
                               1
                               font-lock-keyword-face)
-                             (,(regex-maker (seq-concatenate 'list gdscript-built-in-constants
+                             (,(gdscript-syntax-regex-maker (seq-concatenate 'list gdscript-built-in-constants
                                                              gdscript-built-in-types gdscript-built-in-functions))
                               1
                               font-lock-builtin-face)
-                             (,(regex-maker gdscript-built-in-classes)
+                             (,(gdscript-syntax-regex-maker gdscript-built-in-classes)
                               1
                               font-lock-type-face)
                              (,(rx symbol-start
