@@ -207,7 +207,7 @@ keyword
                       (skip-syntax-forward " ")
                       (point))))))))
      ;; After backslash.
-     ((let ((start (unless (gdscript-syntax-comment-or-string-p ppss)
+     ((let ((start (unless (gdscript-syntax-comment-or-string-p (syntax-ppss))
                      (gdscript-info-line-ends-backslash-p
                       (1- (line-number-at-pos))))))
         (when start
