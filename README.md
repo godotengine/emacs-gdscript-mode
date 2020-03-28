@@ -49,16 +49,15 @@ This program will tell you if there is any problem with your code. If there's no
 
 ## How to install ##
 
-As it is in development, the package is not available yet on Emacs package
-managers.
+The package is available in the MELPA package archive. You can install the package from Emacs:
 
-To install it:
+``` lisp
+M-x package-install gdscript-mode
+```
 
-1. Clone the repository to your computer.
-1. In your init.el file, add a call to load and require the package.
+Then, in your init.el file, you can require the package:
 
 ```lisp
-(add-to-list 'load-path "/path/to/repository")
 (require 'gdscript-mode)
 ```
 
