@@ -30,6 +30,7 @@
 
 ;;; Code:
 
+(require 'cl-lib)
 (require 'gdscript-keywords)
 
 (defun gdscript-syntax-regex-maker (words)
@@ -58,8 +59,8 @@
 (defvar gdscript-font-lock `((,(gdscript-syntax-regex-maker gdscript-keywords)
                               1
                               font-lock-keyword-face)
-                             (,(gdscript-syntax-regex-maker (seq-concatenate 'list gdscript-built-in-constants
-                                                             gdscript-built-in-types gdscript-built-in-functions))
+                             (,(gdscript-syntax-regex-maker (cl-concatenate 'list gdscript-built-in-constants
+                                                                            gdscript-built-in-types gdscript-built-in-functions))
                               1
                               font-lock-builtin-face)
                              (,(gdscript-syntax-regex-maker gdscript-built-in-classes)
