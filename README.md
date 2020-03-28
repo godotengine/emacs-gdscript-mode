@@ -1,4 +1,4 @@
-# GDScript mode for Emacs #
+# GDScript mode for Emacs
 
 ![banner showing the "GDScript mode" title with GDScript code in the
 background](assets/banner.svg)
@@ -7,7 +7,7 @@ This package adds support for the GDScript programming language from the Godot
 game engine in Emacs. It gives syntax highlighting and indentations.
 [Contributors](#contributing) are welcome!
 
-## Features ##
+## Features
 
 This mode already features all the essentials:
 
@@ -22,7 +22,7 @@ This mode already features all the essentials:
   [gdformat](https://github.com/scony/godot-gdscript-toolkit/).
 - Auto-completion for all the keywords in the `gdscript-keywords.el` file.
 
-## Contributing ##
+## Contributing
 
 Contributors are welcome! Check the [issues tab](issues) for tasks to work on and open a PR anytime.
 
@@ -37,21 +37,21 @@ from the Emacs manual.
 
 You should also check for errors and linter warnings in your code. You can do so in Emacs with flymake or flycheck but we recommend running the tool `makem.sh` provided with the repository:
 
-``` sh
+```sh
 ./makem.sh lint-compile
 ```
 
 This program will tell you if there is any problem with your code. If there's no output, everything is fine. You can run all tests like so, but note it might give you spelling errors that aren't relevant in this project:
 
-``` sh
+```sh
 ./makem.sh all
 ```
 
-## How to install ##
+## How to install
 
-The package is available in the MELPA package archive. You can install the package from Emacs:
+The package is available in the [MELPA](https://melpa.org/#/) package archive. Once you [set up MELPA](https://melpa.org/#/getting-started) you can install the package from Emacs:
 
-``` lisp
+```lisp
 M-x package-install gdscript-mode
 ```
 
@@ -61,7 +61,7 @@ Then, in your init.el file, you can require the package:
 (require 'gdscript-mode)
 ```
 
-### Installing in Spacemacs ###
+### Installing in Spacemacs
 
 1. Clone the repository to the `private/local` subdirectory of your `.emacs.d`
    directory, where you installed spacemacs.
@@ -80,7 +80,7 @@ dotspacemacs-additional-packages '((gdscript-mode :location local))
   (require 'gdscript-mode))
 ```
 
-### Installing in Doom Emacs ###
+### Installing in Doom Emacs
 
 Add the following package definition to your `.doom.d/packages.el` file:
 
@@ -96,7 +96,7 @@ Require the package in your `.doom.d/config.el` file:
 (require 'gdscript-mode)
 ```
 
-### Installing with `use-package` + `straight.el` ###
+### Installing with `use-package` + `straight.el`
 
 Add the call to use-package to your Emacs configuration:
 
@@ -108,7 +108,17 @@ Add the call to use-package to your Emacs configuration:
                :repo "GDQuest/emacs-gdscript-mode"))
 ```
 
-## Formatting with gdformat ##
+### Installing manually
+
+1. Clone the repository or download a [stable release](https://github.com/GDQuest/emacs-gdscript-mode/releases) to your computer.
+1. In your init.el file, add a call to load and require the package.
+
+```lisp
+(add-to-list 'load-path "/path/to/gdscript-mode")
+(require 'gdscript-mode)
+```
+
+## Formatting with gdformat
 
 You can call the `gdscript-format` function to format the current buffer with
 `gdformat`. This feature requires the python package `gdtoolkit` to be installed
@@ -121,7 +131,7 @@ command in your shell to install it:
 pip3 install gdtoolkit
 ```
 
-## Customization ##
+## Customization
 
 Set the following variables to customize gdscript-mode:
 
@@ -129,4 +139,3 @@ Set the following variables to customize gdscript-mode:
 (setq gdscript-tabs-mode t) ;; If true, use tabs for indents. Default: t
 (setq gdscript-tab-width 4) ;; Controls the width of tab-based indents
 ```
-
