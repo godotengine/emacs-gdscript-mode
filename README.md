@@ -133,9 +133,15 @@ pip3 install gdtoolkit
 
 ## Customization
 
-Set the following variables to customize gdscript-mode:
+To customize gdscript-mode, either use `M-x customize` or set the variables
+defined in `gdscript-customization`. For example:
 
 ```lisp
-(setq gdscript-tabs-mode t) ;; If true, use tabs for indents. Default: t
-(setq gdscript-tab-width 4) ;; Controls the width of tab-based indents
+(setq gdscript-use-tab-indents t) ;; If true, use tabs for indents. Default: t
+(setq gdscript-indent-offset 4) ;; Controls the width of tab-based indents
+
+;; Path to Godot binary. Default: "godot" (in PATH)
+(setq gdscript-godot-executable "path/to/godot")
+;; Name of the buffer to display the output of Godot process. Default: *Godot*
+(setq gdscript-godot-shell-buffer-name "*Output-Buffer*")
 ```

@@ -90,6 +90,33 @@ allowed files."
                          (list full-file-name))))
                    (directory-files dir-name)))))
 
+(defun gdscript-util--find-project-configuration-path (&optional path)
+  "Return the path where Godot's configuration file (\"project.godot\") is stored.
+
+If PATH is given, starts searching by it. Otherwise, the search
+starts by the current buffer path."
+  ;; This assumes that the project does exist (i.e. it was created before the
+  ;; call). The function will fail if the project is not found.
+  (let ((base-path (or path default-directory)))
+    (locate-dominating-file base-path
+                            (lambda (parent)
+                              (directory-files parent t "project.godot")))))
+
+(defun gdscript-godot--get-file-relative-path-to-project (file-path)
+  "Return the relative path of `file-path' to Godot's configuration file."
+  (concat (file-name-sans-extension
+           (file-relative-name file-path
+                               (gdscript-util--find-project-configuration-path)))))
+
+(defun gdscript-util--get-project-name ()
+  "Retrieve the project name from Godot's configuration file."
+  (with-temp-buffer
+    (insert-file-contents (concat (gdscript-util--find-project-configuration-path) "project.godot"))
+    (goto-char (point-min))
+    (if (re-search-forward "config/name=\"\\([^\"]*\\)\"" nil t)
+        (match-string 1)
+      (error "Could not find the name of the project"))))
+
 (provide 'gdscript-utils)
 
 ;;; gdscript-utils.el ends here

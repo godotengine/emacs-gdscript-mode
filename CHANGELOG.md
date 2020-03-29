@@ -2,6 +2,12 @@
 
 This document lists new features, improvements, changes, and bug fixes in each release of the package.
 
+## GDScript mode 1.0.3 ##
+
+### New features ###
+
+- Added functions to run (start) Godot Engine from Emacs.
+
 ## GDScript mode 1.0.2 ##
 
 ### Changes ###

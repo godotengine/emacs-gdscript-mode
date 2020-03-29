@@ -103,6 +103,19 @@ fill parens."
   :type 'integer
   :safe 'natnump)
 
+(defcustom gdscript-godot-executable "godot"
+  "The path to the Godot executable.
+By default, it assumes that the executable is in the system's
+PATH."
+  :type 'string
+  :group 'gdscript)
+
+(defcustom gdscript-godot-shell-buffer-name "*Godot*"
+  "Default buffer name for Godot running process."
+  :type 'string
+  :group 'gdscript
+  :safe 'stringp)
+
 (provide 'gdscript-customization)
 
 ;;; gdscript-customization.el ends here
