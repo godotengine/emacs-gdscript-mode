@@ -136,6 +136,6 @@ pip3 install gdtoolkit
 Set the following variables to customize gdscript-mode:
 
 ```lisp
-(setq gdscript-tabs-mode t) ;; If true, use tabs for indents. Default: t
-(setq gdscript-tab-width 4) ;; Controls the width of tab-based indents
+(setq gdscript-use-tab-indents t) ;; If true, use tabs for indents. Default: t
+(setq gdscript-indent-offset 4) ;; Controls the width of tab-based indents
 ```
