@@ -21,6 +21,7 @@ This mode already features all the essentials:
 - Code formatting using
   [gdformat](https://github.com/scony/godot-gdscript-toolkit/).
 - Auto-completion for all the keywords in the `gdscript-keywords.el` file.
+- Run or open the project and files with Godot.
 
 ## Contributing
 
@@ -118,7 +119,23 @@ Add the call to use-package to your Emacs configuration:
 (require 'gdscript-mode)
 ```
 
-## Formatting with gdformat
+## How to use
+
+### Opening the project in the editor
+
+You can open the project in the Godot editor with `M-x gdscript-godot-open-project-in-editor`, or open files and more in Godot with the `M-x gdscript-godot-*` commands.
+
+By default, these commands try to use an executable named `godot` on the system [PATH environment variable](<https://en.wikipedia.org/wiki/PATH_(variable)>).
+
+If you don't have `godot` available there, you can set a custom executable name or path to use instead:
+
+```lisp
+(setq gdscript-godot-executable "/path/to/godot")
+```
+
+You can also use `customize` to change this path: `M-x customize` and search for "godot".
+
+### Formatting code with gdformat
 
 You can call the `gdscript-format` function to format the current buffer with
 `gdformat`. This feature requires the python package `gdtoolkit` to be installed
@@ -133,9 +150,12 @@ pip3 install gdtoolkit
 
 ## Customization
 
-Set the following variables to customize gdscript-mode:
+To find all GDScript-mode settings, press `M-x customize` and search for "gdscript".
+
+Code example:
 
 ```lisp
 (setq gdscript-use-tab-indents t) ;; If true, use tabs for indents. Default: t
 (setq gdscript-indent-offset 4) ;; Controls the width of tab-based indents
+(setq gdscript-godot-executable "/path/to/godot") ;; Use this executable instead of 'godot' to open the Godot editor.
 ```
