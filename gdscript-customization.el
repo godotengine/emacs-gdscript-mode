@@ -110,12 +110,5 @@ PATH."
   :type 'string
   :group 'gdscript)
 
-(defcustom gdscript-shell-buffer-name "*Godot*"
-  "Default buffer name for Godot running process."
-  :type 'string
-  :group 'gdscript
-  :safe 'stringp)
-
 (provide 'gdscript-customization)
-
 ;;; gdscript-customization.el ends here

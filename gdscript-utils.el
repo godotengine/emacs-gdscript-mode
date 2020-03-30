@@ -31,6 +31,7 @@
 ;;; Code:
 
 (require 'gdscript-syntax)
+(require 'gdscript-customization)
 
 (defun gdscript--util-goto-line (line-number)
   "Move point to LINE-NUMBER."
@@ -90,119 +91,34 @@ allowed files."
                          (list full-file-name))))
                    (directory-files dir-name)))))
 
-;;;###autoload
-(defun gdscript--run-command (cmd &optional dedicated show)
-  "Run a Godot process.
-Input and output via buffer named after
-`gdscript--shell-buffer-name'.  If there is a process already
-running in that buffer, just switch to it.
 
-With argument, allows you to define CMD so you can edit the
-command used to call the interpreter and define DEDICATED, so a
-dedicated process for the current buffer is open.  When numeric
-prefix arg is other than 0 or 4 do not SHOW."
-  (interactive
-   (if current-prefix-arg
-       (list
-        (read-string "Run Godot: " (gdscript--build-shell-command))
-        (y-or-n-p "Make dedicated process? ")
-        (= (prefix-numeric-value current-prefix-arg) 4))
-     (list (gdscript--build-shell-command) nil t)))
-  (start-process-shell-command "Godot Process" (if show
-                                                   gdsript-shell-buffer-name nil)
-                               cmd))    ; gdscript-godot-executable))
+(defun gdscript-util--find-project-configuration-file (&optional start-path)
+  "Return the path to the file \"project.godot\".
 
-(defun gdscript--build-shell-command ()
-  "Calculate the string used to execute the inferior Godot-GDScript process."
-  (format "%s %s"
-          (shell-quote-argument
-           (executable-find gdscript-godot-executable))
-          gdscript-godot-executable-args))
+Start the search from START-PATH if provided. Otherwise, the search
+starts from the current buffer path.
 
-(defun gdscript--build-shell-command (&optional path)
-  "Build base shell command to run Godot Engine with the
-project's base PATH. If PATH is not provided, try to find it
-using the current file's directory as starting point."
-  (let* ((project-path (or path (gdscript--find-project-configuration-path))))
-    (concat gdscript-godot-executable " --path " project-path)))
-
-(defun gdscript--run-godot-editor ()
-  "Run Godot Engine Editor."
-  (interactive)
-  (gdscript--run-command
-   (concat (gdscript--build-shell-command) " -e")))
-
-(defun gdscript--run-project-in-godot ()
-  "Run the current project in Godot Engine."
-  (interactive)
-  (let* ((project-path (gdscript--find-project-configuration-path)))
-    (gdscript--run-command
-     (gdscript--build-shell-command))))
-
-(defun gdscript--run-project-in-godot-debug-mode ()
-  "Run the current project in Godot Engine."
-  (interactive)
-  (let* ((project-path (gdscript--find-project-configuration-path)))
-    (gdscript--run-command
-     (concat (gdscript--build-shell-command) " -d"))))
-
-(defun gdscript--run-current-scene-in-godot ()
-  "Run the current script file in Godot Engine."
-  (interactive)
-  (gdscript--run-command
-   (concat (gdscript--build-shell-command) " "
-           (gdscript--get-file-relative-path-to-project buffer-file-name) ".tscn")))
-
-(defun gdscript--run-current-scene-in-godot-debug-mode ()
-  "Run the current script file in Godot Engine."
-  (interactive)
-  (gdscript--run-command
-   (concat (gdscript--build-shell-command) " -d "
-           (gdscript--get-file-relative-path-to-project buffer-file-name) ".tscn")))
-
-(defun gdscript--edit-current-scene-in-godot ()
-  "Run the current script file in Godot Engine."
-  (interactive)
-  (gdscript--run-command
-   (concat (gdscript--build-shell-command) " -e "
-           (gdscript--get-file-relative-path-to-project buffer-file-name) ".tscn")))
-
-(defun gdscript--run-current-script-in-godot ()
-  "Run the current script file in Godot Engine.
-
-For this to work, the script must inherit either from
-\"SceneTree\" or \"MainLoop\"."
-  (interactive)
-  (gdscript--run-command
-   (concat (gdscript--build-shell-command) " -s " (file-relative-name buffer-file-name))))
-
-(defun gdscript--find-project-configuration-path (&optional path)
-  "Return the path where Godot's configuration File (\"project.godot\") is stored.
-
-If PATH is given, starts searching by it. Otherwise, the search
-starts by the current buffer path."
-  ;; This assumes that the project does exist (i.e. it was created before the
-  ;; call). The function will fail if the project is not found.
-  (let ((base-path (or path default-directory)))
+WARNING: the Godot project must exist for this function to work."
+  (let ((base-path (or start-path default-directory)))
     (locate-dominating-file base-path
                             (lambda (parent)
                               (directory-files parent t "project.godot")))))
 
-(defun gdscript--get-project-name ()
+(defun gdscript-util--get-godot-project-name ()
   "Retrieve the project name from Godot's configuration file."
   (with-temp-buffer
-    (insert-file-contents (concat (gdscript--find-project-configuration-path) "project.godot"))
+    (insert-file-contents (concat (gdscript-util--find-project-configuration-file) "project.godot"))
     (goto-char (point-min))
     (if (re-search-forward "config/name=\"\\([^\"]*\\)\"" nil t)
         (match-string 1)
       (error "Could not find the name of the project"))))
 
-(defun gdscript--get-file-relative-path-to-project (file-path)
-  "Return the relative path of `file-path' to Godot's configuration file."
-  (concat (gdscript--build-shell-command) " -d "
+(defun gdscript-util--get-godot-project-file-path-relative (file-path)
+  "Return the relative path of `FILE-PATH' to Godot's configuration file."
+  (concat (gdscript-godot--build-shell-command) " -d "
           (file-name-sans-extension
            (file-relative-name file-path
-                               (gdscript--find-project-configuration-path)))))
+                               (gdscript-util--find-project-configuration-file)))))
 
 (provide 'gdscript-utils)
 

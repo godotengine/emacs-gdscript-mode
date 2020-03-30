@@ -61,7 +61,7 @@
                             (define-key map "\C-c\C-g" 'gdscript--run-godot-editor)
                             (define-key map "\C-c\C-p" 'gdscript--run-project-in-godot)
                             (define-key map "\C-c\C-s" 'gdscript--run-current-scene-in-godot)
-                            (define-key map "\C-c\C-e" 'gdscript--edit-current-scene-in-godot)
+                            (define-key map "\C-c\C-e" 'gdscript-godot-edit-current-scene)
                             (define-key map "\C-c\C-r" 'gdscript--run-current-script-in-godot)
                             (define-key map "\C-c\C-dp" 'gdscript--run-project-in-godot-debug-mode)
                             (define-key map "\C-c\C-ds" 'gdscript--run-current-scene-in-godot-debug-mode)
