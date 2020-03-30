@@ -1,34 +1,55 @@
-# Changelog #
+# Changelog
 
 This document lists new features, improvements, changes, and bug fixes in each release of the package.
 
-## GDScript mode 1.0.2 ##
+## GDScript mode 1.1.0
 
-### Changes ###
+Emacs GDScript mode is now available on the [MELPA](https://melpa.org/) package archive!
+
+### Features
+
+- Added commands to run files or open the project in Godot. Type `M-x gdscript-godot` to find and try them.
+
+### Bug fixes
+
+- Fixed incorrect match block indentation.
+- Fixed error with code folding.
+- Added syntax highlighting for more built-in keywords .
+- Fixed error at startup on Emacs 26.3
+
+### Documentation
+
+- Added instructions to install with use-package.
+- Updated install instructions for MELPA.
+- Added documentation on using `gdscript-godot-*` commands.
+
+## GDScript mode 1.0.2
+
+### Changes
 
 - Addressed linting and checkdoc errors for a release on the [MELPA](https://melpa.org/) package archive.
 - Split some more of the code to make the code easier to read and to maintain.
 
-### Bug fixes ###
+### Bug fixes
 
 - Fixed `function-definition-void` errors in some cases due to a missing file import.
 - Fixed package loading error in some configurations.
 - Added syntax highlighting and completion for the following keywords: `in`, `and`, `or`, `not`, `true`, `false`.
 - Fixed incorrect auto-indentation in `match` blocks.
 
-## GDScript mode 1.0.1 ##
+## GDScript mode 1.0.1
 
 This minor release fixes a bug with the GDScript keywords.
 
-### Improvements ###
+### Improvements
 
 - Compile keywords for faster auto-completion and syntax highlighting.
 
-### Bug fixes ###
+### Bug fixes
 
 - Fixed missing language keywords and constants lists.
 
-## GDScript mode 1.0.0 ##
+## GDScript mode 1.0.0
 
 This is the initial release of gdscript-mode, which adds support for the [Godot engine](https://godotengine.org/)'s GDScript programming language in Emacs.
 
