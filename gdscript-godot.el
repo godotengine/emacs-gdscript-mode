@@ -38,19 +38,10 @@
 ;;;###autoload
 (defun gdscript-run-command (cmd &optional show)
   "Run a Godot process.
-Input and output via buffer named after `*godot*'. If there is a process
-already running in that buffer, just switch to it.
 
-With argument, allows you to define CMD so you can edit the
-command used to call the interpreter.
-When numeric prefix arg is other than 0 or 4 do not SHOW."
-  (interactive
-   (if current-prefix-arg
-       (list
-        (read-string "Run Godot: " (gdscript-godot--build-shell-command))
-        (y-or-n-p "Make dedicated process? ")
-        (= (prefix-numeric-value current-prefix-arg) 4))
-     (list (gdscript-godot--build-shell-command) nil t)))
+CMD is the command to be invoked by the shell.  If SHOW, the
+output of the process will be provided in a buffer named
+`*godot*'."
   (start-process-shell-command "Godot Process" (if show
                                                    "*godot*" nil) cmd))
 
@@ -71,16 +62,14 @@ file's directory as starting point."
 (defun gdscript-godot-run-project ()
   "Run the current project in Godot Engine."
   (interactive)
-  (let* ()
-    (gdscript-run-command
-     (gdscript-godot--build-shell-command))))
+  (gdscript-run-command
+   (gdscript-godot--build-shell-command)))
 
 (defun gdscript-godot-run-project-debug ()
   "Run the current project in Godot Engine."
   (interactive)
-  (let* ()
-    (gdscript-run-command
-     (concat (gdscript-godot--build-shell-command) " -d"))))
+  (gdscript-run-command
+   (concat (gdscript-godot--build-shell-command) " -d") t))
 
 (defun gdscript-godot-run-current-scene ()
   "Run the current script file in Godot Engine."
@@ -94,7 +83,8 @@ file's directory as starting point."
   (interactive)
   (gdscript-run-command
    (concat (gdscript-godot--build-shell-command) " -d "
-           (gdscript-util--get-godot-project-file-path-relative buffer-file-name) ".tscn")))
+           (gdscript-util--get-godot-project-file-path-relative buffer-file-name) ".tscn")
+   t))
 
 (defun gdscript-godot-edit-current-scene ()
   "Run the current script file in Godot Engine."
@@ -110,7 +100,8 @@ For this to work, the script must inherit either from
 \"SceneTree\" or \"MainLoop\"."
   (interactive)
   (gdscript-run-command
-   (concat (gdscript-godot--build-shell-command) " -s " (file-relative-name buffer-file-name))))
+   (concat (gdscript-godot--build-shell-command) " -s " (file-relative-name buffer-file-name))
+   t))
 
 (provide 'gdscript-godot)
 ;;; gdscript-godot.el ends here

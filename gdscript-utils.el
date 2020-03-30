@@ -115,8 +115,7 @@ WARNING: the Godot project must exist for this function to work."
 
 (defun gdscript-util--get-godot-project-file-path-relative (file-path)
   "Return the relative path of `FILE-PATH' to Godot's configuration file."
-  (concat (gdscript-godot--build-shell-command) " -d "
-          (file-name-sans-extension
+  (concat (file-name-sans-extension
            (file-relative-name file-path
                                (gdscript-util--find-project-configuration-file)))))
 

@@ -2,6 +2,13 @@
 
 This document lists new features, improvements, changes, and bug fixes in each release of the package.
 
+## GDScript mode 1.1.1
+
+### Bug fixes
+
+- Fixed loading the `gdscript-godot` module at initialization.
+- Fixed function calls in the mode map.
+
 ## GDScript mode 1.1.0
 
 Emacs GDScript mode is now available on the [MELPA](https://melpa.org/) package archive!
