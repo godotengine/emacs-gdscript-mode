@@ -38,6 +38,7 @@
 (require 'gdscript-completion)
 (require 'gdscript-format)
 (require 'gdscript-rx)
+(require 'gdscript-godot)
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.gd\\'" . gdscript-mode))
@@ -58,13 +59,13 @@
                             (define-key map (kbd "<backtab>") 'gdscript-indent-dedent-line)
                             (define-key map (kbd "\t") 'company-complete)
                             ;; Run in Godot.
-                            (define-key map "\C-c\C-g" 'gdscript--run-godot-editor)
-                            (define-key map "\C-c\C-p" 'gdscript--run-project-in-godot)
-                            (define-key map "\C-c\C-s" 'gdscript--run-current-scene-in-godot)
-                            (define-key map "\C-c\C-e" 'gdscript-godot-edit-current-scene)
-                            (define-key map "\C-c\C-r" 'gdscript--run-current-script-in-godot)
-                            (define-key map "\C-c\C-dp" 'gdscript--run-project-in-godot-debug-mode)
-                            (define-key map "\C-c\C-ds" 'gdscript--run-current-scene-in-godot-debug-mode)
+                            (define-key map "\C-c\C-r\C-p" 'gdscript-godot-open-project-in-editor)
+                            (define-key map "\C-c\C-r\C-r" 'gdscript-godot-run-project)
+                            (define-key map "\C-c\C-r\C-d" 'gdscript-godot-run-project-debug)
+                            (define-key map "\C-c\C-r\C-s" 'gdscript-godot-run-current-scene)
+                            (define-key map "\C-c\C-r\C-q" 'gdscript-godot-run-current-scene-debug)
+                            (define-key map "\C-c\C-r\C-e" 'gdscript-godot-edit-current-scene)
+                            (define-key map "\C-c\C-r\C-x" 'gdscript-godot-run-current-script)
                             map)
   "Keymap for `gdscript-mode'.")
 
