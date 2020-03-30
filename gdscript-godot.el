@@ -36,7 +36,7 @@
 (require 'gdscript-utils)
 
 ;;;###autoload
-(defun gdscript-run-command (cmd &optional show)
+(defun gdscript-godot--run-command (cmd &optional show)
   "Run a Godot process.
 
 CMD is the command to be invoked by the shell.  If SHOW, the
@@ -56,32 +56,32 @@ file's directory as starting point."
 (defun gdscript-godot-open-project-in-editor ()
   "Run Godot Engine Editor."
   (interactive)
-  (gdscript-run-command
+  (gdscript-godot--run-command
    (concat (gdscript-godot--build-shell-command) " -e")))
 
 (defun gdscript-godot-run-project ()
   "Run the current project in Godot Engine."
   (interactive)
-  (gdscript-run-command
+  (gdscript-godot--run-command
    (gdscript-godot--build-shell-command)))
 
 (defun gdscript-godot-run-project-debug ()
   "Run the current project in Godot Engine."
   (interactive)
-  (gdscript-run-command
+  (gdscript-godot--run-command
    (concat (gdscript-godot--build-shell-command) " -d") t))
 
 (defun gdscript-godot-run-current-scene ()
   "Run the current script file in Godot Engine."
   (interactive)
-  (gdscript-run-command
+  (gdscript-godot--run-command
    (concat (gdscript-godot--build-shell-command) " "
            (gdscript-util--get-godot-project-file-path-relative buffer-file-name) ".tscn")))
 
 (defun gdscript-godot-run-current-scene-debug ()
   "Run the current script file in Godot Engine."
   (interactive)
-  (gdscript-run-command
+  (gdscript-godot--run-command
    (concat (gdscript-godot--build-shell-command) " -d "
            (gdscript-util--get-godot-project-file-path-relative buffer-file-name) ".tscn")
    t))
@@ -89,7 +89,7 @@ file's directory as starting point."
 (defun gdscript-godot-edit-current-scene ()
   "Run the current script file in Godot Engine."
   (interactive)
-  (gdscript-run-command
+  (gdscript-godot--run-command
    (concat (gdscript-godot--build-shell-command) " -e "
            (gdscript-util--get-godot-project-file-path-relative buffer-file-name) ".tscn")))
 
@@ -99,7 +99,7 @@ file's directory as starting point."
 For this to work, the script must inherit either from
 \"SceneTree\" or \"MainLoop\"."
   (interactive)
-  (gdscript-run-command
+  (gdscript-godot--run-command
    (concat (gdscript-godot--build-shell-command) " -s " (file-relative-name buffer-file-name))
    t))
 
