@@ -2,6 +2,12 @@
 
 This document lists new features, improvements, changes, and bug fixes in each release of the package.
 
+## GDScript mode 1.?.?
+
+### Features
+
+- Added a command to insert a path to a project file.
+
 ## GDScript mode 1.1.1
 
 ### Bug fixes

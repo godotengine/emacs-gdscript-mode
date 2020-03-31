@@ -5,7 +5,7 @@
 ;; Author: Nathan Lovato <nathan@gdquest.com>, Fabián E. Gallina <fgallina@gnu.org>
 ;; URL: https://github.com/GDQuest/emacs-gdscript-mode/
 ;; Version: 0.1.0
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "26.3") (projectile "2.1.0"))
 ;; Maintainer: nathan@gdquest.com
 ;; Created: Feb 2020
 ;; Keywords: languages
@@ -33,6 +33,8 @@
 ;;; Code:
 
 (require 'gdscript-syntax)
+(require 'gdscript-utils)
+(require 'projectile)
 
 (defvar-local gdscript-completion--all-keywords
   (eval-when-compile (append gdscript-keywords gdscript-built-in-classes
@@ -47,6 +49,23 @@
          (end (cdr bounds)))
     (list start end gdscript-completion--all-keywords
           . nil)))
+
+(defun gdscript-completion-insert-file-path-at-point (&optional arg)
+  "Insert a file path at point using Godot's relative path (\"res:\").
+
+With a prefix ARG invalidates the cache first. If invoked outside
+of a project, displays a list of known projects to jump."
+  (interactive "P")
+  (projectile-maybe-invalidate-cache arg)
+  (let* ((project-root (projectile-ensure-project (projectile-project-root)))
+         (file (projectile-completing-read
+                "Find file: "
+                (projectile-project-files project-root))))
+    (when file
+      (insert
+       (concat "\"res://"
+               (gdscript-util--get-godot-project-file-path-relative file)
+               "." (file-name-extension file) "\"")))))
 
 (provide 'gdscript-completion)
 

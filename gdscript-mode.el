@@ -58,6 +58,8 @@
                             (define-key map "\177" 'gdscript-indent-dedent-line-backspace)
                             (define-key map (kbd "<backtab>") 'gdscript-indent-dedent-line)
                             (define-key map (kbd "\t") 'company-complete)
+                            ;; Insertion.
+                            (define-key map "\C-c\C-f" 'gdscript-completion-insert-file-path-at-point)
                             ;; Run in Godot.
                             (define-key map "\C-c\C-r\C-p" 'gdscript-godot-open-project-in-editor)
                             (define-key map "\C-c\C-r\C-r" 'gdscript-godot-run-project)
