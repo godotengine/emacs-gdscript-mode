@@ -2,11 +2,11 @@
 
 This document lists new features, improvements, changes, and bug fixes in each release of the package.
 
-## GDScript mode 1.1.1
+## GDScript mode 1.2.0
 
 ### Features
 
-- Added a command to insert a path to a project file.
+- Added a command to insert a path to a project file, either using `project-find-file` if `projectile` is available, otherwise with `find-file`.
 
 ### Bug fixes
 
