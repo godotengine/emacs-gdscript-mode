@@ -4,6 +4,10 @@ This document lists new features, improvements, changes, and bug fixes in each r
 
 ## GDScript mode 1.1.1
 
+### Features
+
+- Added a command to insert a path to a project file.
+
 ### Bug fixes
 
 - Fixed loading the `gdscript-godot` module at initialization.

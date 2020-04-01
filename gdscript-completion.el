@@ -33,6 +33,7 @@
 ;;; Code:
 
 (require 'gdscript-syntax)
+(require 'gdscript-utils)
 
 (defvar-local gdscript-completion--all-keywords
   (eval-when-compile (append gdscript-keywords gdscript-built-in-classes
@@ -47,6 +48,38 @@
          (end (cdr bounds)))
     (list start end gdscript-completion--all-keywords
           . nil)))
+
+(defun gdscript-completion-insert-file-path-at-point (&optional arg)
+  "Insert a file path at point using Godot's relative path (\"res:\").
+
+If Projectile is available, list only the files in the current
+project.  Otherwise, fallback to the built-in function
+`read-file-name'.
+
+If using Projectile, with a prefix ARG invalidates the cache
+first."
+  (interactive "P")
+  (let ((has-projectile (featurep 'projectile)))
+    (when has-projectile
+      (projectile-maybe-invalidate-cache arg))
+    (let* ((project-root
+            (if has-projectile
+                (projectile-ensure-project (projectile-project-root))
+              (gdscript-util--find-project-configuration-file)))
+           (file
+            (if has-projectile
+                (projectile-completing-read
+                 "Find file: "
+                 (projectile-project-files project-root))
+              (read-file-name
+               "Find file: "
+               project-root))))
+      (when file
+        (insert
+         (concat "\"res://"
+                 (gdscript-util--get-godot-project-file-path-relative file)
+                 "." (file-name-extension file) "\""))))))
+
 
 (provide 'gdscript-completion)
 
