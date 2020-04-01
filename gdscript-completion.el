@@ -34,6 +34,7 @@
 
 (require 'gdscript-syntax)
 (require 'gdscript-utils)
+(require 'projectile nil t)
 
 (defvar-local gdscript-completion--all-keywords
   (eval-when-compile (append gdscript-keywords gdscript-built-in-classes
