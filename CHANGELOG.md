@@ -2,6 +2,12 @@
 
 This document lists new features, improvements, changes, and bug fixes in each release of the package.
 
+## GDScript mode 1.?.?
+
+### Features
+
+- Added a command to format a selected region with `gdformat`.
+
 ## GDScript mode 1.2.0
 
 ### Features

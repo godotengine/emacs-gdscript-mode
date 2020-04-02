@@ -110,5 +110,12 @@ PATH."
   :type 'string
   :group 'gdscript)
 
+(defcustom gdscript-gdformat-executable "gdformat"
+  "The path to the gdformat executable.
+By default, it assumes that the executable is in the system's
+PATH."
+  :type 'string
+  :group 'gdscript)
+
 (provide 'gdscript-customization)
 ;;; gdscript-customization.el ends here
