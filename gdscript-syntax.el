@@ -75,7 +75,12 @@
                                    (or "var" "const")
                                    (1+ space)
                                    (group (1+ (or word ?_))))
-                              (1 font-lock-variable-name-face))))
+                              (1 font-lock-variable-name-face))
+                             ;; Function call
+                             (,(rx (group (1+ (or word ?_)))
+                                   (0+ space)
+                                   "(")
+                              (1 font-lock-function-name-face))))
 
 (defvar gdscript-syntax-table (make-syntax-table))
 
