@@ -60,6 +60,9 @@
                             (define-key map (kbd "\t") 'company-complete)
                             ;; Insertion.
                             (define-key map "\C-c\C-f" 'gdscript-completion-insert-file-path-at-point)
+                            ;; Formatting.
+                            (define-key map "\C-c\C-t\C-r" 'gdscript-format-region)
+                            (define-key map "\C-c\C-t\C-t" 'gdscript-format-buffer)
                             ;; Run in Godot.
                             (define-key map "\C-c\C-r\C-p" 'gdscript-godot-open-project-in-editor)
                             (define-key map "\C-c\C-r\C-r" 'gdscript-godot-run-project)
