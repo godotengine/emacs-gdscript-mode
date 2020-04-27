@@ -8,6 +8,7 @@ _Currently in development._
 
 ### Features
 
+- Added missing puppet and remotesync keywords
 - Added a command to insert a path to a project file, either using `project-find-file` if `projectile` is available, otherwise with `find-file`.
 - Added a command to format a selected region with `gdformat`.
 - Added syntax highlighting for function calls.
