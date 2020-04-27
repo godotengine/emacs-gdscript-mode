@@ -39,13 +39,16 @@
 ;; Only contains types that are not classes and that the Godot editor highlights
 ;; like built-in keywords
 (defconst gdscript-built-in-types '("bool" "float" "int" "null" "void"))
-(defconst gdscript-built-in-functions '("Color8" "abs" "acos" "asin" "assert" "atan" "atan2"
-"bytes2var" "ceil" "char" "clamp" "convert" "cos" "cosh" "db2linear" "decimals" "dectime" "deg2rad"
-"dict2inst" "ease" "exp" "floor" "fmod" "fposmod" "funcref" "hash" "inst2dict" "instance_from_id"
-"is_inf" "is_nan" "lerp" "linear2db" "load" "log" "max" "min" "name" "nearest_po2" "pow" "preload"
-"print" "print_stack" "printerr" "printraw" "prints" "printt" "rad2deg" "rand_range" "rand_seed"
-"randf" "randi" "randomize" "range" "round" "seed" "sign" "sin" "sinh" "sqrt" "stepify" "str"
-"str2var" "tan" "tanh" "type_exists" "typeof" "var2bytes" "var2str" "weakref" "yield"))
+(defconst gdscript-built-in-functions '("Color8" "ColorN" "abs" "acos" "asin" "assert" "atan" "atan2"
+"bytes2var" "cartesian2polar" "ceil" "char" "clamp" "convert" "cos" "cosh" "db2linear" "decimals"
+"dectime" "deg2rad" "dict2inst" "ease" "exp" "floor" "fmod" "fposmod" "funcref" "get_stack" "hash"
+"inst2dict" "instance_from_id" "inverse_lerp" "is_equal_approx" "is_inf" "is_instance_valid" "is_nan"
+"is_zero_approx" "len" "lerp" "lerp_angle" "linear2db" "load" "log" "max" "min" "move_toward" "nearest_po2"
+"ord" "parse_json" "polar2cartesian" "posmod" "pow" "preload" "print" "print_debug" "print_stack" "printerr"
+"printraw" "prints" "printt" "push_error" "push_warning" "rad2deg" "rand_range" "rand_seed" "randf" "randi"
+"randomize" "range" "range_lerp" "round" "seed" "sign" "sin" "sinh" "smoothstep" "sqrt" "step_decimals" "stepify"
+"str" "str2var" "tan" "tanh" "to_json" "type_exists" "typeof" "validate_json" "var2bytes" "var2str" "weakref"
+"wrapf" "wrapi" "yield"))
 ;; Contains all engine classes and node types, including vectors, transforms, etc.
 (defconst gdscript-built-in-classes '("AABB" "ARVRAnchor" "ARVRCamera" "ARVRController"
   "ARVRInterface" "ARVROrigin" "ARVRPositionalTracker" "ARVRServer" "AStar" "AStar2D" "AcceptDialog"
