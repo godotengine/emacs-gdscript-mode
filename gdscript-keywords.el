@@ -33,7 +33,7 @@
 
 (defconst gdscript-keywords '("and" "as" "assert" "break" "breakpoint" "case" "class" "class_name"
 "const" "continue" "do" "elif" "else" "enum" "export" "extends" "false" "for" "func" "if" "in" "is"
-"master" "match" "not" "onready" "or" "pass" "preload" "remote" "return" "self" "setget" "signal"
+"master" "match" "not" "onready" "or" "pass" "preload" "puppet" "remote" "remotesync" "return" "self" "setget" "signal"
 "slave" "static" "switch" "sync" "tool" "true" "var" "while" "yield"))
 (defconst gdscript-built-in-constants '("INF" "NAN" "PI" "TAU"))
 ;; Only contains types that are not classes and that the Godot editor highlights
