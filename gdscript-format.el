@@ -52,8 +52,12 @@
 (defun gdscript-format-buffer()
   "Format the entire current buffer using `gdformat'"
   (interactive)
-  (gdscript-format--format-region
-   (point-min) (point-max)))
+  (let ((original-point (point))
+        (original-window-pos (window-start)))
+    (gdscript-format--format-region
+     (point-min) (point-max))
+    (goto-char original-point)
+    (set-window-start (selected-window) original-window-pos)))
 
 (provide 'gdscript-format)
 
