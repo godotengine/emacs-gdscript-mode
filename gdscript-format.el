@@ -33,15 +33,15 @@
 
 (defun gdscript-format--format-region (start end)
   "Format the region between START and END using `gdformat'."
-  (save-excursion
-    (shell-command-on-region
-     start end
-     (concat
-      "echo "
-      (shell-quote-argument (buffer-substring start end))
-      "|"
-      gdscript-gdformat-executable " -")
-     (buffer-name) t)))
+  (let
+      ((cmd (concat "echo " (shell-quote-argument (buffer-substring start end)) "|" gdscript-gdformat-executable " -"))
+       (error-buffer "*gdformat-errors*"))
+    (if (eq (with-temp-buffer (call-process-shell-command cmd)) 0)
+        (save-excursion
+          (shell-command-on-region start end cmd (buffer-name) t error-buffer t))
+      (progn
+        (with-current-buffer error-buffer (erase-buffer))
+        (shell-command-on-region start end cmd nil nil error-buffer t)))))
 
 (defun gdscript-format-region()
   "Format the selected region using `gdformat'"
