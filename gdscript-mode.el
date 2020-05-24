@@ -71,6 +71,8 @@
                             (define-key map "\C-c\C-r\C-q" 'gdscript-godot-run-current-scene-debug)
                             (define-key map "\C-c\C-r\C-e" 'gdscript-godot-edit-current-scene)
                             (define-key map "\C-c\C-r\C-x" 'gdscript-godot-run-current-script)
+                            (define-key map "\C-c\C-r\C-a" 'gdscript-documentation-api)
+                            (define-key map "\C-c\C-r\C-o" 'gdscript-documentation-open)
                             map)
   "Keymap for `gdscript-mode'.")
 
