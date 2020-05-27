@@ -8,6 +8,7 @@ _Currently in development._
 
 ### Features
 
+- Added convenient way how to browse Godot API with eww
 - Added missing built in functions
 - Added missing puppet and remotesync keywords
 - Added a command to insert a path to a project file, either using `project-find-file` if `projectile` is available, otherwise with `find-file`.
