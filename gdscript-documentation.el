@@ -62,5 +62,46 @@ It will rename eww buffer from generic name to name including page title."
       (when (string-match "Godot Engine" title)
         (rename-buffer (format "*eww - %s*" title) t)))))
 
+(defun gdscript-documentation-show-main-only ()
+  "View the main part of the Godot web page.
+
+This is re-implementation of `eww-readable'."
+  (let* ((old-data eww-data)
+	 (dom (with-temp-buffer
+		(insert (plist-get old-data :source))
+		(condition-case nil
+		    (decode-coding-region (point-min) (point-max) 'utf-8)
+		  (coding-system-error nil))
+		(libxml-parse-html-region (point-min) (point-max))))
+         (base (plist-get eww-data :url))
+         (main (dom-elements dom 'role "main"))) ;; let's display only main div. ie. <div role="main" ...> ... </div>
+    (eww-display-html nil nil
+                      (list 'base (list (cons 'href base))
+                            main)
+        	      nil (current-buffer))
+    (dolist (elem '(:source :url :title :next :previous :up))
+      (plist-put eww-data elem
+                 (plist-get old-data elem)))
+    (eww-update-header-line-format)))
+
+(defun gdscript-documentation-follow-link (orig-fun &rest args)
+  "Remember url when following local link on a page.
+
+ORIG-FUN is function we wrap around.  ARGS are argument to ORIG-FUN function."
+  (let ((url (plist-get eww-data :url))
+        (res (apply orig-fun args)))
+    (plist-put eww-data :url url)
+    res))
+
+(defun gdscript-documentation-setup ()
+  "Convenience setup for pages with Godot documentation."
+  (setq multi-isearch-next-buffer-function nil)
+  (gdscript-documentation-rename-eww-buffer)
+  (gdscript-documentation-show-main-only))
+
+(add-hook 'eww-after-render-hook #'gdscript-documentation-setup)
+
+(advice-add 'eww-follow-link :around #'gdscript-documentation-follow-link)
+
 (provide 'gdscript-documentation)
 ;;; gdscript-documentation.el ends here

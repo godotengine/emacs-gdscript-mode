@@ -31,6 +31,7 @@
 ;;; Code:
 
 (require 'gdscript-customization)
+(require 'gdscript-documentation)
 (require 'gdscript-syntax)
 (require 'gdscript-indent-and-nav)
 (require 'gdscript-imenu)
