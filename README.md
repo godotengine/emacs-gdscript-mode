@@ -154,13 +154,6 @@ With a point on build-in class you can press `C-c C-r C-o` to open [eww](https:/
 
 Using `C-c C-r C-a` opens main Godot API page in eww.
 
-For convenience add `gdscript-documentation-rename-eww-buffer` to `eww-after-render-hook`. This will rename eww buffer(s) visiting Godot documentation from generic name to one which contains page title.
-
-```
-(use-package gdscript-mode
-    :hook ((eww-after-render . gdscript-documentation-rename-eww-buffer)))
-```
-
 ## Customization
 
 To find all GDScript-mode settings, press `M-x customize` and search for "gdscript".
