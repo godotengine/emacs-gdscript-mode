@@ -1,4 +1,4 @@
-;;; gdscript-documentation.el --- Open documntation in Godot -*- lexical-binding: t; -*-
+;;; gdscript-docs.el --- Open documntation in Godot -*- lexical-binding: t; -*-
 ;;
 ;; Copyright (C) 2020 GDQuest and contributors
 ;;
@@ -34,12 +34,12 @@
 (require 'eww)
 
 ;;;###autoload
-(defun gdscript-documentation-api ()
+(defun gdscript-docs-browse-api ()
   "Open main page of Godot API in eww browser."
   (interactive)
   (eww-browse-url "https://docs.godotengine.org/en/stable/classes/index.html?#godot-api"))
 
-(defun gdscript-documentation-open ()
+(defun gdscript-docs-browse-symbol-at-point ()
   "Open documention for symbol at point in eww browser.
 If a page is already open, it will switch to its buffer."
   (interactive)
@@ -54,7 +54,7 @@ If a page is already open, it will switch to its buffer."
     (if buffer (pop-to-buffer-same-window buffer)
       (eww-browse-url (format "https://docs.godotengine.org/en/stable/classes/class_%s.html#%s" symbol symbol) t))))
 
-(defun gdscript-documentation-rename-eww-buffer ()
+(defun gdscript-docs-rename-eww-buffer ()
   "Rename eww buffer visiting Godot documentation.
 It will rename eww buffer from generic name to name including page title."
   (when (derived-mode-p 'eww-mode)
@@ -62,7 +62,7 @@ It will rename eww buffer from generic name to name including page title."
       (when (string-match "Godot Engine" title)
         (rename-buffer (format "*eww - %s*" title) t)))))
 
-(defun gdscript-documentation-show-main-only ()
+(defun gdscript-docs-show-main-only ()
   "View the main part of the Godot web page.
 
 This is re-implementation of `eww-readable'."
@@ -84,7 +84,7 @@ This is re-implementation of `eww-readable'."
                  (plist-get old-data elem)))
     (eww-update-header-line-format)))
 
-(defun gdscript-documentation-follow-link (orig-fun &rest args)
+(defun gdscript-docs-follow-link (orig-fun &rest args)
   "Remember url when following local link on a page.
 
 ORIG-FUN is function we wrap around.  ARGS are argument to ORIG-FUN function."
@@ -93,15 +93,15 @@ ORIG-FUN is function we wrap around.  ARGS are argument to ORIG-FUN function."
     (plist-put eww-data :url url)
     res))
 
-(defun gdscript-documentation-setup ()
+(defun gdscript-docs-setup ()
   "Convenience setup for pages with Godot documentation."
   (setq multi-isearch-next-buffer-function nil)
-  (gdscript-documentation-rename-eww-buffer)
-  (gdscript-documentation-show-main-only))
+  (gdscript-docs-rename-eww-buffer)
+  (gdscript-docs-show-main-only))
 
-(add-hook 'eww-after-render-hook #'gdscript-documentation-setup)
+(add-hook 'eww-after-render-hook #'gdscript-docs-setup)
 
-(advice-add 'eww-follow-link :around #'gdscript-documentation-follow-link)
+(advice-add 'eww-follow-link :around #'gdscript-docs-follow-link)
 
-(provide 'gdscript-documentation)
-;;; gdscript-documentation.el ends here
+(provide 'gdscript-docs)
+;;; gdscript-docs.el ends here

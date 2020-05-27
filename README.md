@@ -22,6 +22,7 @@ This mode already features all the essentials:
   [gdformat](https://github.com/scony/godot-gdscript-toolkit/).
 - Auto-completion for all the keywords in the `gdscript-keywords.el` file.
 - Run or open the project and files with Godot.
+- Browsing the API reference in Emacs.
 
 ## Contributing
 
@@ -148,11 +149,11 @@ command in your shell to install it:
 pip3 install gdtoolkit
 ```
 
-### Browsing Godot API with [eww](https://www.gnu.org/software/emacs/manual/html_node/emacs/EWW.html)
+### Browsing the Godot API with eww
 
-With a point on build-in class you can press `C-c C-r C-o` to open [eww](https://www.gnu.org/software/emacs/manual/html_node/emacs/EWW.html) browser with an api documentation for that class.
+With the point on a built-in class you can press `C-c C-r C-o` to open the code reference for that class in the text browser [eww](https://www.gnu.org/software/emacs/manual/html_node/emacs/EWW.html).
 
-Using `C-c C-r C-a` opens main Godot API page in eww.
+To open the main API reference page and browse it, press `C-c C-r C-a`.
 
 ## Customization
 
