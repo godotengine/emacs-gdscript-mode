@@ -1,4 +1,4 @@
-;;; gdscript-docs.el --- Open documntation in Godot -*- lexical-binding: t; -*-
+;;; gdscript-docs.el --- Open documentation in Godot -*- lexical-binding: t; -*-
 ;;
 ;; Copyright (C) 2020 GDQuest and contributors
 ;;
@@ -27,7 +27,7 @@
 ;;
 ;;; Commentary:
 ;;
-;;  Browse Godot API documentation in eww browser.
+;;  Browse the Godot API reference in the text-based browser eww.
 ;;
 ;;; Code:
 
@@ -35,13 +35,13 @@
 
 ;;;###autoload
 (defun gdscript-docs-browse-api ()
-  "Open main page of Godot API in eww browser."
+  "Open the main page of Godot API in eww browser."
   (interactive)
   (eww-browse-url "https://docs.godotengine.org/en/stable/classes/index.html?#godot-api"))
 
 (defun gdscript-docs-browse-symbol-at-point ()
-  "Open documention for symbol at point in eww browser.
-If a page is already open, it will switch to its buffer."
+  "Open the API reference for the symbol at point in the browser eww.
+If a page is already open, switch to its buffer."
   (interactive)
   (let* ((symbol (downcase (thing-at-point 'symbol t)))
          (buffer
@@ -54,37 +54,38 @@ If a page is already open, it will switch to its buffer."
     (if buffer (pop-to-buffer-same-window buffer)
       (eww-browse-url (format "https://docs.godotengine.org/en/stable/classes/class_%s.html#%s" symbol symbol) t))))
 
-(defun gdscript-docs-rename-eww-buffer ()
-  "Rename eww buffer visiting Godot documentation.
-It will rename eww buffer from generic name to name including page title."
+(defun gdscript-docs--rename-eww-buffer ()
+  "Rename the eww buffer visiting the Godot documentation.
+Rename the buffer from a generic name to a name based on the web page's title."
   (when (derived-mode-p 'eww-mode)
     (let ((title (plist-get eww-data :title)))
       (when (string-match "Godot Engine" title)
         (rename-buffer (format "*eww - %s*" title) t)))))
 
-(defun gdscript-docs-show-main-only ()
-  "View the main part of the Godot web page.
+(defun gdscript-docs--filter-content-to-main-div ()
+  "Filters a page in the Godot docs down to its main <div>.
 
-This is re-implementation of `eww-readable'."
+This is a re-implementation of `eww-readable'."
   (let* ((old-data eww-data)
-	 (dom (with-temp-buffer
-		(insert (plist-get old-data :source))
-		(condition-case nil
-		    (decode-coding-region (point-min) (point-max) 'utf-8)
-		  (coding-system-error nil))
-		(libxml-parse-html-region (point-min) (point-max))))
+         (dom (with-temp-buffer
+                (insert (plist-get old-data :source))
+                (condition-case nil
+                    (decode-coding-region (point-min) (point-max) 'utf-8)
+                  (coding-system-error nil))
+                (libxml-parse-html-region (point-min) (point-max))))
          (base (plist-get eww-data :url))
-         (main (dom-elements dom 'role "main"))) ;; let's display only main div. ie. <div role="main" ...> ... </div>
+         ;; Filters the page down to the main div: <div role="main"> ... </div>
+         (main (dom-elements dom 'role "main")))
     (eww-display-html nil nil
                       (list 'base (list (cons 'href base))
                             main)
-        	      nil (current-buffer))
+                      nil (current-buffer))
     (dolist (elem '(:source :url :title :next :previous :up))
       (plist-put eww-data elem
                  (plist-get old-data elem)))
     (eww-update-header-line-format)))
 
-(defun gdscript-docs-follow-link (orig-fun &rest args)
+(defun gdscript-docs--eww-follow-link (orig-fun &rest args)
   "Remember url when following local link on a page.
 
 ORIG-FUN is function we wrap around.  ARGS are argument to ORIG-FUN function."
@@ -93,15 +94,16 @@ ORIG-FUN is function we wrap around.  ARGS are argument to ORIG-FUN function."
     (plist-put eww-data :url url)
     res))
 
-(defun gdscript-docs-setup ()
+(defun gdscript-docs--eww-setup ()
   "Convenience setup for pages with Godot documentation."
   (setq multi-isearch-next-buffer-function nil)
-  (gdscript-docs-rename-eww-buffer)
-  (gdscript-docs-show-main-only))
+  (gdscript-docs--rename-eww-buffer)
+  (gdscript-docs--filter-content-to-main-div))
 
-(add-hook 'eww-after-render-hook #'gdscript-docs-setup)
+(add-hook 'eww-after-render-hook #'gdscript-docs--eww-setup)
 
-(advice-add 'eww-follow-link :around #'gdscript-docs-follow-link)
+(advice-add 'eww-follow-link :around #'gdscript-docs--eww-follow-link)
 
 (provide 'gdscript-docs)
+
 ;;; gdscript-docs.el ends here
