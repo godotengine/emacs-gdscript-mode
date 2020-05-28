@@ -50,6 +50,9 @@
 CMD is the command to be invoked by the shell.  If SHOW, the
 output of the process will be provided in a buffer named
 `*godot*'."
+  (when (not (executable-find gdscript-godot-executable))
+    (error "Error: Could not find %s on PATH. Please customize the gdscript-godot-executable variable." gdscript-godot-executable))
+
   (start-process-shell-command "Godot Process" (if show
                                                    "*godot*" nil) cmd))
 
