@@ -136,17 +136,18 @@ If you don't have `godot` available there, you can set a custom executable name 
 
 You can also use `customize` to change this path: `M-x customize` and search for "godot".
 
-### Running Godot with debugging options
+### Running Godot with visual debug options
 
-When running `gdscript-godot-run-project-debug` (binded by default to `C-c C-r C-d`) you can use prefix argument (ie. `C-u C-c C-r C-d`) to invoke mini-buffer selection with extra options to pass to godot.
+When running `gdscript-godot-run-project-debug`, you can use the universal argument <kbd>C-u</kbd> to invoke a mini-buffer with extra options to pass to godot.
 
-Available selection options are:
-  1) `<no options>` _(default)_
-  2) `--debug-collisions`
-  3) `--debug-navigation`
-  4) `--debug-collisions --debug-navigation`
+Here are the available options:
 
-Selected option is remembered for subsequent execution of `gdscript-godot-run-project-debug`, so do not forget to change selection back to `<no options>` if you do not need debug options any longer.
+1. `<no options>` _(default)_
+2. `--debug-collisions`
+3. `--debug-navigation`
+4. `--debug-collisions --debug-navigation`
+
+The last selected option is saved for the next time you call `gdscript-godot-run-project-debug`. To remove debug options, you need to call the command with the universal argument again.
 
 ### Formatting code with gdformat
 

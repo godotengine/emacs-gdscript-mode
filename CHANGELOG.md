@@ -8,9 +8,10 @@ _Currently in development._
 
 ### Features
 
-- Added commands to open the API reference in eww
-- Added missing built in functions
-- Added missing puppet and remotesync keywords
+- Added commands to open the API reference in eww.
+- Added debug options when running `gdscript-godot-run-project-debug`.
+- Added missing built in functions.
+- Added missing puppet and remotesync keywords.
 - Added a command to insert a path to a project file, either using `project-find-file` if `projectile` is available, otherwise with `find-file`.
 - Added a command to format a selected region with `gdformat`.
 - Added syntax highlighting for function calls.
