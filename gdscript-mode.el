@@ -40,6 +40,7 @@
 (require 'gdscript-format)
 (require 'gdscript-rx)
 (require 'gdscript-godot)
+(require 'gdscript-hydra)
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.gd\\'" . gdscript-mode))
@@ -75,6 +76,8 @@
                             ;; Docs.
                             (define-key map (kbd "C-c C-b a") 'gdscript-docs-browse-api)
                             (define-key map (kbd "C-c C-b o") 'gdscript-docs-browse-symbol-at-point)
+                            ;; Hydra
+                            (define-key map (kbd "C-c r") 'gdscript-hydra-show)
                             map)
   "Keymap for `gdscript-mode'.")
 

@@ -36,6 +36,8 @@
 (require 'gdscript-utils)
 
 ;;;###autoload
+(defvar gdscript-godot--debug-options-hydra nil)
+
 (defvar gdscript-godot--debug-selected-option 1)
 
 (defvar gdscript-godot--debug-options-alist
@@ -43,6 +45,19 @@
     (2 . "--debug-collisions")
     (3 . "--debug-navigation")
     (4 . "--debug-collisions --debug-navigation")))
+
+(defmacro gdscript-godot--debug-options-handler (debug-options &rest body)
+  "Set debug-options either as set by Hydra, or use one provided by prefix argument selection."
+  (declare (indent 1) (debug t))
+  `(let* ((debug-option-index
+           (if current-prefix-arg
+               (gdscript-godot--change-debug-options)
+             gdscript-godot--debug-selected-option))
+          (prefix-options (cdr (assoc debug-option-index gdscript-godot--debug-options-alist)))
+          (use-hydra-options (not (booleanp gdscript-godot--debug-options-hydra))) ;; gdscript-godot--debug-options-hydra is a string when run from hydra
+          (,debug-options (if use-hydra-options gdscript-godot--debug-options-hydra prefix-options)))
+     ,@body
+     (setq gdscript-godot--debug-options-hydra nil)))
 
 (defun gdscript-godot--run-command (cmd &optional show)
   "Run a Godot process.
@@ -81,11 +96,7 @@ file's directory as starting point."
 
 When run with prefix argument, it offers extra debug options to choose from."
   (interactive)
-  (let* ((debug-option-index
-          (if current-prefix-arg
-              (gdscript-godot--change-debug-options)
-            gdscript-godot--debug-selected-option))
-         (debug-options (cdr (assoc debug-option-index gdscript-godot--debug-options-alist))))
+  (gdscript-godot--debug-options-handler debug-options
     (gdscript-godot--run-command
      (concat (gdscript-godot--build-shell-command) " -d " debug-options) t)))
 
@@ -97,12 +108,15 @@ When run with prefix argument, it offers extra debug options to choose from."
            (gdscript-util--get-godot-project-file-path-relative buffer-file-name) ".tscn")))
 
 (defun gdscript-godot-run-current-scene-debug ()
-  "Run the current script file in Godot Engine."
+  "Run the current script file in Godot Engine.
+
+When run with prefix argument, it offers extra debug options to choose from."
   (interactive)
-  (gdscript-godot--run-command
-   (concat (gdscript-godot--build-shell-command) " -d "
-           (gdscript-util--get-godot-project-file-path-relative buffer-file-name) ".tscn")
-   t))
+  (gdscript-godot--debug-options-handler debug-options
+    (gdscript-godot--run-command
+     (concat (gdscript-godot--build-shell-command) " -d " debug-options
+             (gdscript-util--get-godot-project-file-path-relative buffer-file-name) ".tscn")
+     t)))
 
 (defun gdscript-godot-edit-current-scene ()
   "Run the current script file in Godot Engine."
