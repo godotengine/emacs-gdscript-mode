@@ -4,17 +4,31 @@ This document lists new features, improvements, changes, and bug fixes in each r
 
 ## GDScript mode 1.2.0
 
-_Currently in development._
-
 ### Features
 
-- Added commands to open the API reference in eww.
+- Added commands to open the API reference in `eww`.
 - Added debug options when running `gdscript-godot-run-project-debug`.
-- Added missing built in functions.
-- Added missing puppet and remotesync keywords.
 - Added a command to insert a path to a project file, either using `project-find-file` if `projectile` is available, otherwise with `find-file`.
 - Added a command to format a selected region with `gdformat`.
 - Added syntax highlighting for function calls.
+- Added missing built in functions.
+- Added missing `puppet` and `remotesync` keywords.
+
+### Changes
+
+- Changed keyboard shortcuts:
+  - <kbd>C-c i</kbd> `gdscript-completion-insert-file-path-at-point`
+  - <kbd>C-c C-f r</kbd> `gdscript-format-region`
+  - <kbd>C-c C-f b</kbd> `gdscript-format-buffer`
+  - <kbd>C-c C-r p</kbd> `gdscript-godot-open-project-in-editor`
+  - <kbd>C-c C-r r</kbd> `gdscript-godot-run-project`
+  - <kbd>C-c C-r d</kbd> `gdscript-godot-run-project-debug`
+  - <kbd>C-c C-r s</kbd> `gdscript-godot-run-current-scene`
+  - <kbd>C-c C-r q</kbd> `gdscript-godot-run-current-scene-debug`
+  - <kbd>C-c C-r e</kbd> `gdscript-godot-edit-current-scene`
+  - <kbd>C-c C-r x</kbd> `gdscript-godot-run-current-script`
+  - <kbd>C-c C-b a</kbd> `gdscript-docs-browse-api`
+  - <kbd>C-c C-b o</kbd> `gdscript-docs-browse-symbol-at-point`
 
 ### Bug fixes
 
