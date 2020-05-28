@@ -36,6 +36,14 @@
 (require 'gdscript-utils)
 
 ;;;###autoload
+(defvar gdscript-godot-debug-selected-option 1)
+
+(defvar gdscript-godot-debug-options-alist
+  '((1 . "")
+    (2 . "--debug-collisions")
+    (3 . "--debug-navigation")
+    (4 . "--debug-collisions --debug-navigation")))
+
 (defun gdscript-godot--run-command (cmd &optional show)
   "Run a Godot process.
 
@@ -66,10 +74,17 @@ file's directory as starting point."
    (gdscript-godot--build-shell-command)))
 
 (defun gdscript-godot-run-project-debug ()
-  "Run the current project in Godot Engine."
+  "Run the current project in Godot Engine.
+
+When run with prefix argument, it offers extra debug options to choose from."
   (interactive)
-  (gdscript-godot--run-command
-   (concat (gdscript-godot--build-shell-command) " -d") t))
+  (let* ((debug-option-index
+          (if current-prefix-arg
+              (gdscript-godot-change-debug-options)
+            gdscript-godot-debug-selected-option))
+         (debug-options (cdr (assoc debug-option-index gdscript-godot-debug-options-alist))))
+    (gdscript-godot--run-command
+     (concat (gdscript-godot--build-shell-command) " -d " debug-options) t)))
 
 (defun gdscript-godot-run-current-scene ()
   "Run the current script file in Godot Engine."
@@ -102,6 +117,32 @@ For this to work, the script must inherit either from
   (gdscript-godot--run-command
    (concat (gdscript-godot--build-shell-command) " -s " (file-relative-name buffer-file-name))
    t))
+
+(defun gdscript-godot-debug-options-collection ()
+  "List of debug options to choose from by *-read function."
+  (list
+   (format "1) [%s] <no options>" (if (eq gdscript-godot-debug-selected-option 1) "X" " "))
+   (format "2) [%s] %s" (if (eq gdscript-godot-debug-selected-option 2) "X" " ") (cdr (assoc 2 gdscript-godot-debug-options-alist)))
+   (format "3) [%s] %s" (if (eq gdscript-godot-debug-selected-option 3) "X" " ") (cdr (assoc 3 gdscript-godot-debug-options-alist)))
+   (format "4) [%s] %s" (if (eq gdscript-godot-debug-selected-option 4) "X" " ") (cdr (assoc 4 gdscript-godot-debug-options-alist)))))
+
+(defun gdscript-godot-read-options ()
+  "Read debug options preference by user from mini-buffer."
+  (cond ((fboundp 'ivy-read)
+         (ivy-read "Options: " (gdscript-godot-debug-options-collection)))
+        ((fboundp 'ido-completing-read)
+         (ido-completing-read "Options: " (gdscript-godot-debug-options-collection)))
+        (t
+         (completing-read "Options (hit TAB to auto-complete): " (gdscript-godot-debug-options-collection) nil t))))
+
+(defun gdscript-godot-change-debug-options ()
+  "Read debug option and parse it as a number.
+
+Once read it is saved in `gdscript-godot-debug-selected-option'
+variable for later use."
+  (let* ((option (gdscript-godot-read-options))
+         (index (string-to-number option)))
+    (setq gdscript-godot-debug-selected-option index)))
 
 (provide 'gdscript-godot)
 ;;; gdscript-godot.el ends here
