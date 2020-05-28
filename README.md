@@ -168,6 +168,27 @@ With the point on a built-in class you can press `C-c C-r C-o` to open the code 
 
 To open the main API reference page and browse it, press `C-c C-r C-a`.
 
+## Keyboard shortcuts
+
+The following shortcuts are available by default:
+
+- Inserting:
+  - <kbd>C-c i</kbd> `gdscript-completion-insert-file-path-at-point`
+- Formatting:
+  - <kbd>C-c C-f r</kbd> `gdscript-format-region`
+  - <kbd>C-c C-f b</kbd> `gdscript-format-buffer`
+- Running the project and scenes in Godot:
+  - <kbd>C-c C-r p</kbd> `gdscript-godot-open-project-in-editor`
+  - <kbd>C-c C-r r</kbd> `gdscript-godot-run-project`
+  - <kbd>C-c C-r d</kbd> `gdscript-godot-run-project-debug`
+  - <kbd>C-c C-r s</kbd> `gdscript-godot-run-current-scene`
+  - <kbd>C-c C-r q</kbd> `gdscript-godot-run-current-scene-debug`
+  - <kbd>C-c C-r e</kbd> `gdscript-godot-edit-current-scene`
+  - <kbd>C-c C-r x</kbd> `gdscript-godot-run-current-script`
+- Browsing the code reference:
+  - <kbd>C-c C-b a</kbd> `gdscript-docs-browse-api`
+  - <kbd>C-c C-b o</kbd> `gdscript-docs-browse-symbol-at-point`
+
 ## Customization
 
 To find all GDScript-mode settings, press `M-x customize` and search for "gdscript".
