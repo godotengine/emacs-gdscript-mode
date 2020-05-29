@@ -2,6 +2,12 @@
 
 This document lists new features, improvements, changes, and bug fixes in each release of the package.
 
+## GDScript mode 1.3.0
+
+### Features
+
+- Support for running the project and scenes with [hydra](https://github.com/abo-abo/hydra) with `gdscript-hydra-show`.
+
 ## GDScript mode 1.2.0
 
 ### Features

@@ -149,10 +149,9 @@ Here are the available options:
 
 The last selected option is saved for the next time you call `gdscript-godot-run-project-debug`. To remove debug options, you need to call the command with the universal argument again.
 
-
 ### Using Hydra
 
-Running `gdscript-hydra-show` (<kbd>C-c r</kbd>) opens [hydra](https://github.com/abo-abo/hydra) for quick launching of a project, a scene or a script.
+Running `gdscript-hydra-show` (<kbd>C-c r</kbd>) opens a [hydra](https://github.com/abo-abo/hydra) popup with options to open the editor or run the project, a scene, or a script, including with visual debug options.
 
 ```
 d ( ) Debug   p run current project  t run current script  q quit
@@ -160,16 +159,7 @@ e ( ) Editor  s run current scene    g switch to *godot*
 
 c [ ] Visible collisions shapes
 n [ ] Visible navigation
-
 ```
-
-Notes:
-  - `( )` represents radio button toggle
-  - `[ ]` represents checkbox toggle
-
-Hydra is alternative way how to run <kbd>C-c C-r *</kbd> commands in combination with <kbd>C-u</kbd>.
-
-Hydra also offers quick navigation to `*godot*` buffer.
 
 ### Formatting code with gdformat
 
