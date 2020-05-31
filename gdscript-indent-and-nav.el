@@ -708,9 +708,7 @@ likely an invalid gdscript file."
         (goto-char dedenter-pos)
         (let* ((cur-line (line-beginning-position))
                (pairs '(("elif" "elif" "if")
-                        ("else" "if" "elif" "except" "for" "while")
-                        ("except" "except" "try")
-                        ("finally" "else" "except" "try")))
+                        ("else" "if" "elif")))
                (dedenter (match-string-no-properties 0))
                (possible-opening-blocks (cdr (assoc-string dedenter pairs)))
                (collected-indentations)
@@ -718,7 +716,16 @@ likely an invalid gdscript file."
           (catch 'exit
             (while (gdscript-nav--syntactically
                     (lambda ()
-                      (re-search-backward (gdscript-rx block-start) nil t))
+                      (re-search-backward (gdscript-rx block-start) nil t)
+                      ;; At this point `(match-string-no-properties 0)' doesn't match whole gdscript's block expression,
+                      ;; due to how `re-search-backward' works.
+                      ;; To make `(match-string-no-properties 0)' match whole gdscript's block expression
+                      ;; let's use `re-search-forward' from beginning of a line.
+                      (beginning-of-line)
+                      (re-search-forward (gdscript-rx block-start) nil t)
+                      ;; And let's put point at the beginning of the match.
+                      (beginning-of-line)
+                      t)
                     #'<)
               (let ((indentation (current-indentation)))
                 (when (and (not (memq indentation collected-indentations))
@@ -741,8 +748,10 @@ likely an invalid gdscript file."
                                no-back-indent)))
                   (setq collected-indentations
                         (cons indentation collected-indentations))
-                  (when (member (match-string-no-properties 0)
-                                possible-opening-blocks)
+                  (when
+                      (seq-contains possible-opening-blocks
+                                    (string-trim (match-string-no-properties 0))
+                                    (lambda (elt e) (string-prefix-p e elt)))
                     (setq opening-blocks (cons (point) opening-blocks))))
                 (when (zerop indentation)
                   (throw 'exit nil)))))
