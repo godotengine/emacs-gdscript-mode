@@ -34,6 +34,8 @@
 
 (require 'gdscript-comint)
 (require 'gdscript-customization)
+(require 'gdscript-history)
+(require 'gdscript-project)
 (require 'gdscript-utils)
 
 ;;;###autoload
@@ -48,7 +50,9 @@
     (4 . ("--debug-collisions" "--debug-navigation"))))
 
 (defmacro gdscript-godot--debug-options-handler (debug-options &rest body)
-  "Set debug-options either as set by Hydra, or use one provided by prefix argument selection."
+  "Execute the forms in BODY with DEBUG-OPTIONS being set.
+
+DEBUG-OPTIONS will be set either by Hydra, or by prefix argument selection."
   (declare (indent 1) (debug t))
   `(let* ((debug-option-index
            (if current-prefix-arg
@@ -60,13 +64,14 @@
      ,@body))
 
 (defun gdscript-godot--run-command (&rest arguments)
-  "Run a Godot process.
+  "Run a Godot process with ARGUMENTS.
 
-CMD is the command to be invoked by the shell.  The
-output of the process will be provided in a buffer named
+The output of the process will be provided in a buffer named
 `*godot - <project-name>*'."
-  (gdscript-comint--run (gdscript-util--flatten (list (gdscript-godot--build-shell-command) arguments)))
-  (setq gdscript-godot--debug-options-hydra :not-list))
+  (let ((args (gdscript-util--flatten arguments)))
+    (gdscript-history--add-to-history args)
+    (gdscript-comint--run (append (gdscript-godot--build-shell-command) args))
+    (setq gdscript-godot--debug-options-hydra :not-list)))
 
 (defun gdscript-godot--build-shell-command (&optional path)
   "Build a shell command to with the Godot executable.
@@ -97,7 +102,7 @@ When run with prefix argument, it offers extra debug options to choose from."
 (defun gdscript-godot-run-current-scene ()
   "Run the current script file in Godot Engine."
   (interactive)
-  (gdscript-godot--run-command (gdscript-godot--scene-name)))
+  (gdscript-godot--run-command (gdscript-godot--select-scene)))
 
 (defun gdscript-godot-run-current-scene-debug ()
   "Run the current script file in Godot Engine.
@@ -105,12 +110,18 @@ When run with prefix argument, it offers extra debug options to choose from."
 When run with prefix argument, it offers extra debug options to choose from."
   (interactive)
   (gdscript-godot--debug-options-handler debug-options
-    (gdscript-godot--run-command "-d" debug-options (gdscript-godot--scene-name))))
+    (gdscript-godot--run-command "-d" debug-options (gdscript-godot--select-scene))))
 
 (defun gdscript-godot-edit-current-scene ()
   "Run the current script file in Godot Engine."
   (interactive)
-  (gdscript-godot--run-command "-e" (gdscript-godot--scene-name)))
+  (gdscript-godot--run-command "-e" (gdscript-godot--select-scene)))
+
+(defun gdscript-godot--select-scene ()
+  "Run the current script file in Godot Engine."
+  (let ((scene-name (gdscript-project--current-buffer-scene)))
+    (if scene-name scene-name
+      (gdscript-project--select-scene))))
 
 (defun gdscript-godot-run-current-script ()
   "Run the current script file in Godot Engine.
@@ -118,11 +129,14 @@ When run with prefix argument, it offers extra debug options to choose from."
 For this to work, the script must inherit either from
 \"SceneTree\" or \"MainLoop\"."
   (interactive)
-  (gdscript-godot--run-command "-s" (file-relative-name buffer-file-name)))
+  (let ((script-name (gdscript-project--current-buffer-script)))
+    (if script-name
+        (gdscript-godot--run-script script-name)
+      (gdscript-project--get-all-scripts))))
 
-(defun gdscript-godot--scene-name ()
-  "Return the name of current scene."
-  (concat (gdscript-util--get-godot-project-file-path-relative buffer-file-name) ".tscn"))
+(defun gdscript-godot--run-script (script-name)
+  "Run SCRIPT-NAME script in Godot Engine."
+  (gdscript-godot--run-command "-s" script-name))
 
 (defun gdscript-godot--debug-options-to-string (index)
   "Return debug options from `gdscript-godot--debug-options-alist' for given INDEX as a string."
@@ -136,21 +150,12 @@ For this to work, the script must inherit either from
    (format "3) [%s] %s" (if (eq gdscript-godot--debug-selected-option 3) "X" " ") (gdscript-godot--debug-options-to-string 3))
    (format "4) [%s] %s" (if (eq gdscript-godot--debug-selected-option 4) "X" " ") (gdscript-godot--debug-options-to-string 4))))
 
-(defun gdscript-godot--read-debug-options ()
-  "Read debug options preference by user from mini-buffer."
-  (cond ((fboundp 'ivy-read)
-         (ivy-read "Options: " (gdscript-godot--debug-options-collection)))
-        ((fboundp 'ido-completing-read)
-         (ido-completing-read "Options: " (gdscript-godot--debug-options-collection)))
-        (t
-         (completing-read "Options (hit TAB to auto-complete): " (gdscript-godot--debug-options-collection) nil t))))
-
 (defun gdscript-godot--change-debug-options ()
   "Read debug option and parse it as a number.
 
 Once read it is saved in `gdscript-godot--debug-selected-option'
 variable for later use."
-  (let* ((option (gdscript-godot--read-debug-options))
+  (let* ((option (gdscript-util--read (gdscript-godot--debug-options-collection)))
          (index (string-to-number option)))
     (setq gdscript-godot--debug-selected-option index)))
 

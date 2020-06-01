@@ -10,6 +10,9 @@ This document lists new features, improvements, changes, and bug fixes in each r
 - Add the ability to open a local copy of the Godot docs with `gdscript-docs-*` commands.
 - Multiple projects support. Every project's `godot` process runs in its own buffer.
 - Godot's standard output and standard error are fed to a `comint` buffer. This allows you to navigate errors and jump to the corresponding source files, using `compilation-*` commands.
+- Hydra supports history of commands for quick re-execution of godot commands. It also provide quick way to run last command again.
+- `gdscript-godot-run-current-scene` commands now offers to run any scene file if current buffer is not a scene file.
+- `gdscript-godot-run-current-script` command now offers to run any script file if current buffer is not a script file.
 
 ### Bug fixes
 

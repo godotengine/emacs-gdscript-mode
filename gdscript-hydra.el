@@ -27,7 +27,7 @@
 ;;
 ;;; Commentary:
 ;;
-;;  Hydra for launching Godot. It offers options to launch Godot in debug mode or open editor or run the script.
+;;  Hydra for launching Godot.  It offers options to launch Godot in debug mode or open editor or run the script.
 ;;
 ;;  When running in debug mode it offers two additional flags to pass to Godot:
 ;;   --debug-collisions
@@ -37,9 +37,11 @@
 
 (require 'hydra nil t)
 (require 'gdscript-godot)
+(require 'gdscript-history)
 (require 'gdscript-utils)
 
 ;;;###autoload
+(defvar gdscript-hydra--open nil)
 (defvar gdscript-hydra--debug nil)
 (defvar gdscript-hydra--editor nil)
 (defvar gdscript-hydra--debug-collisions nil)
@@ -49,20 +51,20 @@
   "Show gdcript hydra."
   (interactive)
   (when (not (featurep 'hydra))
-    (error "gdscript-hydra.el: No `hydra.el' available. To execute `gdscript-hydra-show' command you need to install hydra.el."))
+    (error "No `hydra.el' available.  To execute `gdscript-hydra-show' command you need to install hydra.el"))
   (gdscript-hydra--menu/body))
 
 (defun gdscript-hydra--selected (selected)
-  "Visual representation for (non)selected checkboxes."
+  "Visual representation for (non)SELECTED checkboxes."
   (if selected "x" " "))
 
 (defun gdscript-hydra--dispatch (run-default run-debug run-editor)
   "Run Godot with selected flag.
 
-RUN-DEFAULT is a function to call when neither debug or scene flag is selected in hydra.
+RUN-DEFAULT is a function to call when neither debug or scene flag
+is selected in hydra.
 RUN-DEBUG is a function to call when debug flag is selected in hydra.
-RUN-EDITOR is a function to call when editor flag is selected in hydra.
-"
+RUN-EDITOR is a function to call when editor flag is selected in hydra."
   (cond
    ((and (not gdscript-hydra--debug)
          (not gdscript-hydra--editor)) (funcall run-default))
@@ -72,7 +74,9 @@ RUN-EDITOR is a function to call when editor flag is selected in hydra.
 (defun gdscript-hydra--run (project-or-scene)
   "Dispatcher from hydra heads to gdscript-godot-* commands.
 
-It is setting variable `gdscript-godot--debug-options-hydra' based on hydra checkboxes."
+PROJECT-OR-SCENE is symbol representing scene, project or script.
+It is setting variable `gdscript-godot--debug-options-hydra' based
+on hydra checkboxes."
   (setq gdscript-godot--debug-options-hydra
         (remove nil
                 (list
@@ -99,12 +103,22 @@ It is setting variable `gdscript-godot--debug-options-hydra' based on hydra chec
                                (equal (buffer-name) godot-buffer-name))) (buffer-list))))
         (when godot-buffer (switch-to-buffer-other-window godot-buffer))))))
 
+(defun gdscript-hydra--run-last ()
+  "Run last command from history."
+  (gdscript-godot--run-command (gdscript-history--last-command)))
+
+(defun gdscript-hydra--select-from-history ()
+  "Choose command to run from history of commands."
+  (gdscript-godot--run-command (gdscript-history--select-from-history)))
+
 (ignore-errors
   ;; Don't signal an error when hydra.el is not present
-  (defhydra gdscript-hydra--menu (:hint none)
+  (defhydra gdscript-hydra--menu (:hint none
+                                        :body-pre (setq gdscript-hydra--open t)
+                                        :before-exit (setq gdscript-hydra--open nil))
     "
-_d_ (?d?) Debug   _p_ run current project  _t_ run current script  _q_ quit
-_e_ (?e?) Editor  _s_ run current scene    _g_ switch to *godot*
+_d_ (?d?) Debug   _p_ run project  _t_ run script  _h_ run from history   _q_ quit
+_e_ (?e?) Editor  _s_ run scene    _r_ run last    _g_ switch to *godot*
 
 _c_ [?c?] Visible collisions shapes
 _n_ [?n?] Visible navigation
@@ -123,6 +137,8 @@ _n_ [?n?] Visible navigation
     ("p" (gdscript-hydra--run :project))
     ("s" (gdscript-hydra--run :scene))
     ("t" (gdscript-hydra--run :script))
+    ("r" (gdscript-hydra--run-last))
+    ("h" (gdscript-hydra--select-from-history))
     ("c" (setq gdscript-hydra--debug-collisions (not gdscript-hydra--debug-collisions)
                gdscript-hydra--debug t
                gdscript-hydra--editor nil) (gdscript-hydra--selected gdscript-hydra--debug-collisions))

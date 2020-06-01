@@ -65,7 +65,8 @@ When run it will kill existing process if one exists."
         (godot-mode)
         (buffer-disable-undo))
       (erase-buffer)
-      (comint-exec (current-buffer) buffer-name gdscript-godot-executable nil arguments))))
+      (comint-exec (current-buffer) buffer-name gdscript-godot-executable nil arguments)
+      (pop-to-buffer (current-buffer)))))
 
 (define-derived-mode godot-mode comint-mode "godot"
   "Major mode for godot.
