@@ -32,12 +32,15 @@
 ;;; Code:
 
 (require 'eww)
+(require 'gdscript-customization)
 
 ;;;###autoload
 (defun gdscript-docs-browse-api ()
   "Open the main page of Godot API in eww browser."
   (interactive)
-  (eww-browse-url "https://docs.godotengine.org/en/stable/classes/index.html?#godot-api"))
+  (if (not (string= gdscript-docs-local-path ""))
+      (eww-open-file (concat (file-name-as-directory gdscript-docs-local-path) "classes/index.html"))
+    (eww-browse-url "https://docs.godotengine.org/en/stable/classes/index.html?#godot-api")))
 
 (defun gdscript-docs-browse-symbol-at-point ()
   "Open the API reference for the symbol at point in the browser eww.
@@ -52,7 +55,9 @@ If a page is already open, switch to its buffer."
                  (string-suffix-p symbol (plist-get eww-data :url) t)
                  ))) (buffer-list))))
     (if buffer (pop-to-buffer-same-window buffer)
-      (eww-browse-url (format "https://docs.godotengine.org/en/stable/classes/class_%s.html#%s" symbol symbol) t))))
+      (if (not (string= gdscript-docs-local-path ""))
+          (eww-open-file (concat (file-name-as-directory gdscript-docs-local-path) (file-name-as-directory "classes") "class_" symbol ".html"))
+        (eww-browse-url (format "https://docs.godotengine.org/en/stable/classes/class_%s.html#%s" symbol symbol) t)))))
 
 (defun gdscript-docs--rename-eww-buffer ()
   "Rename the eww buffer visiting the Godot documentation.

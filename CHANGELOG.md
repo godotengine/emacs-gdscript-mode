@@ -7,6 +7,11 @@ This document lists new features, improvements, changes, and bug fixes in each r
 ### Features
 
 - Support for running the project and scenes with [hydra](https://github.com/abo-abo/hydra) with `gdscript-hydra-show`.
+- Add the ability to open a local copy of the Godot docs with `gdscript-docs-*` commands.
+
+### Bug fixes
+
+- Fixed auto-indentation not working with match blocks.
 
 ## GDScript mode 1.2.0
 

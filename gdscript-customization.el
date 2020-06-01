@@ -117,5 +117,14 @@ PATH."
   :type 'string
   :group 'gdscript)
 
+(defcustom gdscript-docs-local-path ""
+  "Optional path to a local build of the Godot documentation.
+If not set to an empty string, the commands `gdscript-docs-browse-api'
+and `gdscript-docs-browse-symbol-at-point' allow you to browse the local files.
+Must be the root directory of the website, that is to say, a
+directory path containing the file `index.html'."
+  :type 'string
+  :group 'gdscript)
+
 (provide 'gdscript-customization)
 ;;; gdscript-customization.el ends here
