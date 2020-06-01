@@ -176,9 +176,22 @@ pip3 install gdtoolkit
 
 ### Browsing the Godot API with eww
 
-With the point on a built-in class you can press `C-c C-r C-o` to open the code reference for that class in the text browser [eww](https://www.gnu.org/software/emacs/manual/html_node/emacs/EWW.html).
+With the point on a built-in class you can press `C-c C-b o` to open the code reference for that class in the text browser [eww](https://www.gnu.org/software/emacs/manual/html_node/emacs/EWW.html).
 
-To open the main API reference page and browse it, press `C-c C-r C-a`.
+To open the main API reference page and browse it, press `C-c C-b a`.
+
+#### Using a local copy of the Godot docs
+
+You can browse the API reference offline with `eww`. To do so:
+
+1. Get a build of the official documentation. You can build it from the [godot docs repository](https://github.com/godotengine/godot-docs/) or [download a build](https://hugo.pro/projects/godot-builds/) from Hugo Lourcio's website.
+2. Set `gdscript-docs-local-path` to the docs' directory, that contains the docs' `index.html` file.
+
+For example:
+
+```lisp
+(setq gdscript-docs-local-path "/home/gdquest/Documents/docs/godot")
+```
 
 ## Keyboard shortcuts
 
