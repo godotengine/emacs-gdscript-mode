@@ -8,8 +8,8 @@ This document lists new features, improvements, changes, and bug fixes in each r
 
 - Support for running the project and scenes with [hydra](https://github.com/abo-abo/hydra) with `gdscript-hydra-show`.
 - Add the ability to open a local copy of the Godot docs with `gdscript-docs-*` commands.
-- Multiple projects support. Every project's process run in its own buffer.
-- Godot's stdout/stderr now goes to comint buffer. It has support for quick navigation from errors to file locations.
+- Multiple projects support. Every project's `godot` process runs in its own buffer.
+- Godot's standard output and standard error are fed to a `comint` buffer. This allows you to navigate errors and jump to the corresponding source files, using `compilation-*` commands.
 
 ### Bug fixes
 
