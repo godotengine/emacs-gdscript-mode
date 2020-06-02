@@ -100,9 +100,10 @@ starts from the current buffer path.
 
 WARNING: the Godot project must exist for this function to work."
   (let ((base-path (or start-path default-directory)))
-    (locate-dominating-file base-path
-                            (lambda (parent)
-                              (directory-files parent t "project.godot")))))
+    (expand-file-name
+     (locate-dominating-file base-path
+                             (lambda (parent)
+                               (directory-files parent t "project.godot"))))))
 
 (defun gdscript-util--get-godot-project-name ()
   "Retrieve the project name from Godot's configuration file."
@@ -113,11 +114,27 @@ WARNING: the Godot project must exist for this function to work."
         (match-string 1)
       (error "Could not find the name of the project"))))
 
+(defun gdscript-util--get-godot-buffer-name ()
+  "Return buffer name for godot's stdout/stderr output."
+  (format "*godot - %s*" (gdscript-util--get-godot-project-name)))
+
 (defun gdscript-util--get-godot-project-file-path-relative (file-path)
   "Return the relative path of `FILE-PATH' to Godot's configuration file."
   (concat (file-name-sans-extension
            (file-relative-name file-path
                                (gdscript-util--find-project-configuration-file)))))
+
+(defun gdscript-util--flatten (xs)
+  "Flatten deeply nested list.
+
+For example:
+> (gdscript-util--flatten (list 1 2 (list 3 (list 4 5)) nil))
+> (1 2 3 4 5)
+"
+  (cond
+   ((null xs) nil)
+   ((listp xs) (append (gdscript-util--flatten (car xs)) (gdscript-util--flatten (cdr xs))))
+   (t (list xs))))
 
 (provide 'gdscript-utils)
 

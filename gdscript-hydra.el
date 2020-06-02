@@ -37,6 +37,7 @@
 
 (require 'hydra nil t)
 (require 'gdscript-godot)
+(require 'gdscript-utils)
 
 ;;;###autoload
 (defvar gdscript-hydra--debug nil)
@@ -73,9 +74,10 @@ RUN-EDITOR is a function to call when editor flag is selected in hydra.
 
 It is setting variable `gdscript-godot--debug-options-hydra' based on hydra checkboxes."
   (setq gdscript-godot--debug-options-hydra
-        (concat
-         (when gdscript-hydra--debug-collisions "--debug-collisions ")
-         (when gdscript-hydra--debug-navigation "--debug-navigation ")))
+        (remove nil
+                (list
+                 (when gdscript-hydra--debug-collisions "--debug-collisions")
+                 (when gdscript-hydra--debug-navigation "--debug-navigation"))))
 
   (pcase project-or-scene
     (:project (gdscript-hydra--dispatch 'gdscript-godot-run-project
@@ -87,12 +89,15 @@ It is setting variable `gdscript-godot--debug-options-hydra' based on hydra chec
     (:script (gdscript-godot-run-current-script))))
 
 (defun gdscript-hydra--open-godot-buffer ()
-  "Find buffer named *godot* and if it exists open it in other window."
-  (let ((godot-buffer (seq-find
-                       (lambda (current-buffer)
-                         (with-current-buffer current-buffer
-                           (equal (buffer-name) "*godot*"))) (buffer-list))))
-    (when godot-buffer (switch-to-buffer-other-window godot-buffer))))
+  "Find buffer named *godot - <project-name>* and if it exists open it in other window."
+  (let* ((current-name (buffer-name (current-buffer)))
+         (godot-buffer-name (gdscript-util--get-godot-buffer-name)))
+    (unless (string= godot-buffer-name current-name)
+      (let ((godot-buffer (seq-find
+                           (lambda (current-buffer)
+                             (with-current-buffer current-buffer
+                               (equal (buffer-name) godot-buffer-name))) (buffer-list))))
+        (when godot-buffer (switch-to-buffer-other-window godot-buffer))))))
 
 (ignore-errors
   ;; Don't signal an error when hydra.el is not present
