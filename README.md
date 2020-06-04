@@ -154,8 +154,8 @@ The last selected option is saved for the next time you call `gdscript-godot-run
 Running `gdscript-hydra-show` (<kbd>C-c r</kbd>) opens a [hydra](https://github.com/abo-abo/hydra) popup with options to open the editor or run the project, a scene, or a script, including with visual debug options.
 
 ```
-d ( ) Debug   p run current project  t run current script  q quit
-e ( ) Editor  s run current scene    g switch to *godot*
+d ( ) Debug   p run project  t run script  h run from history   q quit
+e ( ) Editor  s run scene    r run last    g switch to *godot*
 
 c [ ] Visible collisions shapes
 n [ ] Visible navigation

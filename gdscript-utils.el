@@ -136,6 +136,18 @@ For example:
    ((listp xs) (append (gdscript-util--flatten (car xs)) (gdscript-util--flatten (cdr xs))))
    (t (list xs))))
 
+(defun gdscript-util--read (items &optional prompt)
+  "Let's choose single item from ITEMS from mini-buffer.
+
+PROMPT is prompt for read command."
+  (let ((p (if prompt prompt "Options")))
+    (cond ((fboundp 'ivy-read)
+           (ivy-read (format "%s: " p) items))
+          ((fboundp 'ido-completing-read)
+           (ido-completing-read (format "%s: " p) items))
+          (t
+           (completing-read (format "%s (hit TAB to auto-complete): " p) items nil t)))))
+
 (provide 'gdscript-utils)
 
 ;;; gdscript-utils.el ends here
