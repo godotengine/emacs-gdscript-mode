@@ -40,7 +40,9 @@
 
 If current buffer is not visiting scene file return nil."
   (when buffer-file-name
-    (let ((scene-name (concat (gdscript-util--get-godot-project-file-path-relative buffer-file-name) ".tscn")))
+    (let ((scene-name (concat
+                       (gdscript-util--find-project-configuration-file)
+                       (gdscript-util--get-godot-project-file-path-relative buffer-file-name) ".tscn")))
       (when (file-exists-p scene-name) scene-name))))
 
 (defun gdscript-project--select-scene ()
