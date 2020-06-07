@@ -65,17 +65,19 @@ Then, in your init.el file, you can require the package:
 
 ### Installing in Spacemacs
 
-1. Clone the repository to the `private/local` subdirectory of your `.emacs.d`
-   directory, where you installed spacemacs.
-2. Add the package to the `dotspacemacs-additional-packages` and mark it as
-   local. That's Spacemacs' feature to make it easy to load locally installed
-   packages.
+1. Add the package to the `dotspacemacs-additional-packages`. You can find it under the dotspacemacs/layers function:
 
 ```lisp
-dotspacemacs-additional-packages '((gdscript-mode :location local))
+(defun dotspacemacs/layers ()
+  "Configuration Layers declaration..."
+  (setq-default
+   ;; ...
+   dotspacemacs-additional-packages '(gdscript-mode)
+   ;; ...
+   ))
 ```
 
-3. In your `dotspacemacs/user-config` function, require the package.
+2. In your `dotspacemacs/user-config` function, require the package.
 
 ```lisp
 (defun dotspacemacs/user-config ()
