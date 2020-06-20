@@ -54,7 +54,7 @@
 ARGUMENTS are command line arguments for godot executable.
 When run it will kill existing process if one exists."
   (let ((buffer-name (gdscript-util--get-godot-buffer-name))
-        (inhibit-read-only 1))
+        (inhibit-read-only t))
 
     (when (not (executable-find gdscript-godot-executable))
       (error "Error: Could not find %s on PATH.  Please customize the gdscript-godot-executable variable" gdscript-godot-executable))
@@ -66,7 +66,18 @@ When run it will kill existing process if one exists."
         (buffer-disable-undo))
       (erase-buffer)
       (comint-exec (current-buffer) buffer-name gdscript-godot-executable nil arguments)
+      (set-process-sentinel (get-buffer-process (current-buffer)) 'gdscript-comint--sentinel)
       (pop-to-buffer (current-buffer)))))
+
+(defun gdscript-comint--sentinel (process event)
+  "Custom sentinel for PROCESS and EVENT.
+
+Set process's buffer `inhibit-read-only' temporalily to value t,
+so that `internal-default-process-sentinel' can insert status
+message into the process’s buffer."
+  (with-current-buffer (process-buffer process)
+    (let ((inhibit-read-only t))
+      (internal-default-process-sentinel process event))))
 
 (define-derived-mode godot-mode comint-mode "godot"
   "Major mode for godot.
@@ -80,7 +91,7 @@ When run it will kill existing process if one exists."
   "Initialize buffer for comint mode support."
   (when (derived-mode-p 'comint-mode)
     (setq comint-process-echoes nil)
-    (setq comint-prompt-regexp "debug> ")
+    (setq comint-prompt-regexp "^debug> ")
     (setq-local comint-use-prompt-regexp t)
     (setq-local comint-prompt-read-only t)
     (setq-local comint-buffer-maximum-size 4096)
