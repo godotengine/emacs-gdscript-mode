@@ -92,8 +92,8 @@ When run it will kill existing process if one exists."
   (setq-local
    compilation-error-regexp-alist
    '(
-     ("^   At: res://\\([[:word:]\/]+.gd\\):\\([[:digit:]]+\\)." 1 2 nil 2 1)
-     ("^*Frame [[:digit:]]+ - res://\\([[:word:]\/]+.gd\\):\\([[:digit:]]+\\)." 1 2 nil 2 1)))
+     ("^   At: res://\\([-_[:word:]\/]+.gd\\):\\([[:digit:]]+\\)." 1 2 nil 2 1)
+     ("^*Frame [[:digit:]]+ - res://\\([-_[:word:]\/]+.gd\\):\\([[:digit:]]+\\)." 1 2 nil 2 1)))
   (setq-local compilation-mode-font-lock-keywords nil)
   (compilation-setup t))
 
