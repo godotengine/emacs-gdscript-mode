@@ -118,6 +118,10 @@ WARNING: the Godot project must exist for this function to work."
   "Return buffer name for godot's stdout/stderr output."
   (format "*godot - %s*" (gdscript-util--get-godot-project-name)))
 
+(defun gdscript-util--get-gdformat-buffer-name ()
+  "Return buffer name for godot's stdout/stderr output."
+  (format "*gdformat - %s*" (gdscript-util--get-godot-project-name)))
+
 (defun gdscript-util--get-godot-project-file-path-relative (file-path)
   "Return the relative path of `FILE-PATH' to Godot's configuration file."
   (concat (file-name-sans-extension

@@ -36,6 +36,7 @@
 ;;; Code:
 
 (require 'hydra nil t)
+(require 'gdscript-format)
 (require 'gdscript-godot)
 (require 'gdscript-history)
 (require 'gdscript-utils)
@@ -117,8 +118,8 @@ on hydra checkboxes."
                                         :body-pre (setq gdscript-hydra--open t)
                                         :before-exit (setq gdscript-hydra--open nil))
     "
-_d_ (?d?) Debug   _p_ run project  _t_ run script  _h_ run from history   _q_ quit
-_e_ (?e?) Editor  _s_ run scene    _r_ run last    _g_ switch to *godot*
+_d_ (?d?) Debug   _p_ run project  _t_ run script  _h_ run from history   _a_ format all     _q_ quit
+_e_ (?e?) Editor  _s_ run scene    _r_ run last    _g_ switch to *godot*  _b_ format buffer
 
 _c_ [?c?] Visible collisions shapes
 _n_ [?n?] Visible navigation
@@ -146,6 +147,8 @@ _n_ [?n?] Visible navigation
                gdscript-hydra--debug t
                gdscript-hydra--editor nil) (gdscript-hydra--selected gdscript-hydra--debug-navigation))
     ("g" (gdscript-hydra--open-godot-buffer) :color blue)
+    ("a" (gdscript-format-all))
+    ("b" (gdscript-format-buffer))
     ("q" nil)))
 
 (provide 'gdscript-hydra)

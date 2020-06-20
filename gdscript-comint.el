@@ -29,13 +29,15 @@
 ;;
 ;;  godot-mode for handling stdout and stderr from godot executable.
 ;;
-;;  It support quick navigation from errors to file location.
+;;  It supports quick navigation from errors to file location.
 ;;
 ;;; Code:
 
 (require 'ansi-color)
 (require 'comint)
 (require 'compile)
+(require 'gdscript-customization)
+(require 'gdscript-format)
 (require 'gdscript-utils)
 
 (defvar gdscript-comint--mode-map
@@ -61,6 +63,8 @@ When run it will kill existing process if one exists."
 
     ;; start new godot
     (with-current-buffer (get-buffer-create buffer-name)
+      (when gdscript-gdformat-save-and-format
+        (gdscript-comint-gdformat--modified-buffers))
       (unless (derived-mode-p 'godot-mode)
         (godot-mode)
         (buffer-disable-undo))

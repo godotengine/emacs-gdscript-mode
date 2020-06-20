@@ -31,6 +31,31 @@
 
 ;;; Code:
 
+(require 'gdscript-comint-gdformat)
+
+(defmacro gdscript-format--save-buffer (&rest body)
+  "Execute the forms in BODY if current buffer is gdscript.
+
+It also activates `auto-revert-mode' and saves the buffer if is it modified."
+  (declare (indent 1) (debug t))
+  `(when (and (buffer-file-name)
+              (string-match ".*.gd$" (buffer-file-name)))
+     (unless (bound-and-true-p auto-revert-mode)
+       (auto-revert-mode))
+     (when (buffer-modified-p)
+       (save-buffer))
+     ,@body))
+
+(defmacro gdscript-format--with-gdscripts (gdscript-buffers &rest body)
+  "Execute the forms in BODY with GDSCRIPT-BUFFERS containing all gdscript buffers currently open."
+  (declare (indent 1) (debug t))
+  `(progn
+     (dolist (buffer (buffer-list))
+       (with-current-buffer buffer
+         (gdscript-format--save-buffer
+             (push (buffer-file-name) ,gdscript-buffers))))
+     ,@body))
+
 (defun gdscript-format--format-region (start end)
   "Format the region between START and END using `gdformat'."
   (let
@@ -44,20 +69,34 @@
         (shell-command-on-region start end cmd nil nil error-buffer t)))))
 
 (defun gdscript-format-region()
-  "Format the selected region using `gdformat'"
+  "Format the selected region using `gdformat'."
   (interactive)
   (gdscript-format--format-region
    (region-beginning) (region-end)))
 
 (defun gdscript-format-buffer()
-  "Format the entire current buffer using `gdformat'"
+  "Format the current buffer using `gdformat'."
   (interactive)
-  (let ((original-point (point))
-        (original-window-pos (window-start)))
-    (gdscript-format--format-region
-     (point-min) (point-max))
-    (goto-char original-point)
-    (set-window-start (selected-window) original-window-pos)))
+  (gdscript-format--save-buffer
+      (gdscript-comint-gdformat--run (list (buffer-file-name)))))
+
+(defun gdscript-comint-gdformat--modified-buffers ()
+  "Save and format all modified buffers using `gdformat'."
+  (let ((gdscript-buffers))
+    (gdscript-format--with-gdscripts gdscript-buffers
+      (when gdscript-buffers
+        (gdscript-comint-gdformat--run gdscript-buffers)))))
+
+(defun gdscript-format-all()
+  "Save modified buffers and then format all gdscripts in the project."
+  (interactive)
+  (let ((gdscript-buffers))
+    (gdscript-format--with-gdscripts gdscript-buffers
+      (let* ((rl (gdscript-util--find-project-configuration-file))
+             (gdscript-file-list (directory-files-recursively rl ".*.gd$" t)))
+        (let ((all-gdscripts (delete-dups (append gdscript-file-list gdscript-buffers))))
+          (when all-gdscripts
+            (pop-to-buffer (gdscript-comint-gdformat--run all-gdscripts))))))))
 
 (provide 'gdscript-format)
 
