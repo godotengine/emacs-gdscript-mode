@@ -56,7 +56,11 @@
                       (_ form))))
 
 ;; Controls font-face mappings or colors to highlight groups of keywords
-(defvar gdscript-font-lock `((,(gdscript-syntax-regex-maker gdscript-keywords)
+(defvar gdscript-font-lock `((,(rx (and "$" (one-or-more (or "/" (one-or-more word)))))
+                              (0 font-lock-constant-face))
+                             (,(rx (and (group "$") "\"" (zero-or-more nonl) "\""))
+                              (1 font-lock-constant-face))
+                             (,(gdscript-syntax-regex-maker gdscript-keywords)
                               1
                               font-lock-keyword-face)
                              (,(gdscript-syntax-regex-maker (append gdscript-built-in-constants
@@ -81,8 +85,6 @@
                                    (0+ space)
                                    "(")
                               (1 font-lock-function-name-face))))
-
-(defvar gdscript-syntax-table (make-syntax-table))
 
 (defun gdscript-syntax-context (type &optional syntax-ppss)
   "Return non-nil if point is on TYPE using SYNTAX-PPSS.
