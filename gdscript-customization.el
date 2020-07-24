@@ -117,6 +117,18 @@ PATH."
   :type 'string
   :group 'gdscript)
 
+(defcustom gdscript-gdformat-line-length 100
+  "How many characters per line to allow when formatting gdscript by gdformat."
+  :type 'integer
+  :group 'gdscript)
+
+(defcustom gdscript-gdformat-save-and-format nil
+  "If t, save all modified buffers and format them with gdformat.
+It happens anytime Godot executable is run.  Formatting runs on background,
+so it is not slowing down Godot execution."
+  :type 'boolean
+  :group 'gdscript)
+
 (defcustom gdscript-docs-local-path ""
   "Optional path to a local build of the Godot documentation.
 If not set to an empty string, the commands `gdscript-docs-browse-api'

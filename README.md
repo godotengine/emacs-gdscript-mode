@@ -156,8 +156,8 @@ The last selected option is saved for the next time you call `gdscript-godot-run
 Running `gdscript-hydra-show` (<kbd>C-c r</kbd>) opens a [hydra](https://github.com/abo-abo/hydra) popup with options to open the editor or run the project, a scene, or a script, including with visual debug options.
 
 ```
-d ( ) Debug   p run project  t run script  h run from history   q quit
-e ( ) Editor  s run scene    r run last    g switch to *godot*
+d ( ) Debug   p run project  t run script  h run from history   a format all    q quit
+e ( ) Editor  s run scene    r run last    g switch to *godot*  b format buffer
 
 c [ ] Visible collisions shapes
 n [ ] Visible navigation
@@ -166,7 +166,8 @@ n [ ] Visible navigation
 ### Formatting code with gdformat
 
 You can call the `gdscript-format` function to format the current buffer with
-`gdformat`. This feature requires the python package `gdtoolkit` to be installed
+`gdformat`. Alternatively `gdscript-format-all` will reformat all gdscripts in
+the project. This feature requires the python package `gdtoolkit` to be installed
 and available on the system's PATH variable.
 
 You can install gdtoolkit using the pip package manager from Python 3. Run this
@@ -228,4 +229,5 @@ Code example:
 (setq gdscript-use-tab-indents t) ;; If true, use tabs for indents. Default: t
 (setq gdscript-indent-offset 4) ;; Controls the width of tab-based indents
 (setq gdscript-godot-executable "/path/to/godot") ;; Use this executable instead of 'godot' to open the Godot editor.
+(setq gdscript-gdformat-save-and-format t) ;; Save all buffers and format them with gdformat anytime Godot executable is run.
 ```
