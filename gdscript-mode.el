@@ -110,9 +110,9 @@ the last command event was a string delimiter."
   (setq-local tab-width gdscript-tab-width)
   (setq-local indent-tabs-mode gdscript-use-tab-indents)
 
-  (set-syntax-table gdscript-syntax-table)
-  (modify-syntax-entry ?\# "\<" gdscript-syntax-table)
-  (modify-syntax-entry ?\n ">" gdscript-syntax-table)
+  (set-syntax-table gdscript-mode-syntax-table)
+  (modify-syntax-entry ?\# "\<" gdscript-mode-syntax-table)
+  (modify-syntax-entry ?\n ">" gdscript-mode-syntax-table)
 
   (setq-local comment-start "# ")
   (setq-local comment-start-skip "#+\\s-*")
