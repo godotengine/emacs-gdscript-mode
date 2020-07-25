@@ -55,7 +55,7 @@
 
 ARGUMENTS are command line arguments for godot executable.
 When run it will kill existing process if one exists."
-  (let ((buffer-name (gdscript-util--get-godot-buffer-name))
+  (let ((buffer-name (gdscript-util--get-godot-buffer-name (member "-e" arguments)))
         (inhibit-read-only t))
 
     (when (not (executable-find gdscript-godot-executable))

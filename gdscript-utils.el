@@ -114,9 +114,9 @@ WARNING: the Godot project must exist for this function to work."
         (match-string 1)
       (error "Could not find the name of the project"))))
 
-(defun gdscript-util--get-godot-buffer-name ()
+(defun gdscript-util--get-godot-buffer-name (&optional editor)
   "Return buffer name for godot's stdout/stderr output."
-  (format "*godot - %s*" (gdscript-util--get-godot-project-name)))
+  (format (if editor "*godot - %s - Editor*" "*godot - %s*") (gdscript-util--get-godot-project-name)))
 
 (defun gdscript-util--get-gdformat-buffer-name ()
   "Return buffer name for godot's stdout/stderr output."
