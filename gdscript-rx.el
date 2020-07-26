@@ -1445,10 +1445,13 @@ following constructs:
 (defmacro gdscript-rx (&rest regexps)
   "Gdscript mode specialized rx macro.
 This variant of `rx' supports common Gdscript named REGEXPS."
-  `(gdscript-rx-let ((block-start       (seq (zero-or-more nonl)
-                                             ":"
-                                             (or (seq (zero-or-more " ") eol)
-                                                 (seq (zero-or-more " ") "#" (zero-or-more nonl) eol))))
+  `(gdscript-rx-let (
+                     (block-start
+                      (or (seq (or "if" "elif" "while" "func") (+? (not ":")) ":")
+                          (seq (zero-or-more nonl)
+                               ":"
+                               (or (seq (zero-or-more " ") eol)
+                                   (seq (zero-or-more " ") "#" (zero-or-more nonl) eol)))))
                      (dedenter          (seq symbol-start
                                              (or "elif" "else")
                                              symbol-end))
