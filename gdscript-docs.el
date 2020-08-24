@@ -38,6 +38,7 @@
 (defun gdscript-docs-browse-api ()
   "Open the main page of Godot API in eww browser."
   (interactive)
+  (add-hook 'eww-after-render-hook #'gdscript-docs--eww-setup)
   (if (not (string= gdscript-docs-local-path ""))
       (eww-open-file (concat (file-name-as-directory gdscript-docs-local-path) "classes/index.html"))
     (eww-browse-url "https://docs.godotengine.org/en/stable/classes/index.html?#godot-api")))
@@ -46,6 +47,9 @@
   "Open the API reference for the symbol at point in the browser eww.
 If a page is already open, switch to its buffer."
   (interactive)
+
+  (add-hook 'eww-after-render-hook #'gdscript-docs--eww-setup)
+
   (let* ((symbol (downcase (thing-at-point 'symbol t)))
          (buffer
           (seq-find
@@ -103,9 +107,8 @@ ORIG-FUN is function we wrap around.  ARGS are argument to ORIG-FUN function."
   "Convenience setup for pages with Godot documentation."
   (setq multi-isearch-next-buffer-function nil)
   (gdscript-docs--rename-eww-buffer)
-  (gdscript-docs--filter-content-to-main-div))
-
-(add-hook 'eww-after-render-hook #'gdscript-docs--eww-setup)
+  (gdscript-docs--filter-content-to-main-div)
+  (remove-hook 'eww-after-render-hook #'gdscript-docs--eww-setup))
 
 (advice-add 'eww-follow-link :around #'gdscript-docs--eww-follow-link)
 
