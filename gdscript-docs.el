@@ -46,6 +46,7 @@
   "Open the API reference for the symbol at point in the browser eww.
 If a page is already open, switch to its buffer."
   (interactive)
+
   (let* ((symbol (downcase (thing-at-point 'symbol t)))
          (buffer
           (seq-find
@@ -101,13 +102,13 @@ ORIG-FUN is function we wrap around.  ARGS are argument to ORIG-FUN function."
 
 (defun gdscript-docs--eww-setup ()
   "Convenience setup for pages with Godot documentation."
-  (setq multi-isearch-next-buffer-function nil)
-  (gdscript-docs--rename-eww-buffer)
-  (gdscript-docs--filter-content-to-main-div))
-
-(add-hook 'eww-after-render-hook #'gdscript-docs--eww-setup)
+  (when (string-match "docs.godotengine" (plist-get eww-data :url))
+    (setq multi-isearch-next-buffer-function nil)
+    (gdscript-docs--rename-eww-buffer)
+    (gdscript-docs--filter-content-to-main-div)))
 
 (advice-add 'eww-follow-link :around #'gdscript-docs--eww-follow-link)
+(add-hook 'eww-after-render-hook #'gdscript-docs--eww-setup)
 
 (provide 'gdscript-docs)
 
