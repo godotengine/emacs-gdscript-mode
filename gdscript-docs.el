@@ -36,12 +36,13 @@
 
 ;;;###autoload
 (defun gdscript-docs-browse-api (&optional force-online)
-  "Open the main page of Godot API in eww browser. prefix (C-u) to force online"
+  "Open the main page of Godot API. Use the universal prefix (C-u) to force browsing the online API."
   (interactive)
   (if (and (not gdscript-docs-force-online-lookup)(or current-prefix-arg force-online) (not (string=gdscript-docs-local-path "")))
     (let ((file (concat (file-name-as-directory gdscript-docs-local-path) "classes/index.html")))
             (eww-open-file (file))
-    (eww-browse-url gdscript-docs-online-api-url))))
+    (eww-browse-url "https://docs.godotengine.org/en/stable/classes/index.html?#godot-api"
+))))
 
 (defun gdscript-docs-browse-symbol-at-point (&optional force-online)
   "Open the API reference for the symbol at point in the browser eww.
@@ -59,7 +60,7 @@ If a page is already open, switch to its buffer. Use local docs if gdscripts-doc
     (if buffer (pop-to-buffer-same-window buffer)
       (if (and (not (or current-prefix-arg force-online)) (not (string= gdscript-docs-local-path "")))
           (eww-open-file (concat (file-name-as-directory gdscript-docs-local-path) (file-name-as-directory "classes") "class_" symbol ".html"))
-        (eww-browse-url (format gdscript-docs-online-class-lookup-url symbol symbol) t)))))
+        (eww-browse-url (format "https://docs.godotengine.org/en/stable/classes/class_%s.html#%s" symbol symbol) t)))))
 
 (defun gdscript-docs-online-search-api (&optional sym)
   (interactive)
@@ -109,7 +110,7 @@ ORIG-FUN is function we wrap around.  ARGS are argument to ORIG-FUN function."
 
 (defun gdscript-docs--eww-setup ()
   "Convenience setup for pages with Godot documentation."
-  (when (string-match gdscript-docs-api-root-match (plist-get eww-data :url))
+  (when (string-match "docs.godotengine" (plist-get eww-data :url))
     (setq multi-isearch-next-buffer-function nil)
     (gdscript-docs--rename-eww-buffer)
     (gdscript-docs--filter-content-to-main-div)))

@@ -130,13 +130,8 @@ so it is not slowing down Godot execution."
   :group 'gdscript)
 
 (defcustom gdscript-docs-force-online-lookup nil
-  "the string to determine if we are browsing online API to allow filtering in EWW"
+  "If true, calling commands like gdscript-docs-browse-api browses the online API reference, even if a local copy is available."
   :type 'boolean
-  :group 'gdscript)
-
-(defcustom gdscript-docs-root-match "docs.godotengine"
-  "the string to determine if we are browsing online API to allow filtering in EWW"
-  :type 'string
   :group 'gdscript)
 
 (defcustom gdscript-docs-local-path ""
@@ -148,18 +143,8 @@ directory path containing the file `index.html'."
   :type 'string
   :group 'gdscript)
 
-(defcustom gdscript-docs-online-api-url "https://docs.godotengine.org/en/stable/classes/index.html?#godot-api"
-  "Online Godot API docs URL"
-  :type 'string
-  :group 'gdscript)
-
-(defcustom gdscript-docs-online-class-lookup-url "https://docs.godotengine.org/en/stable/classes/class_%s.html#%s"
-  "Online Godot Class Lookup URL."
-  :type 'string
-  :group 'gdscript)
-
 (defcustom gdscript-docs-online-search-api-url "https://docs.godotengine.org/en/stable/search.html?q=%s&check_keywords=yes&area=default"
-  "Online Godot API search"
+  "Online Godot API search url"
   :type 'string
   :group 'gdscript)
 
