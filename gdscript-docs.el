@@ -38,11 +38,13 @@
 (defun gdscript-docs-browse-api (&optional force-online)
   "Open the main page of Godot API. Use the universal prefix (C-u) to force browsing the online API."
   (interactive)
-  (if (and (not gdscript-docs-force-online-lookup)(or current-prefix-arg force-online) (not (string=gdscript-docs-local-path "")))
+  (if (and (or gdscript-docs-force-online-lookup current-prefix-arg force-online) (not (string= gdscript-docs-local-path "")))
+      (eww-browse-url "https://docs.godotengine.org/en/stable/classes/index.html?#godot-api")
     (let ((file (concat (file-name-as-directory gdscript-docs-local-path) "classes/index.html")))
-            (eww-open-file (file))
-    (eww-browse-url "https://docs.godotengine.org/en/stable/classes/index.html?#godot-api"
-))))
+      (if (file-exists-p file)
+          (eww-open-file file)
+        (message "\"%s\" not found" file)))
+    ))
 
 (defun gdscript-docs-browse-symbol-at-point (&optional force-online)
   "Open the API reference for the symbol at point in the browser eww.
@@ -62,14 +64,17 @@ If a page is already open, switch to its buffer. Use local docs if gdscripts-doc
       (if (string= "" symbol)
           (message "No symbol at point or open API reference buffers.")
         (if (and (not gdscript-docs-force-online-lookup)(not (or current-prefix-arg force-online)) (not (string= gdscript-docs-local-path "")))
-            (eww-open-file (concat (file-name-as-directory gdscript-docs-local-path) (file-name-as-directory "classes") "class_" symbol ".html"))
+            (let ((file (concat (file-name-as-directory gdscript-docs-local-path) (file-name-as-directory "classes") "class_" symbol ".html")))
+              (if (file-exists-p file)
+                  (eww-open-file file )
+                (message "No local API help for \"%s\"." symbol)))
           (eww-browse-url (format "https://docs.godotengine.org/en/stable/classes/class_%s.html#%s" symbol symbol) t))))))
 
 (defun gdscript-docs-online-search-api (&optional sym)
   "Search Godot docs online. Use the universal prefix (C-u) to prompt for search term."
   (interactive)
   (let ((symbol (if current-prefix-arg (read-string "API Search: ") (or sym (thing-at-point 'symbol t) ""))))
-        (browse-url (format gdscript-docs-online-search-api-url (downcase symbol)))))
+    (browse-url (format gdscript-docs-online-search-api-url (downcase symbol)))))
 
 
 (defun gdscript-docs--rename-eww-buffer ()
