@@ -76,6 +76,7 @@
                             ;; Docs.
                             (define-key map (kbd "C-c C-b a") 'gdscript-docs-browse-api)
                             (define-key map (kbd "C-c C-b o") 'gdscript-docs-browse-symbol-at-point)
+                            (define-key map (kbd "C-c C-b s") 'gdscript-docs-online-search-api)
                             ;; Hydra
                             (define-key map (kbd "C-c r") 'gdscript-hydra-show)
                             map)
