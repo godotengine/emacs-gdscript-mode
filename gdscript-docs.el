@@ -35,30 +35,47 @@
 (require 'gdscript-customization)
 
 ;;;###autoload
-(defun gdscript-docs-browse-api ()
-  "Open the main page of Godot API in eww browser."
+(defun gdscript-docs-browse-api (&optional force-online)
+  "Open the main page of Godot API. Use the universal prefix (C-u) to force browsing the online API."
   (interactive)
-  (if (not (string= gdscript-docs-local-path ""))
-      (eww-open-file (concat (file-name-as-directory gdscript-docs-local-path) "classes/index.html"))
-    (eww-browse-url "https://docs.godotengine.org/en/stable/classes/index.html?#godot-api")))
+  (if (and (or gdscript-docs-force-online-lookup current-prefix-arg force-online) (not (string= gdscript-docs-local-path "")))
+      (eww-browse-url "https://docs.godotengine.org/en/stable/classes/index.html?#godot-api")
+    (let ((file (concat (file-name-as-directory gdscript-docs-local-path) "classes/index.html")))
+      (if (file-exists-p file)
+          (eww-open-file file)
+        (message "\"%s\" not found" file)))
+    ))
 
-(defun gdscript-docs-browse-symbol-at-point ()
+(defun gdscript-docs-browse-symbol-at-point (&optional force-online)
   "Open the API reference for the symbol at point in the browser eww.
-If a page is already open, switch to its buffer."
+If a page is already open, switch to its buffer. Use local docs if gdscripts-docs-local-path set. Use the universal prefix (C-u) to force browsing the online API."
   (interactive)
 
-  (let* ((symbol (downcase (thing-at-point 'symbol t)))
+  (let* ((symbol-at-point (thing-at-point 'symbol t))
+         (symbol (if symbol-at-point (downcase symbol-at-point) ""))
          (buffer
           (seq-find
            (lambda (current-buffer)
              (with-current-buffer current-buffer
                (when (derived-mode-p 'eww-mode)
-                 (string-suffix-p symbol (plist-get eww-data :url) t)
+                 (string-suffix-p symbol(string-remove-suffix ".html" (plist-get eww-data :url)) t)
                  ))) (buffer-list))))
     (if buffer (pop-to-buffer-same-window buffer)
-      (if (not (string= gdscript-docs-local-path ""))
-          (eww-open-file (concat (file-name-as-directory gdscript-docs-local-path) (file-name-as-directory "classes") "class_" symbol ".html"))
-        (eww-browse-url (format "https://docs.godotengine.org/en/stable/classes/class_%s.html#%s" symbol symbol) t)))))
+      (if (string= "" symbol)
+          (message "No symbol at point or open API reference buffers.")
+        (if (and (not gdscript-docs-force-online-lookup)(not (or current-prefix-arg force-online)) (not (string= gdscript-docs-local-path "")))
+            (let ((file (concat (file-name-as-directory gdscript-docs-local-path) (file-name-as-directory "classes") "class_" symbol ".html")))
+              (if (file-exists-p file)
+                  (eww-open-file file )
+                (message "No local API help for \"%s\"." symbol)))
+          (eww-browse-url (format "https://docs.godotengine.org/en/stable/classes/class_%s.html#%s" symbol symbol) t))))))
+
+(defun gdscript-docs-online-search-api (&optional sym)
+  "Search Godot docs online. Use the universal prefix (C-u) to prompt for search term."
+  (interactive)
+  (let ((symbol (if current-prefix-arg (read-string "API Search: ") (or sym (thing-at-point 'symbol t) ""))))
+    (browse-url (format gdscript-docs-online-search-api-url (downcase symbol)))))
+
 
 (defun gdscript-docs--rename-eww-buffer ()
   "Rename the eww buffer visiting the Godot documentation.

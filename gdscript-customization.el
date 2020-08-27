@@ -129,6 +129,11 @@ so it is not slowing down Godot execution."
   :type 'boolean
   :group 'gdscript)
 
+(defcustom gdscript-docs-force-online-lookup nil
+  "If true, calling commands like gdscript-docs-browse-api browses the online API reference, even if a local copy is available."
+  :type 'boolean
+  :group 'gdscript)
+
 (defcustom gdscript-docs-local-path ""
   "Optional path to a local build of the Godot documentation.
 If not set to an empty string, the commands `gdscript-docs-browse-api'
@@ -137,6 +142,12 @@ Must be the root directory of the website, that is to say, a
 directory path containing the file `index.html'."
   :type 'string
   :group 'gdscript)
+
+(defcustom gdscript-docs-online-search-api-url "https://docs.godotengine.org/en/stable/search.html?q=%s&check_keywords=yes&area=default"
+  "Online Godot API search url"
+  :type 'string
+  :group 'gdscript)
+
 
 (provide 'gdscript-customization)
 ;;; gdscript-customization.el ends here
