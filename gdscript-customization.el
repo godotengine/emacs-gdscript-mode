@@ -134,6 +134,11 @@ so it is not slowing down Godot execution."
   :type 'boolean
   :group 'gdscript)
 
+(defcustom gdscript-docs-use-eww t
+  "If set to false use the emacs configurable `browse-url' function rather than `eww' directly. `browse-url' can be configured to open the desktop default GUI browser, for example, via the variable `browse-url-browser-function'"
+  :type 'boolean
+  :group 'gdscript)
+
 (defcustom gdscript-docs-local-path ""
   "Optional path to a local build of the Godot documentation.
 If not set to an empty string, the commands `gdscript-docs-browse-api'
