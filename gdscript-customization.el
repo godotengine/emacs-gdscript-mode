@@ -104,9 +104,8 @@ fill parens."
   :safe 'natnump)
 
 (defcustom gdscript-godot-executable "godot"
-  "The path to the Godot executable.
-By default, it assumes that the executable is in the system's
-PATH."
+  "The godot executable which is either a full path such as '~/bin/godot2.2'
+or the name of an executable on the system PATH (usually 'godot')"
   :type 'string
   :group 'gdscript)
 
