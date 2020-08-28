@@ -34,17 +34,22 @@
 (require 'eww)
 (require 'gdscript-customization)
 
+(defun gdscript-docs-open (url &optional)
+  "when `gdscript-docs-use-eww' is true use `eww' else use `browse-url'"
+  (if gdscript-docs-use-eww
+      (if (file-exists-p url) (eww-open-file url) (eww-browse-url url t))
+    (browse-url url)))
+
 ;;;###autoload
 (defun gdscript-docs-browse-api (&optional force-online)
   "Open the main page of Godot API. Use the universal prefix (C-u) to force browsing the online API."
   (interactive)
   (if (and (or gdscript-docs-force-online-lookup current-prefix-arg force-online) (not (string= gdscript-docs-local-path "")))
-      (eww-browse-url "https://docs.godotengine.org/en/stable/classes/index.html?#godot-api")
+      (gdscript-docs-open "https://docs.godotengine.org/en/stable/classes/index.html?#godot-api")
     (let ((file (concat (file-name-as-directory gdscript-docs-local-path) "classes/index.html")))
       (if (file-exists-p file)
-          (eww-open-file file)
-        (message "\"%s\" not found" file)))
-    ))
+          (gdscript-docs-open file)
+        (message "\"%s\" not found" file)))))
 
 (defun gdscript-docs-browse-symbol-at-point (&optional force-online)
   "Open the API reference for the symbol at point in the browser eww.
@@ -53,22 +58,23 @@ If a page is already open, switch to its buffer. Use local docs if gdscripts-doc
 
   (let* ((symbol-at-point (thing-at-point 'symbol t))
          (symbol (if symbol-at-point (downcase symbol-at-point) ""))
-         (buffer
+         (buffer (if (not gdscript-docs-use-eww) nil
           (seq-find
            (lambda (current-buffer)
              (with-current-buffer current-buffer
                (when (derived-mode-p 'eww-mode)
                  (string-suffix-p symbol(string-remove-suffix ".html" (plist-get eww-data :url)) t)
-                 ))) (buffer-list))))
+                 ))) (buffer-list)))))
     (if buffer (pop-to-buffer-same-window buffer)
       (if (string= "" symbol)
           (message "No symbol at point or open API reference buffers.")
         (if (and (not gdscript-docs-force-online-lookup)(not (or current-prefix-arg force-online)) (not (string= gdscript-docs-local-path "")))
             (let ((file (concat (file-name-as-directory gdscript-docs-local-path) (file-name-as-directory "classes") "class_" symbol ".html")))
               (if (file-exists-p file)
-                  (eww-open-file file )
+                  (gdscript-docs-open file)
                 (message "No local API help for \"%s\"." symbol)))
-          (eww-browse-url (format "https://docs.godotengine.org/en/stable/classes/class_%s.html#%s" symbol symbol) t))))))
+          (let ((url (format "https://docs.godotengine.org/en/stable/classes/class_%s.html#%s" symbol symbol)))
+            (gdscript-docs-open url)))))))
 
 (defun gdscript-docs-online-search-api (&optional sym)
   "Search Godot docs online. Use the universal prefix (C-u) to prompt for search term."
