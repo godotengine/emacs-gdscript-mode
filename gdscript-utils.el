@@ -144,8 +144,11 @@ For example:
   "Let's choose single item from ITEMS from mini-buffer.
 
 PROMPT is prompt for read command."
+  (message "gdscript util read")
   (let ((p (if prompt prompt "Options")))
-    (cond ((fboundp 'ivy-read)
+    (cond ((and (featurep 'projectile) )
+           (projectile-completing-read (format "%s: " p) items))
+          ((fboundp 'ivy-read)
            (ivy-read (format "%s: " p) items))
           ((fboundp 'ido-completing-read)
            (ido-completing-read (format "%s: " p) items))
