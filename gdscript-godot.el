@@ -100,9 +100,9 @@ When run with prefix argument, it offers extra debug options to choose from."
     (gdscript-godot--run-command "-d" debug-options)))
 
 (defun gdscript-godot-run-current-scene ()
-  "Run the current script file in Godot Engine."
+  "Run the current script file in Godot Engine. Use the universal prefix (C-u) to force a scene select."
   (interactive)
-  (gdscript-godot--run-command (gdscript-godot--select-scene)))
+  (gdscript-godot--run-command (gdscript-godot--select-scene current-prefix-arg)))
 
 (defun gdscript-godot-run-current-scene-debug ()
   "Run the current script file in Godot Engine.
@@ -115,13 +115,15 @@ When run with prefix argument, it offers extra debug options to choose from."
 (defun gdscript-godot-edit-current-scene ()
   "Run the current script file in Godot Engine."
   (interactive)
-  (gdscript-godot--run-command "-e" (gdscript-godot--select-scene)))
+  (gdscript-godot--run-command "-e" (gdscript-godot--select-scene current-prefix-arg)))
 
-(defun gdscript-godot--select-scene ()
-  "Run the current script file in Godot Engine."
-  (let ((scene-name (gdscript-project--current-buffer-scene)))
-    (if scene-name scene-name
-      (gdscript-project--select-scene))))
+(defun gdscript-godot--select-scene (&optional select-scene)
+  "Select scene to run"
+  (if select-scene
+      (gdscript-project--select-scene)
+    (let ((scene-name (gdscript-project--current-buffer-scene)))
+      (if scene-name scene-name
+        (gdscript-project--select-scene)))))
 
 (defun gdscript-godot-run-current-script ()
   "Run the current script file in Godot Engine.

@@ -47,9 +47,10 @@ If current buffer is not visiting scene file return nil."
 
 (defun gdscript-project--select-scene ()
   "Find all scenes files and let user choose one."
+  (message "selecting scene")
   (let* ((rl (gdscript-util--find-project-configuration-file))
          (scene-list (mapcar (lambda (x) (file-relative-name x rl)) (directory-files-recursively rl ".*.tscn" t)))
-         (prompt (format "Buffer %s is not scene file, select scene to run" (buffer-name))))
+         (prompt (format "Select scene to run" (buffer-name))))
     (gdscript-util--read scene-list prompt)))
 
 (defun gdscript-project--current-buffer-script ()
