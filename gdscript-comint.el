@@ -57,20 +57,18 @@ ARGUMENTS are command line arguments for godot executable.
 When run it will kill existing process if one exists."
   (let ((buffer-name (gdscript-util--get-godot-buffer-name (member "-e" arguments)))
         (inhibit-read-only t))
-    (when (not (or (f-executable-p gdscript-godot-executable) (executable-find gdscript-godot-executable)))
-      (error "Error: Could not execute '%s'.  Please customize the `gdscript-godot-executable variable'" gdscript-godot-executable))
-
-    ;; start new godot
-    (with-current-buffer (get-buffer-create buffer-name)
-      (when gdscript-gdformat-save-and-format
-        (gdscript-comint-gdformat--modified-buffers))
-      (unless (derived-mode-p 'godot-mode)
-        (godot-mode)
-        (buffer-disable-undo))
-      (erase-buffer)
-      (comint-exec (current-buffer) buffer-name gdscript-godot-executable nil arguments)
-      (set-process-sentinel (get-buffer-process (current-buffer)) 'gdscript-comint--sentinel)
-      (pop-to-buffer (current-buffer)))))
+    (if (not (or (f-executable-p gdscript-godot-executable) (executable-find gdscript-godot-executable)))
+        (error "Error: Could not execute '%s'.  Please customize the `gdscript-godot-executable variable'" gdscript-godot-executable)
+      (with-current-buffer (get-buffer-create buffer-name)
+        (when gdscript-gdformat-save-and-format
+          (gdscript-comint-gdformat--modified-buffers))
+        (unless (derived-mode-p 'godot-mode)
+          (godot-mode)
+          (buffer-disable-undo))
+        (erase-buffer)
+        (comint-exec (current-buffer) buffer-name gdscript-godot-executable nil arguments)
+        (set-process-sentinel (get-buffer-process (current-buffer)) 'gdscript-comint--sentinel)
+        (pop-to-buffer (current-buffer))))))
 
 (defun gdscript-comint--sentinel (process event)
   "Custom sentinel for PROCESS and EVENT.
