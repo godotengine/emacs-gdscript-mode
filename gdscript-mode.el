@@ -5,7 +5,7 @@
 ;; Author: Nathan Lovato <nathan@gdquest.com>, Fabián E. Gallina <fgallina@gnu.org>
 ;; URL: https://github.com/GDQuest/emacs-gdscript-mode/
 ;; Version: 0.1.0
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "26.3") (f "0.20.0"))
 ;; Maintainer: nathan@gdquest.com
 ;; Created: Jan 2020
 ;; Keywords: languages
@@ -146,7 +146,7 @@ the last command event was a string delimiter."
   (setq-local paragraph-start "\\s-*$")
   (setq-local fill-paragraph-function
               #'gdscript-fill-paragraph)
-  (setq-local normal-auto-fill-function #'gdscript-fill-paragraph-do-auto-fill)
+  (setq-local normal-auto-fill-function #'gdscript-fill-paragraph-do-auto-fill)
 
   (setq-local beginning-of-defun-function
               #'gdscript-nav-beginning-of-defun)

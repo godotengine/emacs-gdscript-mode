@@ -36,6 +36,7 @@
 (require 'ansi-color)
 (require 'comint)
 (require 'compile)
+(require 'f)
 (require 'gdscript-customization)
 (require 'gdscript-format)
 (require 'gdscript-utils)
