@@ -116,6 +116,11 @@ PATH."
   :type 'string
   :group 'gdscript)
 
+(defcustom gdscript-elint-command "./makem.sh lint-compile"
+  "The command to run linter checks for gdscript elisp library"
+  :type 'string
+  :group 'gdscript)
+
 (defcustom gdscript-gdformat-line-length 100
   "How many characters per line to allow when formatting gdscript by gdformat."
   :type 'integer

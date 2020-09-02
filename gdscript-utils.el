@@ -155,6 +155,13 @@ PROMPT is prompt for read command."
           (t
            (completing-read (format "%s (hit TAB to auto-complete): " p) items nil t)))))
 
+
+(defun gdscript-elint ()
+  "check the gdscript elisp code for purity. customise `gdscript-elint-command'' to change the lint command.
+`next-error' and `previous-error' will work from the elisp source to navigate the issues in to the *gdscript elint* buffer"
+  (interactive)
+  (compilation-start gdscript-elint-command  nil (lambda (&optional m) "*gdscript elint*")))
+
 (provide 'gdscript-utils)
 
 ;;; gdscript-utils.el ends here
