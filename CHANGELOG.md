@@ -4,19 +4,46 @@ This document lists new features, improvements, changes, and bug fixes in each r
 
 ## GDScript mode 1.3.0
 
+This release brings many quality-of-life improvements to work more productively with Godot and Emacs.
+
+Big thanks to @VlachJosef and @rileyrg for contributing to this release.
+
 ### Features
 
 - Support for running the project and scenes with [hydra](https://github.com/abo-abo/hydra) with `gdscript-hydra-show`.
+- Command interpreter (`comint` support) for Godot processes: get and navigate errors within Emacs, and jump to files and GDScript code causing errors.
+  - The command buffer pops up automatically when you run a scene or the project in the editor.
+- Added command `gdscript-format-all` to format all gdscript buffers.
+- Added commands `gdscript-format-all` and `gdscript-format-buffer` to gdscript-mode's hydra window (`gdscript-hydra-show`).
+- Added command interpreter support for `gdscript-format-*` commands
 - Add the ability to open a local copy of the Godot docs with `gdscript-docs-*` commands.
 - Multiple projects support. Every project's `godot` process runs in its own buffer.
 - Godot's standard output and standard error are fed to a `comint` buffer. This allows you to navigate errors and jump to the corresponding source files, using `compilation-*` commands.
-- Hydra supports history of commands for quick re-execution of godot commands. It also provide quick way to run last command again.
-- `gdscript-godot-run-current-scene` commands now offers to run any scene file if current buffer is not a scene file.
-- `gdscript-godot-run-current-script` command now offers to run any script file if current buffer is not a script file.
+- Hydra provides a history of commands for quick re-execution of godot commands. It also provides a quick way to rerun the last command.
+- The `gdscript-godot-run-current-scene` command now offers to run any scene file if the current buffer is not a scene file.
+- The `gdscript-godot-run-current-script` command now offers to run any script file if the current buffer is not a script file.
+- Syntax highlighting for the `$` operator.
+
+### Improvements
+
+- Added unit tests (see `gdscript-tests.el`).
+- Added check for missing `godot` executable and a corresponding error message.
+- You can force selecting a scene when calling `gdscript-godot-run-current-scene` by using the universal argument (<kbd>C-u</kbd>).
+- `gdscript-godot-run-current-scene` will use `projectile` by default if available, otherwise `ivy` or `ido`.
+- You can now customize the URL for the Godot API reference: `gdscript-docs-online-search-api-url`.
+  - Also, use the universal argument (<kbd>C-u</kbd>) before calling `gdscript-docs-browse-api` to force it to use the online docs, even if a local build of the docs is available.
+
+### Changes
+
+- Removed guessing indentation size, which could guess indent sizes wrong.
+- Removed the customizable variables `gdscript-indent-guess-indent-offset` and `gdscript-indent-guess-indent-offset-verbose`.
 
 ### Bug fixes
 
 - Fixed auto-indentation not working with match blocks.
+- Fixed auto-indentation of new blocks sometimes over-indenting.
+- Fixed `eww-after-render-hook` always calling gdscript docs formatter, even outside of `gdscript-mode` buffers.
+- Removed call to nonexisting function `f-executable-p`.
 
 ## GDScript mode 1.2.0
 
