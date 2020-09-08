@@ -59,12 +59,12 @@ If a page is already open, switch to its buffer. Use local docs if gdscripts-doc
   (let* ((symbol-at-point (thing-at-point 'symbol t))
          (symbol (if symbol-at-point (downcase symbol-at-point) ""))
          (buffer (if (not gdscript-docs-use-eww) nil
-          (seq-find
-           (lambda (current-buffer)
-             (with-current-buffer current-buffer
-               (when (derived-mode-p 'eww-mode)
-                 (string-suffix-p symbol(string-remove-suffix ".html" (plist-get eww-data :url)) t)
-                 ))) (buffer-list)))))
+                   (seq-find
+                    (lambda (current-buffer)
+                      (with-current-buffer current-buffer
+                        (when (derived-mode-p 'eww-mode)
+                          (string-suffix-p symbol(string-remove-suffix ".html" (plist-get eww-data :url)) t)
+                          ))) (buffer-list)))))
     (if buffer (pop-to-buffer-same-window buffer)
       (if (string= "" symbol)
           (message "No symbol at point or open API reference buffers.")
