@@ -1,7 +1,7 @@
 # GDScript mode for Emacs
 
 ![banner showing the "GDScript mode" title with GDScript code in the
-background](assets/banner.svg)
+background](assets/banner.png)
 
 This package adds support for the GDScript programming language from the Godot
 game engine in Emacs. It gives syntax highlighting and indentations.
