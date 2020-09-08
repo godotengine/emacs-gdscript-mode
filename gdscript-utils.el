@@ -142,11 +142,9 @@ For example:
 
 (defun gdscript-util--read (items &optional prompt)
   "Let's choose single item from ITEMS from mini-buffer.
-
-PROMPT is prompt for read command."
-  (message "gdscript util read")
-  (let ((p (if prompt prompt "Options")))
-    (cond ((and (featurep 'projectile) )
+PROMPT is prompt for read command. Return `nil' if user aborts."
+  (let* ((p (if prompt prompt "Options"))
+    (result (cond ((and (featurep 'projectile) )
            (projectile-completing-read (format "%s: " p) items))
           ((fboundp 'ivy-read)
            (ivy-read (format "%s: " p) items))
@@ -154,6 +152,7 @@ PROMPT is prompt for read command."
            (ido-completing-read (format "%s: " p) items))
           (t
            (completing-read (format "%s (hit TAB to auto-complete): " p) items nil t)))))
+    (if quit-flag nil result)))
 
 (provide 'gdscript-utils)
 
