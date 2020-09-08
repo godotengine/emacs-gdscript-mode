@@ -111,7 +111,7 @@ When run with prefix argument, it offers extra debug options to choose from."
 
 When run with prefix argument, it offers extra debug options to choose from."
   (interactive)
-  (let ((scene (gdscript-godot--select-scene current-prefix-arg))) ;; TODO - debug and force select using prefix. need to tweak this sometime.
+  (let ((scene (gdscript-godot--select-scene current-prefix-arg)))
     (when scene
       (gdscript-godot--debug-options-handler debug-options
         (gdscript-godot--run-command "-d" debug-options scene)))))
