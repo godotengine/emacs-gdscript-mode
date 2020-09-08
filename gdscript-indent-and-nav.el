@@ -45,45 +45,6 @@
 The name of the defun should be grouped so it can be retrieved
 via `match-string'.")
 
-;;; Indentation
-(defun gdscript-indent-guess-indent-offset ()
-  "Guess and set `gdscript-indent-offset' for the current buffer."
-  (interactive)
-  (save-excursion
-    (save-restriction
-      (widen)
-      (goto-char (point-min))
-      (let ((block-end))
-        (while (and (not block-end)
-                    (re-search-forward
-                     (gdscript-rx line-start block-start) nil t))
-          (when (and
-                 (not (gdscript-syntax-context-type))
-                 (progn
-                   (goto-char (line-end-position))
-                   (gdscript--util-forward-comment -1)
-                   (if (equal (char-before) ?:)
-                       t
-                     (forward-line 1)
-                     (when (gdscript-info-block-continuation-line-p)
-                       (while (and (gdscript-info-continuation-line-p)
-                                   (not (eobp)))
-                         (forward-line 1))
-                       (gdscript--util-forward-comment -1)
-                       (when (equal (char-before) ?:)
-                         t)))))
-            (setq block-end (point-marker))))
-        (let ((indentation
-               (when block-end
-                 (goto-char block-end)
-                 (gdscript--util-forward-comment)
-                 (current-indentation))))
-          (if (and indentation (not (zerop indentation)))
-              (set (make-local-variable 'gdscript-indent-offset) indentation)
-            (when gdscript-indent-guess-indent-offset-verbose
-              (message "Can't guess gdscript-indent-offset, using defaults: %s"
-                       gdscript-indent-offset))))))))
-
 (defun gdscript-indent-context ()
   "Get information about the current indentation context.
 Context is returned in a cons with the form (STATUS . START).

@@ -58,19 +58,6 @@
   :type 'integer
   :safe 'integerp)
 
-(defcustom gdscript-indent-guess-indent-offset
-  t "If t, tells GDScript mode to guess `gdscript-indent-offset' value."
-  :type 'boolean
-  :group 'gdscript
-  :safe 'booleanp)
-
-(defcustom gdscript-indent-guess-indent-offset-verbose
-  t "If t, emit a warning when guessing indentation fails."
-  :version "25.1"
-  :type 'boolean
-  :group 'gdscript
-  :safe 'booleanp)
-
 (defcustom gdscript-indent-trigger-commands '(indent-for-tab-command yas-expand yas/expand)
   "Commands that might trigger a `gdscript-indent-line' call."
   :type '(repeat symbol):group'gdscript)

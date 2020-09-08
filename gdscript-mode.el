@@ -181,10 +181,7 @@ the last command event was a string delimiter."
   (setq-local outline-level
               #'(lambda ()
                   "`outline-level' function for gdscript mode."
-                  (1+ (/ (current-indentation) gdscript-indent-offset))))
-
-  (when gdscript-indent-guess-indent-offset
-    (gdscript-indent-guess-indent-offset)))
+                  (1+ (/ (current-indentation) gdscript-indent-offset)))))
 
 (provide 'gdscript-mode)
 

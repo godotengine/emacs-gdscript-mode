@@ -44,7 +44,7 @@ BODY is code to be executed within the temp buffer.  Point is
 always located at the beginning of buffer."
   (declare (indent 1) (debug t))
   `(with-temp-buffer
-     (let ((gdscript-indent-guess-indent-offset nil))
+     (let ()
        (gdscript-mode)
        (insert ,contents)
        (goto-char (point-min))
