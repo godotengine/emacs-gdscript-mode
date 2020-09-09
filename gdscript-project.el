@@ -46,12 +46,13 @@ If current buffer is not visiting scene file return nil."
       (when (file-exists-p scene-name) scene-name))))
 
 (defun gdscript-project--select-scene ()
-  "Find all scenes files and let user choose one."
+  "Find all scenes files and let user choose one. Return `nil' if user cancels selection."
   (message "selecting scene")
   (let* ((rl (gdscript-util--find-project-configuration-file))
          (scene-list (mapcar (lambda (x) (file-relative-name x rl)) (directory-files-recursively rl ".*.tscn" t)))
-         (prompt (format "Select scene to run" (buffer-name))))
-    (gdscript-util--read scene-list prompt)))
+         (prompt (format "Select scene to run" (buffer-name)))
+         (selected-scene (gdscript-util--read scene-list prompt)))
+    selected-scene))
 
 (defun gdscript-project--current-buffer-script ()
   "Return the name of current script.
@@ -70,7 +71,7 @@ If current buffer is not visiting script file return nil."
     (unwind-protect
         (let* ((prompt (format "Buffer %s is not script file, select script to run" (buffer-name)))
                (script-name (gdscript-util--read gdscript-project--script-list prompt)))
-          (gdscript-godot--run-script script-name))
+          (when script-name (gdscript-godot--run-script script-name)))
       (when hydra-open (gdscript-hydra--menu/body)))))
 
 (defun gdscript-project--ag-cleanup ()
