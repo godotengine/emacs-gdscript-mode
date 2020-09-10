@@ -34,6 +34,7 @@
 
 (require 'gdscript-comint)
 (require 'gdscript-customization)
+(require 'gdscript-debug)
 (require 'gdscript-history)
 (require 'gdscript-project)
 (require 'gdscript-utils)
@@ -70,6 +71,17 @@ The output of the process will be provided in a buffer named
 `*godot - <project-name>*'."
   (let ((args (gdscript-util--flatten arguments)))
     (gdscript-history--add-to-history args)
+    (when gdscript-debug--breakpoints
+       ;; Start debugger server if it is not running already
+      (unless (get-process (gdscript-debug-process-name (gdscript-util--find-project-configuration-file)))
+        (gdscript-debug-make-server))
+      (push (mapconcat (lambda (breakpoint)
+                         (let ((file (breakpoint->file breakpoint))
+                               (line (breakpoint->line breakpoint)))
+                           (format "%s:%s" file line))) gdscript-debug--breakpoints ",") args)
+      (push "--breakpoints" args)
+      (push (format "127.0.0.1:%s" gdscript-debug-port) args)
+      (push "--remote-debug" args))
     (gdscript-comint--run (append (gdscript-godot--build-shell-command) args))
     (setq gdscript-godot--debug-options-hydra :not-list)))
 

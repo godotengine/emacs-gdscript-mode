@@ -99,11 +99,12 @@ Start the search from START-PATH if provided. Otherwise, the search
 starts from the current buffer path.
 
 WARNING: the Godot project must exist for this function to work."
-  (let ((base-path (or start-path default-directory)))
-    (expand-file-name
-     (locate-dominating-file base-path
-                             (lambda (parent)
-                               (directory-files parent t "project.godot"))))))
+  (let* ((base-path (or start-path default-directory))
+         (dominating-file
+          (locate-dominating-file base-path
+                                  (lambda (parent)
+                                    (directory-files parent t "project.godot")))))
+    (when dominating-file (expand-file-name dominating-file))))
 
 (defun gdscript-util--get-godot-project-name ()
   "Retrieve the project name from Godot's configuration file."
@@ -124,9 +125,10 @@ WARNING: the Godot project must exist for this function to work."
 
 (defun gdscript-util--get-godot-project-file-path-relative (file-path)
   "Return the relative path of `FILE-PATH' to Godot's configuration file."
-  (concat (file-name-sans-extension
-           (file-relative-name file-path
-                               (gdscript-util--find-project-configuration-file)))))
+  (let ((project-configuration-file (gdscript-util--find-project-configuration-file)))
+    (when project-configuration-file
+      (concat (file-name-sans-extension
+               (file-relative-name file-path project-configuration-file))))))
 
 (defun gdscript-util--flatten (xs)
   "Flatten deeply nested list.

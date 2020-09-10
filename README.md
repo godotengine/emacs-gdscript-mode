@@ -231,3 +231,56 @@ Code example:
 (setq gdscript-godot-executable "/path/to/godot") ;; Use this executable instead of 'godot' to open the Godot editor.
 (setq gdscript-gdformat-save-and-format t) ;; Save all buffers and format them with gdformat anytime Godot executable is run.
 ```
+
+## Debugger
+
+When any breakpoint exists, running Project will automatically start debugger server (if one isn't already running) and connect to it.
+Debugger server runs on `localhost` with port specified by `gdscript-debug-port` customizable variable (`9010` by default).
+
+### Special buffers
+There are four special purpose buffers containing various information.
+
+#### * Breakpoints *
+Contains list of existing breakpoints.
+
+- Key bindings:
+  - <kbd>SPC</kbd> `gdscript-debug-toggle-breakpoint`
+  - <kbd>RET</kbd> `gdscript-debug-goto-breakpoint`
+  - <kbd>TAB</kbd> `gdscript-debug-display-stack-dump-buffer`
+  - <kbd>D</kbd> `gdscript-debug-delete-breakpoint`
+
+`gdscript-debug-toggle-breakpoint` command will enable/disable all breakpoints.
+
+#### * Stack dump *
+Contains stack dump information.
+
+- Key bindings:
+  - <kbd>SPC</kbd> `gdscript-debug-jump-to-stack-point`
+  - <kbd>RET</kbd> `gdscript-debug-show-stack-frame-vars`
+  - <kbd>TAB</kbd> `gdscript-debug-display-stack-frame-vars-buffer`
+  - <kbd>n</kbd> `next-line`
+  - <kbd>p</kbd> `previous-line`
+
+#### * Stack frame vars *
+Display locals/members/globals variables for current stack point.
+Variables of type `ObjectId` can be furher inspected by pressing <kbd>RET</kbd> when point is at `Object ID: xxxx` text.
+
+- Key bindings:
+  - <kbd>RET</kbd> `gdscript-debug-inspect-object-id`
+  - <kbd>TAB</kbd> `gdscript-debug-display-inspector-buffer`
+
+#### * Inspector *
+Display detailed information about selected `ObjectId`.
+
+- Key bindings:
+  - <kbd>RET</kbd> `gdscript-debug-display-breakpoint-buffer`
+
+### GDScript file keybinding
+
+- Placing breakpoints:
+  - <kbd>C-c C-d b</kbd> `gdscript-debug-add-breakpoint`
+  - <kbd>C-c C-d r</kbd> `gdscript-debug-remove-breakpoint`
+- When break at breakpoint:
+  - <kbd>C-c C-d n</kbd> `gdscript-debug-next`
+  - <kbd>C-c C-d c</kbd> `gdscript-debug-continue`
+  - <kbd>C-c C-d s</kbd> `gdscript-debug-step`
