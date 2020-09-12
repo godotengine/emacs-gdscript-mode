@@ -189,8 +189,6 @@
                       (b (bindat-get-field struct :object-as-id-b)))
                   (logior (lsh b 32) a)))))
 
-(defvar gdscript-debug--unknown-spec-17 '((eval (message "IN A SPEC 17"))))
-
 (defconst gdscript-debug--encode-mask #xff)
 (defconst gdscript-debug--encode-flag-64 (lsh 1 16))
 
@@ -229,6 +227,7 @@
 (defvar gdscript-debug--previous-packet-data nil)
 (defvar gdscript-debug--data-needed nil)
 (defvar gdscript-debug--offset 0)
+(defvar gdscript-debug--inspected-objects (make-hash-table))
 
 (defvar gdscript-debug--packet-length-bindat-spec
   '((:packet-length u32r)))
@@ -641,17 +640,19 @@
                  (gdscript-debug--command-handler
                   ;;(message "Received 'stack_frame_vars' command")
                   (let ((cmd (mk-stack-frame-vars iter)))
-                    (with-current-buffer (gdscript-debug--get-locals-buffer)
+                    (with-current-buffer (gdscript-debug--get-stack-frame-vars-buffer)
                       (let ((inhibit-read-only t))
                         (erase-buffer)
                         (insert "Locals:\n")
                         (dolist (local (stack-frame-vars->locals cmd))
                           (insert (gdscript-debug--variable-name (car local)))
-                          (insert (format ": %s\n" (gdscript-debug--stringify (cdr local)))))
+                          (insert (format ": %s\n" (gdscript-debug--stringify (cdr local))))
+                          (gdscript-debug--fetch-object-id-data (cdr local)))
                         (insert "\nMembers:\n")
                         (dolist (member (stack-frame-vars->members cmd))
                           (insert (gdscript-debug--variable-name (car member)))
-                          (insert (format ": %s\n" (gdscript-debug--stringify (cdr member)))))
+                          (insert (format ": %s\n" (gdscript-debug--stringify (cdr member))))
+                          (gdscript-debug--fetch-object-id-data (cdr member)))
                         (insert "\nGlobals:\n")
                         (dolist (global (stack-frame-vars->globals cmd))
                           (insert (gdscript-debug--variable-name (car global)))
@@ -663,19 +664,54 @@
                  (gdscript-debug--command-handler
                   ;;(message "Received 'message:inspect_object' command")
                   (let ((cmd (mk-inspect-object iter)))
+                    (with-current-buffer (gdscript-debug--get-stack-frame-vars-buffer)
+                      (let* ((object-id (inspect-object->object-id cmd))
+                             (object-id-property (gdscript-debug--object-id-property object-id))
+                             (position-start 1)
+                             (position-end 1))
+                        (puthash object-id cmd gdscript-debug--inspected-objects)
+                        (while position-start
+                          (setq position-start (next-single-property-change position-start object-id-property))
+                          (when position-start
+                            (setq position-end (next-single-property-change position-start object-id-property))
+                            (let ((inhibit-read-only t)
+                                  (class-name (concat (propertize (inspect-object->class cmd) 'face font-lock-type-face) " - "))
+                                  (properties (list 'object-id object-id object-id-property nil)))
+                              (save-excursion
+                                (goto-char position-start)
+                                (insert class-name)
+                                (let ((new-position-end (+ 1 position-end (length class-name))))
+                                  (add-text-properties position-start new-position-end properties)
+                                  (setq position-start new-position-end))))))))
                     (gdscript-debug--refresh-inspector-buffer cmd))))
-                (_ (error "Unknown command %s data %s" str next-data))))))
+                (_ (error "Unknown command %s" str))))))
       ;;(iter-end-of-sequence (message "No more packets to process %s" x))
       (iter-end-of-sequence nil))))
 
+(defun gdscript-debug--object-id-property (object-id)
+  (intern (format "object-id-%s" object-id)))
+
 (defun gdscript-debug--stringify (object)
   (cond ((object-id-p object)
-         (let ((object-id (object-id->value object)))
-           (propertize (format "Object ID: %s" (number-to-string object-id)) 'object-id object-id)))
+         (let* ((object-id (object-id->value object))
+                (object-id-data (gethash object-id gdscript-debug--inspected-objects)))
+           (if object-id-data
+               (let ((class-name (concat (propertize (inspect-object->class object-id-data) 'face font-lock-type-face) " - ")))
+                 (propertize (concat class-name (format "ObjectID: %s" (number-to-string object-id)))
+                             'object-id object-id))
+             (propertize (format "ObjectID: %s" (number-to-string object-id))
+                         'object-id object-id
+                         (gdscript-debug--object-id-property object-id) t))))
         (t object)))
 
 (defun gdscript-debug--variable-name (var-name)
   (propertize (format "%25s" var-name) 'font-lock-face font-lock-variable-name-face))
+
+(defun gdscript-debug--fetch-object-id-data (object)
+  (when (and
+         (object-id-p object)
+         (null (gethash (object-id->value object) gdscript-debug--inspected-objects)))
+    (gdscript-debug-inspect-object (object-id->value object))))
 
 (defvar server-clients '()
   "List with client processes")
@@ -695,6 +731,7 @@
     (setq gdscript-debug--previous-packet-data nil
           gdscript-debug--offset 0
           gdscript-debug--data-needed nil
+          gdscript-debug--inspected-objects (make-hash-table)
           server-clients '()))
    ((eq (process-status process) 'closed)
     (message "EHHHH ???"))))
@@ -1282,6 +1319,8 @@ BUFFER nil or omitted means use the current buffer."
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
     (define-key map "q" 'kill-current-buffer)
+    (define-key map "p" 'previous-line)
+    (define-key map "n" 'next-line)
     (define-key map "\r" 'gdscript-debug-inspect-object-id)
     (define-key map "\t" 'gdscript-debug-display-inspector-buffer)
     (define-key map "?" 'describe-mode)
@@ -1308,7 +1347,7 @@ In that buffer, `gdscript-debug--buffer-type' must be equal to BUFFER-TYPE."
         (when (eq gdscript-debug--buffer-type buffer-type)
           (throw 'found buffer))))))
 
-(defun gdscript-debug--get-locals-buffer ()
+(defun gdscript-debug--get-stack-frame-vars-buffer ()
   (gdscript-debug--get-buffer-create 'stack-frame-vars-buffer))
 
 (defun gdscript-debug-display-stack-dump-buffer ()
