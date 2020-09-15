@@ -95,6 +95,12 @@
   `(,@(gdscript-debug--capture-float-spec :x)
     ,@(gdscript-debug--capture-float-spec :y)))
 
+(defvar gdscript-debug--rect2-spec
+  `(,@(gdscript-debug--capture-float-spec :x-coordinate)
+    ,@(gdscript-debug--capture-float-spec :y-coordinate)
+    ,@(gdscript-debug--capture-float-spec :x-size)
+    ,@(gdscript-debug--capture-float-spec :y-size)))
+
 (defvar gdscript-debug--vector3-spec
   `(,@(gdscript-debug--capture-float-spec :x)
     ,@(gdscript-debug--capture-float-spec :y)
@@ -102,8 +108,8 @@
 
 (defvar gdscript-debug--transform2d-spec
   `(,@(gdscript-debug--capture-float-spec :xx)
-    ,@(gdscript-debug--capture-float-spec :yx)
     ,@(gdscript-debug--capture-float-spec :xy)
+    ,@(gdscript-debug--capture-float-spec :yx)
     ,@(gdscript-debug--capture-float-spec :yy)
     ,@(gdscript-debug--capture-float-spec :x-origin)
     ,@(gdscript-debug--capture-float-spec :y-origin)))
@@ -121,17 +127,30 @@
     (:array-length eval (logand (bindat-get-field struct :data) #x7fffffff))
     (:items repeat (:array-length) (struct godot-data-bindat-spec))))
 
+(defvar gdscript-debug--pool-byte-array-spec
+  '((:array-length u32r)
+    (:items vec (:array-length) byte)
+    (align 4)))
+
 (defvar gdscript-debug--pool-int-array-spec
   '((:array-length u32r)
     (:items repeat (:array-length) (struct gdscript-debug--integer-spec))))
+
+(defvar gdscript-debug--pool-real-array-spec
+  '((:array-length u32r)
+    (:items repeat (:array-length) (struct gdscript-debug--float-spec))))
 
 (defvar gdscript-debug--pool-string-array-spec
   '((:array-length u32r)
     (:items repeat (:array-length) (struct gdscript-debug--string-z-spec))))
 
-(defvar gdscript-debug--pool-vector-2-array-spec
+(defvar gdscript-debug--pool-vector2-array-spec
   '((:array-length u32r)
     (:items repeat (:array-length) (struct gdscript-debug--vector2-spec))))
+
+(defvar gdscript-debug--pool-vector3-array-spec
+  '((:array-length u32r)
+    (:items repeat (:array-length) (struct gdscript-debug--vector3-spec))))
 
 (defvar gdscript-debug--pool-color-array-spec
   '((:array-length u32r)
@@ -145,6 +164,12 @@
     ,@(gdscript-debug--capture-float-spec :normal-z)
     ,@(gdscript-debug--capture-float-spec :distance)))
 
+(defvar gdscript-debug--quat-spec
+  `(,@(gdscript-debug--capture-float-spec :x-imaginary)
+    ,@(gdscript-debug--capture-float-spec :y-imaginary)
+    ,@(gdscript-debug--capture-float-spec :z-imaginary)
+    ,@(gdscript-debug--capture-float-spec :real-w)))
+
 (defvar gdscript-debug--aabb-spec
   `(,@(gdscript-debug--capture-float-spec :x-coordinate)
     ,@(gdscript-debug--capture-float-spec :y-coordinate)
@@ -155,14 +180,28 @@
 
 (defvar gdscript-debug--basis-spec
   `(,@(gdscript-debug--capture-float-spec :xx)
-    ,@(gdscript-debug--capture-float-spec :yx)
-    ,@(gdscript-debug--capture-float-spec :zx)
     ,@(gdscript-debug--capture-float-spec :xy)
-    ,@(gdscript-debug--capture-float-spec :yy)
-    ,@(gdscript-debug--capture-float-spec :zy)
     ,@(gdscript-debug--capture-float-spec :xz)
+    ,@(gdscript-debug--capture-float-spec :yx)
+    ,@(gdscript-debug--capture-float-spec :yy)
     ,@(gdscript-debug--capture-float-spec :yz)
+    ,@(gdscript-debug--capture-float-spec :zx)
+    ,@(gdscript-debug--capture-float-spec :zy)
     ,@(gdscript-debug--capture-float-spec :zz)))
+
+(defvar gdscript-debug--transform-spec
+  `(,@(gdscript-debug--capture-float-spec :xx)
+    ,@(gdscript-debug--capture-float-spec :xy)
+    ,@(gdscript-debug--capture-float-spec :xz)
+    ,@(gdscript-debug--capture-float-spec :yx)
+    ,@(gdscript-debug--capture-float-spec :yy)
+    ,@(gdscript-debug--capture-float-spec :yz)
+    ,@(gdscript-debug--capture-float-spec :zx)
+    ,@(gdscript-debug--capture-float-spec :zy)
+    ,@(gdscript-debug--capture-float-spec :zz)
+    ,@(gdscript-debug--capture-float-spec :x-origin)
+    ,@(gdscript-debug--capture-float-spec :y-origin)
+    ,@(gdscript-debug--capture-float-spec :z-origin)))
 
 (defvar gdscript-debug--color-spec
   `(,@(gdscript-debug--capture-float-spec :red)
@@ -174,11 +213,11 @@
   '((:data-length u32r)
     (:new-format eval (logand (bindat-get-field struct :data-length) #x80000000))
     (:name-count eval (logand (bindat-get-field struct :data-length) #x7FFFFFFF))
-    (:sub-name-count u32)
-    (:total eval (+ (bindat-get-field struct :name-count) (bindat-get-field struct :sub-name-count) ))
-    (:flags u32)
+    (:subname-count u32r)
+    (:flags u32r)
     (:absolute eval (not (eq 0 (logand (bindat-get-field struct :flags) #x1))))
-    (:items repeat (:total) (struct gdscript-debug--string-spec))))
+    (:names repeat (:name-count) (struct gdscript-debug--string-spec))
+    (:subnames repeat (:subname-count) (struct gdscript-debug--string-spec))))
 
 (defvar gdscript-debug--rid-spec nil) ;; unsupported
 
@@ -206,11 +245,14 @@
            (3 (struct gdscript-debug--float-64-spec))
            (4 (struct gdscript-debug--string-spec))
            (5 (struct gdscript-debug--vector2-spec))
+           (6 (struct gdscript-debug--rect2-spec))
            (7 (struct gdscript-debug--vector3-spec))
            (8 (struct gdscript-debug--transform2d-spec))
            (9 (struct gdscript-debug--plane-spec))
+           (10 (struct gdscript-debug--quat-spec))
            (11 (struct gdscript-debug--aabb-spec))
            (12 (struct gdscript-debug--basis-spec))
+           (13 (struct gdscript-debug--transform-spec))
            (14 (struct gdscript-debug--color-spec))
            (15 (struct gdscript-debug--node-path-spec))
            (16 (struct gdscript-debug--rid-spec))
@@ -218,9 +260,12 @@
            (17 (struct gdscript-debug--object-as-id))
            (18 (struct gdscript-debug--dictionary-spec))
            (19 (struct gdscript-debug--array-spec))
+           (20 (struct gdscript-debug--pool-byte-array-spec))
            (21 (struct gdscript-debug--pool-int-array-spec))
+           (22 (struct gdscript-debug--pool-real-array-spec))
            (23 (struct gdscript-debug--pool-string-array-spec))
-           (24 (struct gdscript-debug--pool-vector-2-array-spec))
+           (24 (struct gdscript-debug--pool-vector2-array-spec))
+           (25 (struct gdscript-debug--pool-vector3-array-spec))
            (26 (struct gdscript-debug--pool-color-array-spec))
            (t (eval (error "Unknown type: %s" tag))))))
 
@@ -275,10 +320,22 @@
         (normal-z (bindat-get-field struct :normal-z))
         (distance (bindat-get-field struct :distance)))
     (plane-create
-     :normal-x normal-x
-     :normal-y normal-y
-     :normal-z normal-z
+     :normal (vector3-create
+              :x normal-x
+              :y normal-y
+              :z normal-z)
      :distance distance)))
+
+(defsubst to-quat (struct)
+  (let ((x-imaginary (bindat-get-field struct :x-imaginary))
+        (y-imaginary (bindat-get-field struct :y-imaginary))
+        (z-imaginary (bindat-get-field struct :z-imaginary))
+        (real-w (bindat-get-field struct :real-w)))
+    (quat-create
+     :x-imaginary x-imaginary
+     :y-imaginary y-imaginary
+     :z-imaginary z-imaginary
+     :real-w real-w)))
 
 (defsubst to-aabb (struct)
   (let ((x-coordinate (bindat-get-field struct :x-coordinate))
@@ -288,27 +345,41 @@
         (y-size (bindat-get-field struct :y-size))
         (z-size (bindat-get-field struct :z-size)))
     (aabb-create
-     :x-coordinate x-coordinate
-     :y-coordinate y-coordinate
-     :z-coordinate z-coordinate
-     :x-size x-size
-     :y-size y-size
-     :z-size z-size)))
+     :position (vector3-create
+                :x x-coordinate
+                :y y-coordinate
+                :z z-coordinate)
+     :size (vector3-create
+            :x x-size
+            :y y-size
+            :z z-size))))
 
 (defsubst to-basis (struct)
   (let ((xx (bindat-get-field struct :xx))
-        (yx (bindat-get-field struct :yx))
-        (zx (bindat-get-field struct :zx))
         (xy (bindat-get-field struct :xy))
-        (yy (bindat-get-field struct :yy))
-        (zy (bindat-get-field struct :zy))
         (xz (bindat-get-field struct :xz))
+        (yx (bindat-get-field struct :yx))
+        (yy (bindat-get-field struct :yy))
         (yz (bindat-get-field struct :yz))
+        (zx (bindat-get-field struct :zx))
+        (zy (bindat-get-field struct :zy))
         (zz (bindat-get-field struct :zz)))
     (basis-create
-     :x (vector3-create :x xx :y yx :z zx)
-     :y (vector3-create :x xy :y yy :z zy)
-     :z (vector3-create :x xz :y yz :z zz))))
+     :x (vector3-create :x xx :y xy :z xz)
+     :y (vector3-create :x yx :y yy :z yz)
+     :z (vector3-create :x zx :y zy :z zz))))
+
+(defsubst to-transform (struct)
+  (let ((basis (to-basis struct))
+        (x-origin (bindat-get-field struct :x-origin))
+        (y-origin (bindat-get-field struct :y-origin))
+        (z-origin (bindat-get-field struct :z-origin)))
+    (transform-create
+     :basis basis
+     :origin (vector3-create
+              :x x-origin
+              :y y-origin
+              :z z-origin))))
 
 (defsubst to-color (struct)
   (let ((red (bindat-get-field struct :red))
@@ -318,10 +389,10 @@
     (color-create :red red :green green :blue blue :alpha alpha)))
 
 (defsubst to-node-path (struct)
-  (let ((path (mapcar 'to-string (bindat-get-field struct :items)))
-        (subpath nil) ;; TODO what is subpath
+  (let ((names (mapcar 'to-string (bindat-get-field struct :names)))
+        (subnames (mapcar 'to-string (bindat-get-field struct :subnames)))
         (absolute (bindat-get-field struct :absolute)))
-    (node-path-create :path path :subpath subpath :absolute absolute)))
+    (node-path-create :names names :subnames subnames :absolute (prim-bool-create :value absolute))))
 
 (defsubst to-rid (struct-data)
   (rid-create))
@@ -331,6 +402,15 @@
         (y (bindat-get-field struct-data :y)))
     (vector2-create :x x :y y)))
 
+(defsubst to-rect2 (struct)
+  (let ((x-coordinate (bindat-get-field struct :x-coordinate))
+        (y-coordinate (bindat-get-field struct :y-coordinate))
+        (x-size (bindat-get-field struct :x-size))
+        (y-size (bindat-get-field struct :y-size)))
+    (rect2-create
+     :coordinate (vector2-create :x x-coordinate :y y-coordinate)
+     :size (vector2-create :x x-size :y y-size))))
+
 (defsubst to-vector3 (struct-data)
   (let ((x (bindat-get-field struct-data :x))
         (y (bindat-get-field struct-data :y))
@@ -339,15 +419,15 @@
 
 (defsubst to-transform2d (struct-data)
   (let ((xx (bindat-get-field struct-data :xx))
-        (yx (bindat-get-field struct-data :yx))
         (xy (bindat-get-field struct-data :xy))
+        (yx (bindat-get-field struct-data :yx))
         (yy (bindat-get-field struct-data :yy))
         (x-origin (bindat-get-field struct-data :x-origin))
         (y-origin (bindat-get-field struct-data :y-origin)))
     (transform2d-create
-     :x (vector2-create :x xx :y yx)
-     :y (vector2-create :x xy :y yy)
-     :origin (vector2-create :x :x-origin :y :y-origin))))
+     :x (vector2-create :x xx :y xy)
+     :y (vector2-create :x yx :y yy)
+     :origin (vector2-create :x x-origin :y y-origin))))
 
 (defsubst to-null (struct-data)
   (prim-null-create))
@@ -386,9 +466,17 @@
         (items (bindat-get-field struct-data :items)))
     (prim-array-create :shared (shared-to-boolean shared) :elements (mapcar 'from-variant items))))
 
+(defsubst to-pool-byte-array (struct-data)
+  (let ((items (bindat-get-field struct-data :items)))
+    (pool-byte-array-create :elements items)))
+
 (defsubst to-pool-int-array (struct-data)
   (let ((items (bindat-get-field struct-data :items)))
     (pool-int-array-create :elements (mapcar 'to-integer items))))
+
+(defsubst to-pool-real-array (struct-data)
+  (let ((items (bindat-get-field struct-data :items)))
+    (pool-real-array-create :elements (mapcar 'to-float items))))
 
 (defsubst to-pool-string-array (struct-data)
   (let ((items (bindat-get-field struct-data :items)))
@@ -398,12 +486,16 @@
   (let ((items (bindat-get-field struct-data :items)))
     (pool-vector2-array-create :elements (mapcar 'to-vector2 items))))
 
+(defsubst to-pool-vector3-array (struct-data)
+  (let ((items (bindat-get-field struct-data :items)))
+    (pool-vector3-array-create :elements (mapcar 'to-vector3 items))))
+
 (defsubst to-pool-color-array (struct-data)
   (let ((items (bindat-get-field struct-data :items)))
     (pool-color-array-create :elements (mapcar 'to-color items))))
 
 (defun from-key-value (key value)
-  (let* ((var-name (bindat-get-field key :string-data))
+  (let* ((var-name (from-variant key))
          (var-val (from-variant value)))
     `(,var-name . ,var-val)))
 
@@ -417,11 +509,14 @@
       (3 (to-float struct))
       (4 (to-string struct))
       (5 (to-vector2 struct))
+      (6 (to-rect2 struct))
       (7 (to-vector3 struct))
       (8 (to-transform2d struct))
       (9 (to-plane struct))
+      (10 (to-quat struct))
       (11 (to-aabb struct))
       (12 (to-basis struct))
+      (13 (to-transform struct))
       (14 (to-color struct))
       (15 (to-node-path struct))
       (16 (to-rid struct))
@@ -429,9 +524,12 @@
             (to-object-id struct)))
       (18 (to-dictionary struct))
       (19 (to-array struct))
+      (20 (to-pool-byte-array struct))
       (21 (to-pool-int-array struct))
+      (22 (to-pool-real-array struct))
       (23 (to-pool-string-array struct))
       (24 (to-pool-vector2-array struct))
+      (25 (to-pool-vector3-array struct))
       (26 (to-pool-color-array struct))
       (_ (error "[from-variant] Unknown type %s" type)))))
 
@@ -531,7 +629,6 @@
 (defun mk-output (iter)
   (let ((output-count (bindat-get-field (iter-next iter) :integer-data))
         (outputs))
-    ;(message "output-count: %s %s" output-count (type-of output-count))
     (dotimes (i output-count)
       (let* ((data (iter-next iter))
              (output (bindat-get-field data :items 0 :string-data)))
@@ -675,7 +772,7 @@
                           (when position-start
                             (setq position-end (next-single-property-change position-start object-id-property))
                             (let ((inhibit-read-only t)
-                                  (class-name (concat (propertize (inspect-object->class cmd) 'face font-lock-type-face) " - "))
+                                  (class-name (concat (propertize (inspect-object->class cmd) 'font-lock-face font-lock-type-face) " - "))
                                   (properties (list 'object-id object-id object-id-property nil)))
                               (save-excursion
                                 (goto-char position-start)
@@ -696,13 +793,83 @@
          (let* ((object-id (object-id->value object))
                 (object-id-data (gethash object-id gdscript-debug--inspected-objects)))
            (if object-id-data
-               (let ((class-name (concat (propertize (inspect-object->class object-id-data) 'face font-lock-type-face) " - ")))
+               (let ((class-name (concat (propertize (inspect-object->class object-id-data) 'font-lock-face font-lock-type-face) " - ")))
                  (propertize (concat class-name (format "ObjectID: %s" (number-to-string object-id)))
                              'object-id object-id))
              (propertize (format "ObjectID: %s" (number-to-string object-id))
                          'object-id object-id
                          (gdscript-debug--object-id-property object-id) t))))
+        ((prim-null-p object)
+         (concat (propertize "null" 'font-lock-face font-lock-builtin-face)))
+        ((prim-bool-p object)
+         (concat (propertize "bool" 'font-lock-face font-lock-builtin-face) " - " (gdscript-debug--prim-bool-to-string object)))
+        ((prim-integer-p object)
+         (concat (propertize "int" 'font-lock-face font-lock-builtin-face) " - " (number-to-string (prim-integer->value object))))
+        ((prim-float-p object)
+         (concat (propertize "float" 'font-lock-face font-lock-builtin-face) " - " (number-to-string (prim-float->value object))))
+        ((prim-string-p object)
+         (concat (propertize "String" 'font-lock-face font-lock-type-face) " - " (prim-string->value object)))
+        ((vector2-p object)
+         (concat (propertize "Vector2" 'font-lock-face font-lock-type-face) " - " (gdscript-debug--vector2-to-string object)))
+        ((rect2-p object)
+         (concat (propertize "Rect2" 'font-lock-face font-lock-type-face) " - " (gdscript-debug--vector2-to-string (rect2->coordinate object)) " " (gdscript-debug--vector2-to-string (rect2->size object))))
+        ((vector3-p object)
+         (concat (propertize "Vector3" 'font-lock-face font-lock-type-face) " - " (gdscript-debug--vector3-to-string object)))
+        ((transform2d-p object)
+         (concat (propertize "Transform2D" 'font-lock-face font-lock-type-face) " - " (mapconcat #'gdscript-debug--vector2-to-string (list (transform2d->x object) (transform2d->y object) (transform2d->origin object)) " ")))
+        ((plane-p object)
+         (concat (propertize "Plane" 'font-lock-face font-lock-type-face) " - " (gdscript-debug--vector3-to-string (plane->normal object)) " " (number-to-string (plane->distance object))))
+        ((quat-p object)
+         (concat (propertize "Quat" 'font-lock-face font-lock-type-face) " - " (mapconcat #'number-to-string (list (quat->x-imaginary object) (quat->y-imaginary object) (quat->z-imaginary object) (quat->real-w object)) " ")))
+        ((aabb-p object)
+         (concat (propertize "AABB" 'font-lock-face font-lock-type-face) " - " (mapconcat #'gdscript-debug--vector3-to-string (list (aabb->position object) (aabb->size object)) " ")))
+        ((basis-p object)
+         (concat (propertize "Basis" 'font-lock-face font-lock-type-face) " - " (gdscript-debug--basis-to-string object)))
+        ((transform-p object)
+         (concat (propertize "Transform" 'font-lock-face font-lock-type-face) " - " (gdscript-debug--basis-to-string (transform->basis object)) " " (gdscript-debug--vector3-to-string (transform->origin object))))
+        ((color-p object)
+         (concat (propertize "Color" 'font-lock-face font-lock-type-face) " - " (gdscript-debug--color-to-string object)))
+        ((node-path-p object)
+         (concat (propertize "NodePath" 'font-lock-face font-lock-type-face) " - " (mapconcat #'prim-string->value (node-path->names object) "/") ":" (mapconcat #'prim-string->value (node-path->subnames object) ":")  " " (gdscript-debug--prim-bool-to-string (node-path->absolute object))))
+        ((dictionary-p object)
+         (concat (propertize "Dictionary" 'font-lock-face font-lock-type-face) " - {" (mapconcat #'gdscript-debug--key-value-to-string (dictionary->elements object) ", ") "}"))
+        ((prim-array-p object)
+         (concat (propertize "Array" 'font-lock-face font-lock-type-face) " - [" (mapconcat #'gdscript-debug--stringify (prim-array->elements object) ", ") "]"))
+        ((pool-byte-array-p object)
+         (concat (propertize "PoolByteArray" 'font-lock-face font-lock-type-face) " - [" (mapconcat #'number-to-string (pool-byte-array->elements object) " ") "]"))
+        ((pool-int-array-p object)
+         (concat (propertize "PoolIntArray" 'font-lock-face font-lock-type-face) " - [" (mapconcat (lambda (int) (number-to-string (prim-integer->value int))) (pool-int-array->elements object) " ") "]"))
+        ((pool-real-array-p object)
+         (concat (propertize "PoolRealArray" 'font-lock-face font-lock-type-face) " - [" (mapconcat (lambda (real) (number-to-string (prim-float->value real))) (pool-real-array->elements object) " ") "]"))
+        ((pool-string-array-p object)
+         (concat (propertize "PoolStringArray" 'font-lock-face font-lock-type-face) " - [" (mapconcat #'prim-string->value (pool-string-array->elements object) " ") "]"))
+        ((pool-vector2-array-p object)
+         (concat (propertize "PoolVector2Array" 'font-lock-face font-lock-type-face) " - [" (mapconcat #'gdscript-debug--vector2-to-string (pool-vector2-array->elements object) " ") "]"))
+        ((pool-vector3-array-p object)
+         (concat (propertize "PoolVector3Array" 'font-lock-face font-lock-type-face) " - [" (mapconcat #'gdscript-debug--vector3-to-string (pool-vector3-array->elements object) " ") "]"))
+        ((pool-color-array-p object)
+         (concat (propertize "PoolColorArray" 'font-lock-face font-lock-type-face) " - [" (mapconcat #'gdscript-debug--color-to-string (pool-color-array->elements object) " ") "]"))
         (t object)))
+
+(defun gdscript-debug--key-value-to-string (key-value)
+  (let ((key (car key-value))
+        (value (cdr key-value)))
+    (concat (gdscript-debug--stringify key) ":" (gdscript-debug--stringify value))))
+
+(defun gdscript-debug--prim-bool-to-string (prim-bool)
+  (if (prim-bool->value prim-bool) "true" "false"))
+
+(defun gdscript-debug--color-to-string (color)
+  (format "(%s)" (mapconcat #'number-to-string (list (color->red color) (color->green color) (color->blue color) (color->alpha color)) ", ")))
+
+(defun gdscript-debug--basis-to-string (basis)
+  (mapconcat #'gdscript-debug--vector3-to-string (list (basis->x basis) (basis->y basis) (basis->z basis)) " "))
+
+(defun gdscript-debug--vector2-to-string (vector2)
+  (concat "(" (number-to-string (vector2->x vector2)) ", " (number-to-string (vector2->y vector2)) ")"))
+
+(defun gdscript-debug--vector3-to-string (vector3)
+  (concat "(" (number-to-string (vector3->x vector3)) ", " (number-to-string (vector3->y vector3)) ", " (number-to-string (vector3->z vector3)) ")"))
 
 (defun gdscript-debug--variable-name (var-name)
   (propertize (format "%25s" var-name) 'font-lock-face font-lock-variable-name-face))
@@ -870,14 +1037,14 @@
          (packet-length (+ (* 6 4) command-alength))
          (spec (gdscript-debug--inspect-object-definition command-length)))
     (bindat-pack spec
-     `((:packet-length . ,packet-length)
-       (:array-type . ,variant-array)
-       (:elements-count . 2)
-       (:command-type . ,variant-string)
-       (:command-length . ,command-length)
-       (:command . ,command)
-       (:object-id-type . ,variant-integer)
-       (:object-id . ,object-id)))))
+                 `((:packet-length . ,packet-length)
+                   (:array-type . ,variant-array)
+                   (:elements-count . 2)
+                   (:command-type . ,variant-string)
+                   (:command-length . ,command-length)
+                   (:command . ,command)
+                   (:object-id-type . ,variant-integer)
+                   (:object-id . ,object-id)))))
 
 (defun gdscript-debug--get-stack-frame-vars (frame)
   (let* ((command "get_stack_frame_vars")
@@ -886,14 +1053,14 @@
          (packet-length (+ (* 6 4) command-alength))
          (spec (gdscript-debug--get-stack-frame-vars-definition command-length)))
     (bindat-pack spec
-     `((:packet-length . ,packet-length)
-       (:array-type . ,variant-array)
-       (:elements-count . 2)
-       (:command-type . ,variant-string)
-       (:command-length . ,command-length)
-       (:command . ,command)
-       (:frame-type . ,variant-integer)
-       (:frame . ,frame)))))
+                 `((:packet-length . ,packet-length)
+                   (:array-type . ,variant-array)
+                   (:elements-count . 2)
+                   (:command-type . ,variant-string)
+                   (:command-length . ,command-length)
+                   (:command . ,command)
+                   (:frame-type . ,variant-integer)
+                   (:frame . ,frame)))))
 
 (defun gdscript-debug--breakpoint-command (file line add-or-remove)
   (let* ((command "breakpoint")
@@ -903,19 +1070,19 @@
          (packet-length (+ (* 10 4) command-alength file-length))
          (spec (gdscript-debug--breakpoint-packet-definition command-length file-length)))
     (bindat-pack spec
-     `((:packet-length . ,packet-length)
-       (:array-type . ,variant-array)
-       (:elements-count . 4)
-       (:command-type . ,variant-string)
-       (:command-length . ,command-length)
-       (:command . ,command)
-       (:file-type . ,variant-string)
-       (:file-length . ,file-length)
-       (:file . ,file)
-       (:line-type . ,variant-integer)
-       (:line . ,line)
-       (:boolean-type . ,variant-bool)
-       (:boolean . ,(boolean-to-integer add-or-remove))))))
+                 `((:packet-length . ,packet-length)
+                   (:array-type . ,variant-array)
+                   (:elements-count . 4)
+                   (:command-type . ,variant-string)
+                   (:command-length . ,command-length)
+                   (:command . ,command)
+                   (:file-type . ,variant-string)
+                   (:file-length . ,file-length)
+                   (:file . ,file)
+                   (:line-type . ,variant-integer)
+                   (:line . ,line)
+                   (:boolean-type . ,variant-bool)
+                   (:boolean . ,(boolean-to-integer add-or-remove))))))
 
 (defun gdscript-debug--set-skip-breakpoints-command (skip)
   (let* ((command "set_skip_breakpoints")
@@ -924,14 +1091,14 @@
          (packet-length (+ (* 6 4) command-alength))
          (spec (gdscript-debug--set-skip-breakpoints-packet-definition command-length)))
     (bindat-pack spec
-     `((:packet-length . ,packet-length)
-       (:array-type . ,variant-array)
-       (:elements-count . 2)
-       (:command-type . ,variant-string)
-       (:command-length . ,command-length)
-       (:command . ,command)
-       (:boolean-type . ,variant-bool)
-       (:boolean . ,(boolean-to-integer skip))))))
+                 `((:packet-length . ,packet-length)
+                   (:array-type . ,variant-array)
+                   (:elements-count . 2)
+                   (:command-type . ,variant-string)
+                   (:command-length . ,command-length)
+                   (:command . ,command)
+                   (:boolean-type . ,variant-bool)
+                   (:boolean . ,(boolean-to-integer skip))))))
 
 (defun gdscript-debug--packet-definition (string-length)
   `((:packet-length u32r)
@@ -1071,48 +1238,58 @@ BUFFER nil or omitted means use the current buffer."
 
 (cl-defstruct (prim-bool (:constructor prim-bool-create)
                          (:copier nil)
-                         (:conc-name boolean->))
+                         (:conc-name prim-bool->))
   value)
 
 (cl-defstruct (prim-integer (:constructor prim-integer-create)
                             (:copier nil)
-                            (:conc-name integer->))
+                            (:conc-name prim-integer->))
   value)
 
 (cl-defstruct (prim-float (:constructor prim-float-create)
                           (:copier nil)
-                          (:conc-name float->))
+                          (:conc-name prim-float->))
   value)
 
 (cl-defstruct (prim-string (:constructor prim-string-create)
                            (:copier nil)
-                           (:conc-name string->))
+                           (:conc-name prim-string->))
   value)
 
 (cl-defstruct (plane (:constructor plane-create)
                      (:copier nil)
                      (:conc-name plane->))
-  normal-x normal-y normal-z distance)
+  normal distance)
+
+(cl-defstruct (quat (:constructor quat-create)
+                    (:copier nil)
+                    (:conc-name quat->))
+  x-imaginary y-imaginary z-imaginary real-w)
 
 (cl-defstruct (aabb (:constructor aabb-create)
                     (:copier nil)
                     (:conc-name aabb->))
-  x-coordinate y-coordinate z-coordinate x-size y-size z-size)
+  position size)
 
 (cl-defstruct (basis (:constructor basis-create)
                      (:copier nil)
                      (:conc-name basis->))
   x y z)
 
-(cl-defstruct (color (:constructor color-create)
+(cl-defstruct (transform (:constructor transform-create)
                          (:copier nil)
-                         (:conc-name color->))
+                         (:conc-name transform->))
+  basis origin)
+
+(cl-defstruct (color (:constructor color-create)
+                     (:copier nil)
+                     (:conc-name color->))
   red green blue alpha)
 
 (cl-defstruct (node-path (:constructor node-path-create)
                          (:copier nil)
                          (:conc-name node-path->))
-  path subpath absolute)
+  names subnames absolute)
 
 (cl-defstruct (rid (:constructor rid-create)
                    (:copier nil)))
@@ -1132,6 +1309,11 @@ BUFFER nil or omitted means use the current buffer."
                        (:conc-name vector2->))
   x y)
 
+(cl-defstruct (rect2 (:constructor rect2-create)
+                     (:copier nil)
+                     (:conc-name rect2->))
+  coordinate size)
+
 (cl-defstruct (vector3 (:constructor vector3-create)
                        (:copier nil)
                        (:conc-name vector3->))
@@ -1147,9 +1329,19 @@ BUFFER nil or omitted means use the current buffer."
                           (:conc-name prim-array->))
   shared elements)
 
+(cl-defstruct (pool-byte-array (:constructor pool-byte-array-create)
+                               (:copier nil)
+                               (:conc-name pool-byte-array->))
+  elements)
+
 (cl-defstruct (pool-int-array (:constructor pool-int-array-create)
                               (:copier nil)
                               (:conc-name pool-int-array->))
+  elements)
+
+(cl-defstruct (pool-real-array (:constructor pool-real-array-create)
+                               (:copier nil)
+                               (:conc-name pool-real-array->))
   elements)
 
 (cl-defstruct (pool-string-array (:constructor pool-string-array-create)
@@ -1160,6 +1352,11 @@ BUFFER nil or omitted means use the current buffer."
 (cl-defstruct (pool-vector2-array (:constructor pool-vector2-array-create)
                                   (:copier nil)
                                   (:conc-name pool-vector2-array->))
+  elements)
+
+(cl-defstruct (pool-vector3-array (:constructor pool-vector3-array-create)
+                                  (:copier nil)
+                                  (:conc-name pool-vector3-array->))
   elements)
 
 (cl-defstruct (pool-color-array (:constructor pool-color-array-create)
