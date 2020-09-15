@@ -5,6 +5,7 @@
 (require 'bindat)
 (require 'generator)
 (require 'gdscript-customization)
+(require 'gdscript-utils)
 
 ;; Overlay arrow markers
 (defvar gdscript-debug--thread-position nil)
@@ -831,6 +832,8 @@
          (concat (propertize "Color" 'font-lock-face font-lock-type-face) " - " (gdscript-debug--color-to-string object)))
         ((node-path-p object)
          (concat (propertize "NodePath" 'font-lock-face font-lock-type-face) " - " (mapconcat #'prim-string->value (node-path->names object) "/") ":" (mapconcat #'prim-string->value (node-path->subnames object) ":")  " " (gdscript-debug--prim-bool-to-string (node-path->absolute object))))
+        ((rid-p object)
+         (propertize "RID" 'font-lock-face font-lock-type-face))
         ((dictionary-p object)
          (concat (propertize "Dictionary" 'font-lock-face font-lock-type-face) " - {" (mapconcat #'gdscript-debug--key-value-to-string (dictionary->elements object) ", ") "}"))
         ((prim-array-p object)
@@ -1499,6 +1502,7 @@ BUFFER nil or omitted means use the current buffer."
     (define-key map "\r" 'gdscript-debug-show-stack-frame-vars)
     (define-key map "\t" 'gdscript-debug-display-stack-frame-vars-buffer)
     (define-key map "?" 'describe-mode)
+    (define-key map (kbd "C-c n") 'gdscript-debug-hydra)
     map))
 
 (defvar gdscript-debug--breakpoints-mode-map
@@ -1510,6 +1514,7 @@ BUFFER nil or omitted means use the current buffer."
     (define-key map "\r" 'gdscript-debug-goto-breakpoint)
     (define-key map "\t" 'gdscript-debug-display-stack-dump-buffer)
     (define-key map "?" 'describe-mode)
+    (define-key map (kbd "C-c n") 'gdscript-debug-hydra)
     map))
 
 (defvar gdscript-debug--stack-frame-vars-mode-map
@@ -1521,6 +1526,7 @@ BUFFER nil or omitted means use the current buffer."
     (define-key map "\r" 'gdscript-debug-inspect-object-id)
     (define-key map "\t" 'gdscript-debug-display-inspector-buffer)
     (define-key map "?" 'describe-mode)
+    (define-key map (kbd "C-c n") 'gdscript-debug-hydra)
     map))
 
 (defvar gdscript-debug--inspector-mode-map
@@ -1529,6 +1535,7 @@ BUFFER nil or omitted means use the current buffer."
     (define-key map "q" 'kill-current-buffer)
     (define-key map "\t" 'gdscript-debug-display-breakpoint-buffer)
     (define-key map "?" 'describe-mode)
+    (define-key map (kbd "C-c n") 'gdscript-debug-hydra)
     map))
 
 (defvar-local gdscript-debug--buffer-type nil
@@ -1547,10 +1554,13 @@ In that buffer, `gdscript-debug--buffer-type' must be equal to BUFFER-TYPE."
 (defun gdscript-debug--get-stack-frame-vars-buffer ()
   (gdscript-debug--get-buffer-create 'stack-frame-vars-buffer))
 
+(defun gdscript-debug--get-stack-dump-buffer ()
+  (gdscript-debug--get-buffer-create 'stack-dump-buffer))
+
 (defun gdscript-debug-display-stack-dump-buffer ()
   "Display stack dump."
   (interactive)
-  (display-buffer (gdscript-debug--get-buffer-create 'stack-dump-buffer)))
+  (display-buffer (gdscript-debug--get-stack-dump-buffer)))
 
 (defun gdscript-debug-display-stack-frame-vars-buffer ()
   "Display the variables of current stack."
@@ -1567,6 +1577,13 @@ In that buffer, `gdscript-debug--buffer-type' must be equal to BUFFER-TYPE."
   "Display the inspector."
   (interactive)
   (display-buffer (gdscript-debug--get-buffer-create 'inspector-buffer)))
+
+(defun gdscript-debug-display-source-buffer ()
+  "Using stack dump jump to the source"
+  (interactive)
+  (with-current-buffer (gdscript-debug--get-stack-dump-buffer)
+    (beginning-of-buffer)
+    (gdscript-debug-jump-to-stack-point)))
 
 (defun gdscript-debug--remove-breakpoint-from-buffer (breakpoint)
   (setq gdscript-debug--breakpoints (remove breakpoint gdscript-debug--breakpoints))
@@ -1701,5 +1718,26 @@ In that buffer, `gdscript-debug--buffer-type' must be equal to BUFFER-TYPE."
  'inspector-buffer
  'gdscript-debug--inspector-buffer-name
  'gdscript-debug--inspector-mode)
+
+(ignore-errors
+  ;; Don't signal an error when hydra.el is not present
+  (defhydra gdscript-debug--hydra (:hint none)
+    "
+_n_ next  _c_ continue  _m_ step _d_ stack _b_ breakpoints _v_ vars _i_ inspector _s_ source _q_ quit
+"
+    ("n" (gdscript-debug-next))
+    ("c" (gdscript-debug-continue))
+    ("m" (gdscript-debug-step))
+    ("d" (gdscript-debug-display-stack-dump-buffer))
+    ("b" (gdscript-debug-display-breakpoint-buffer))
+    ("v" (gdscript-debug-display-stack-frame-vars-buffer))
+    ("i" (gdscript-debug-display-inspector-buffer))
+    ("s" (gdscript-debug-display-source-buffer))
+    ("q" nil)))
+
+(defun gdscript-debug-hydra ()
+  "Show debug hydra."
+  (interactive)
+  (gdscript-util--with-available-hydra (gdscript-debug--hydra/body)))
 
 (provide 'gdscript-debug)

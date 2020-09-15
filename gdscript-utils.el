@@ -156,6 +156,13 @@ PROMPT is prompt for read command. Return `nil' if user aborts."
            (completing-read (format "%s (hit TAB to auto-complete): " p) items nil t)))))
     (if quit-flag nil result)))
 
+(defmacro gdscript-util--with-available-hydra (&rest body)
+  ""
+  `(progn
+     (when (not (featurep 'hydra))
+       (error "No `hydra.el' available.  To execute `gdscript-hydra-show' command you need to install hydra.el"))
+     ,@body))
+
 (provide 'gdscript-utils)
 
 ;;; gdscript-utils.el ends here

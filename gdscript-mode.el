@@ -91,6 +91,8 @@
                             (define-key map (kbd "C-c C-d n") 'gdscript-debug-next)
                             (define-key map (kbd "C-c C-d c") 'gdscript-debug-continue)
                             (define-key map (kbd "C-c C-d s") 'gdscript-debug-step)
+                            ;; Debugger Hydra
+                            (define-key map (kbd "C-c n") 'gdscript-debug-hydra)
                             map)
   "Keymap for `gdscript-mode'.")
 
