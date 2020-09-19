@@ -737,30 +737,36 @@
                 ("stack_frame_vars"
                  (gdscript-debug--command-handler
                   ;;(message "Received 'stack_frame_vars' command")
-                  (let ((cmd (mk-stack-frame-vars iter))
-                        (table (gdscript-debug-table-create)))
-                    (gdscript-debug--table-add-row table (list "Locals:" "" "") nil)
-                    (gdscript-debug--add-stack-var-to-table table (stack-frame-vars->locals cmd))
-                    (gdscript-debug--table-add-row table (list "Members:" "" "") nil)
-                    (gdscript-debug--add-stack-var-to-table table (stack-frame-vars->members cmd))
-                    (gdscript-debug--table-add-row table (list "Globals:" "" "") nil)
-                    (gdscript-debug--add-stack-var-to-table table (stack-frame-vars->globals cmd))
-                    (with-current-buffer (gdscript-debug--get-stack-frame-vars-buffer)
-                      (let ((inhibit-read-only t))
-                        (erase-buffer)
-                        (insert (gdscript-debug--table-string table " ")))
-                      (display-buffer (current-buffer))))))
+                  (let ((cmd (mk-stack-frame-vars iter)))
+                    (setq gdscript-debug--stack-frame-vars cmd)
+                    (gdscript-debug--construct-stack-var-buffer cmd))))
                 ("message:inspect_object"
                  (gdscript-debug--command-handler
                   ;;(message "Received 'message:inspect_object' command")
                   (let* ((cmd (mk-inspect-object iter))
                          (object-id (inspect-object->object-id cmd)))
                     (puthash object-id cmd gdscript-debug--inspected-objects)
-                    (gdscript-debug--add-type-of-object-id-into-buffer cmd object-id)
-                    (gdscript-debug--refresh-inspector-buffer cmd))))
+                    (gdscript-debug--add-type-of-object-id-into-buffer object-id))))
                 (_ (error "Unknown command %s" str))))))
       ;;(iter-end-of-sequence (message "No more packets to process %s" x))
       (iter-end-of-sequence nil))))
+
+(defvar gdscript-debug--stack-frame-vars nil)
+(defvar gdscript-debug--inspect-object nil)
+
+(defun gdscript-debug--construct-stack-var-buffer (stack-frame-vars)
+  (let ((table (gdscript-debug-table-create)))
+    (gdscript-debug--table-add-row table (list "Locals:" "" "") nil)
+    (gdscript-debug--add-stack-var-to-table table (stack-frame-vars->locals stack-frame-vars))
+    (gdscript-debug--table-add-row table (list "Members:" "" "") nil)
+    (gdscript-debug--add-stack-var-to-table table (stack-frame-vars->members stack-frame-vars))
+    (gdscript-debug--table-add-row table (list "Globals:" "" "") nil)
+    (gdscript-debug--add-stack-var-to-table table (stack-frame-vars->globals stack-frame-vars))
+    (with-current-buffer (gdscript-debug--get-stack-frame-vars-buffer)
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (insert (gdscript-debug--table-string table " ")))
+      (display-buffer (current-buffer)))))
 
 (defun gdscript-debug--add-stack-var-to-table (table items)
   (dolist (item items)
@@ -774,30 +780,18 @@
        nil)
       (gdscript-debug--fetch-object-id-data (cdr item) 'stack-frame-vars-buffer))))
 
-(defun gdscript-debug--add-type-of-object-id-into-buffer (cmd object-id )
-  (let ((object-id-property (gdscript-debug--object-id-property object-id))
-        (buffer-symbol (gethash object-id gdscript-debug--object-to-buffer-mapping))
-        (position-start 1)
-        (position-end 1))
-    (with-current-buffer (gdscript-debug--get-buffer-create buffer-symbol)
-      (while position-start
-        (setq position-start (next-single-property-change position-start object-id-property))
-        (when position-start
-          (setq position-end (next-single-property-change position-start object-id-property))
-          (let ((inhibit-read-only t)
-                (class-name (concat (propertize (inspect-object->class cmd) 'font-lock-face font-lock-type-face) " - "))
-                (properties (list 'object-id object-id object-id-property nil)))
-            (save-excursion
-              (goto-char position-start)
-              (insert class-name)
-              (let ((new-position-end (+ 1 position-end (length class-name))))
-                (add-text-properties position-start new-position-end properties)
-                (setq position-start new-position-end)))))))))
+(defun gdscript-debug--add-type-of-object-id-into-buffer (object-id)
+  (let ((buffer-symbol (gethash object-id gdscript-debug--object-to-buffer-mapping)))
+    (pcase buffer-symbol
+      ('stack-frame-vars-buffer
+       (gdscript-debug--construct-stack-var-buffer gdscript-debug--stack-frame-vars))
+      ('inspector-buffer
+       (gdscript-debug--refresh-inspector-buffer gdscript-debug--inspect-object)))))
 
 (defvar gdscript-debug--object-to-buffer-mapping (make-hash-table)
   "Stores mapping from ObjectID to buffer which needs to be updated
- when `message:inspect_object' command is received.
-Buffer which to update is either `stack-frame-vars-buffer' or `inspector-buffer'.")
+when `message:inspect_object' command is received.
+Buffer which needs an update is either `stack-frame-vars-buffer' or `inspector-buffer'.")
 
 (defun gdscript-debug--refresh-inspector-buffer (inspect-object)
   (let ((table (gdscript-debug-table-create)))
@@ -819,11 +813,32 @@ Buffer which to update is either `stack-frame-vars-buffer' or `inspector-buffer'
                    (print-data->type-name print-data)
                    (print-data->string-repr print-data))))
          nil)))
-    (with-current-buffer (gdscript-debug--get-buffer-create 'inspector-buffer)
-      (let ((inhibit-read-only t))
+    (with-current-buffer (gdscript-debug--get-inspector-buffer)
+      (let ((inhibit-read-only t)
+            (class (inspect-object->class inspect-object))
+            (object-id (inspect-object->object-id inspect-object))
+            (inspector-stack-car (car gdscript-debug--inspector-stack)))
+        (unless (and
+                 inspector-stack-car
+                 (equal class     (gdscript-debug-breadcrumb-entry->class inspector-stack-car))
+                 (equal object-id (gdscript-debug-breadcrumb-entry->object-id inspector-stack-car)))
+          ;; Add new entry to the stack only when it differs from the tip (car)
+          ;; to preserve `gdscript-debug-breadcrumb-entry->point' of the tip
+          (push (gdscript-debug-breadcrumb-entry-create :class class :object-id object-id :point (point)) gdscript-debug--inspector-stack))
         (erase-buffer)
-        (insert (propertize (format "%s: %s\n" (inspect-object->class inspect-object) (inspect-object->object-id inspect-object)) 'font-lock-face 'bold))
-        (insert (gdscript-debug--table-string table " "))))))
+        (insert (gdscript-debug--inspector-bread-crumb))
+        (insert "\n")
+        (insert (gdscript-debug--table-string table " "))
+        (goto-char (point-min))))))
+
+(defun gdscript-debug--inspector-bread-crumb ()
+  (mapconcat (lambda (breadcrumb-entry)
+               (propertize (format "%s: %s"
+                                   (gdscript-debug-breadcrumb-entry->class breadcrumb-entry)
+                                   (gdscript-debug-breadcrumb-entry->object-id breadcrumb-entry))
+                           'font-lock-face 'bold))
+             (reverse gdscript-debug--inspector-stack)
+             " > "))
 
 (defun gdscript-debug--table-string (table &optional sep)
   "Return TABLE as a string with columns separated with SEP."
@@ -845,8 +860,8 @@ Buffer which to update is either `stack-frame-vars-buffer' or `inspector-buffer'
 (defun gdscript-debug--pad-string (string padding)
   (format (concat "%" (number-to-string padding) "s") string))
 
-(defun gdscript-debug--object-id-property (object-id)
-  (intern (format "object-id-%s" object-id)))
+;; (defun gdscript-debug--object-id-property (object-id)
+;;   (intern (format "object-id-%s" object-id)))
 
 (defun gdscript-debug--pure-stringify (object)
   (cond ((prim-null-p object)
@@ -888,11 +903,9 @@ Buffer which to update is either `stack-frame-vars-buffer' or `inspector-buffer'
                 (object-id-data (gethash object-id gdscript-debug--inspected-objects)))
            (if object-id-data
                (let ((class-name (concat (propertize (inspect-object->class object-id-data) 'font-lock-face font-lock-type-face))))
-                 (gdscript-debug--to-print-data (gdscript-debug--type-face class-name) (propertize (format "ObjectID: %s" (number-to-string object-id))
-                                                                                                   'object-id object-id)))
-             (gdscript-debug--to-print-data (gdscript-debug--type-face "Loading...") (propertize (format "ObjectID: %s" (number-to-string object-id))
-                                                                                                 'object-id object-id
-                                                                                                 (gdscript-debug--object-id-property object-id) t)))))
+                 (gdscript-debug--to-print-data (gdscript-debug--type-face class-name)
+                                                (propertize (format "ObjectID: %s" (number-to-string object-id)) 'object-id object-id)))
+             (gdscript-debug--to-print-data (format "Loading..." (number-to-string object-id)) (format "ObjectID: %s" (number-to-string object-id))))))
         ((dictionary-p object)
          (gdscript-debug--to-print-data (gdscript-debug--type-face "Dictionary") (concat "{" (mapconcat #'gdscript-debug--key-value-to-string (dictionary->elements object) ", ") "}")))
         ((prim-array-p object)
@@ -960,6 +973,7 @@ Buffer which to update is either `stack-frame-vars-buffer' or `inspector-buffer'
          (null (gethash (object-id->value object) gdscript-debug--inspected-objects)))
     (let ((object-id (object-id->value object)))
       (puthash object-id buffer-symbol gdscript-debug--object-to-buffer-mapping)
+      (message "[gdscript-debug--fetch-object-id-data][%s] object-id: %s" buffer-symbol object-id)
       (gdscript-debug-inspect-object object-id))))
 
 (defvar server-clients '()
@@ -975,14 +989,15 @@ Buffer which to update is either `stack-frame-vars-buffer' or `inspector-buffer'
    ((or
      (string= event "connection broken by remote peer\n")
      (string= event "deleted\n"))
-    (message "Resetting server to accept data.")
     (set-marker gdscript-debug--thread-position nil)
     (setq gdscript-debug--previous-packet-data nil
           gdscript-debug--offset 0
           gdscript-debug--data-needed nil
           gdscript-debug--inspected-objects (make-hash-table)
           gdscript-debug--object-to-buffer-mapping (make-hash-table)
-          server-clients '()))
+          gdscript-debug--inspector-stack nil
+          server-clients '())
+    (message "Resetting server to accept data."))
    ((eq (process-status process) 'closed)
     (message "EHHHH ???"))))
 
@@ -1490,6 +1505,11 @@ BUFFER nil or omitted means use the current buffer."
   row-properties
   right-align)
 
+(cl-defstruct (gdscript-debug-breadcrumb-entry (:constructor gdscript-debug-breadcrumb-entry-create)
+                                               (:copier nil)
+                                               (:conc-name gdscript-debug-breadcrumb-entry->))
+  class object-id point)
+
 (defun gdscript-debug--table-add-row (table row &optional properties)
   "Add ROW of string to TABLE and recalculate column sizes.
 
@@ -1574,16 +1594,23 @@ calling `gdscript-debug--table-string'."
 (defun gdscript-debug-inspect-object-id ()
   (interactive)
   (save-excursion
+    (when (derived-mode-p 'gdscript-debug--stack-frame-vars-mode)
+      (setq gdscript-debug--inspector-stack nil))
     (let ((object-id (get-text-property (point) 'object-id)))
       (if object-id
-          (progn
-            (gdscript-debug-inspect-object object-id)
-            (save-selected-window
-              (let* ((buffer (gdscript-debug--get-buffer-create 'inspector-buffer))
-                     (window (display-buffer buffer)))
-                (with-current-buffer buffer
-                  (set-window-point window (point))))))
+          (gdscript-debug--show-object-id object-id)
         (error "Not recognized as object-id line")))))
+
+(defun gdscript-debug--show-object-id (object-id)
+  (let ((object-id-data (gethash object-id gdscript-debug--inspected-objects)))
+    (when object-id-data
+      (setq gdscript-debug--inspect-object object-id-data)
+      (gdscript-debug--refresh-inspector-buffer object-id-data)
+      (save-selected-window
+        (let* ((buffer (gdscript-debug--get-inspector-buffer))
+               (window (display-buffer buffer)))
+          (with-current-buffer buffer
+            (set-window-point window (point))))))))
 
 (defun gdscript-debug-show-stack-frame-vars ()
   (interactive)
@@ -1611,6 +1638,17 @@ calling `gdscript-debug--table-string'."
                        (start-posn (car posns)))
                   (goto-char start-posn)))))
         (error "Not recognized as stack-frame line")))))
+
+(defun gdscript-debug-go-back ()
+  (interactive)
+  (cond
+   ((>= 1 (length gdscript-debug--inspector-stack))
+    (message "Top level"))
+   (t
+    (let ((last-breadcrumb (pop gdscript-debug--inspector-stack))
+          (show-breadcrumb (car gdscript-debug--inspector-stack)))
+      (gdscript-debug--show-object-id (gdscript-debug-breadcrumb-entry->object-id show-breadcrumb))
+      (goto-char (gdscript-debug-breadcrumb-entry->point last-breadcrumb))))))
 
 (defvar gdscript-debug--stack-dump-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1653,7 +1691,11 @@ calling `gdscript-debug--table-string'."
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
     (define-key map "q" 'kill-current-buffer)
+    (define-key map "p" 'previous-line)
+    (define-key map "n" 'next-line)
     (define-key map "\t" 'gdscript-debug-display-breakpoint-buffer)
+    (define-key map "\r" 'gdscript-debug-inspect-object-id)
+    (define-key map "l" 'gdscript-debug-go-back)
     (define-key map "?" 'describe-mode)
     (define-key map (kbd "C-c n") 'gdscript-debug-hydra)
     map))
@@ -1670,6 +1712,9 @@ In that buffer, `gdscript-debug--buffer-type' must be equal to BUFFER-TYPE."
       (with-current-buffer buffer
         (when (eq gdscript-debug--buffer-type buffer-type)
           (throw 'found buffer))))))
+
+(defun gdscript-debug--get-breakpoint-buffer()
+  (gdscript-debug--get-buffer-create 'breakpoints-buffer))
 
 (defun gdscript-debug--get-stack-dump-buffer ()
   (gdscript-debug--get-buffer-create 'stack-dump-buffer))
@@ -1688,12 +1733,12 @@ In that buffer, `gdscript-debug--buffer-type' must be equal to BUFFER-TYPE."
 (defun gdscript-debug-display-stack-frame-vars-buffer ()
   "Display the variables of current stack."
   (interactive)
-  (display-buffer (gdscript-debug--get-buffer-create 'stack-frame-vars-buffer)))
+  (display-buffer (gdscript-debug--get-stack-frame-vars-buffer)))
 
 (defun gdscript-debug-display-breakpoint-buffer ()
   "Display the breakpoints."
   (interactive)
-  (display-buffer (gdscript-debug--get-buffer-create 'breakpoints-buffer))
+  (display-buffer (gdscript-debug--get-breakpoint-buffer))
   (refresh-breakpoints-buffer))
 
 (defun gdscript-debug-display-inspector-buffer ()
@@ -1717,7 +1762,7 @@ In that buffer, `gdscript-debug--buffer-type' must be equal to BUFFER-TYPE."
     (push breakpoint gdscript-debug--breakpoints)))
 
 (defun gdscript-debug--refresh-stack-frame-vars-buffer (stack-dump project-root)
-  (with-current-buffer (gdscript-debug--get-buffer-create 'stack-dump-buffer)
+  (with-current-buffer (gdscript-debug--get-stack-dump-buffer)
     (let ((inhibit-read-only t)
           (longest-file-name 0))
       (dolist (stack stack-dump)
@@ -1738,7 +1783,7 @@ In that buffer, `gdscript-debug--buffer-type' must be equal to BUFFER-TYPE."
                    'gdscript-debug--project-root project-root)))))))
 
 (defun refresh-breakpoints-buffer ()
-  (with-current-buffer (gdscript-debug--get-buffer-create 'breakpoints-buffer)
+  (with-current-buffer (gdscript-debug--get-breakpoint-buffer)
     (let* ((inhibit-read-only t)
            (window (get-buffer-window (current-buffer) 0))
            (start (window-start window))
@@ -1785,6 +1830,9 @@ In that buffer, `gdscript-debug--buffer-type' must be equal to BUFFER-TYPE."
 (define-derived-mode gdscript-debug--inspector-mode gdscript-debug--parent-mode "Inspector"
   "Major mode for inspector management."
   (setq header-line-format "Inspector"))
+
+(defvar gdscript-debug--inspector-stack nil
+  "A stack of inspected objects for breadcrumb rendering.")
 
 (defun gdscript-debug--stack-dump-buffer-name ()
   (concat "* Stack dump *"))

@@ -76,9 +76,13 @@ When run it will kill existing process if one exists."
 Set process's buffer `inhibit-read-only' temporalily to value t,
 so that `internal-default-process-sentinel' can insert status
 message into the process’s buffer."
-  (with-current-buffer (process-buffer process)
-    (let ((inhibit-read-only t))
-      (internal-default-process-sentinel process event))))
+  (cond
+   ((string-match "hangup: 1\n" event)
+    nil)
+   (t
+    (with-current-buffer (process-buffer process)
+      (let ((inhibit-read-only t))
+        (internal-default-process-sentinel process event))))))
 
 (define-derived-mode godot-mode comint-mode "godot"
   "Major mode for godot.
