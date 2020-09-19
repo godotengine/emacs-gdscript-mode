@@ -71,7 +71,7 @@ The output of the process will be provided in a buffer named
 `*godot - <project-name>*'."
   (let ((args (gdscript-util--flatten arguments)))
     (gdscript-history--add-to-history args)
-    (when gdscript-debug--breakpoints
+    (when (and gdscript-debug--breakpoints (not (member "-e" arguments)))
        ;; Start debugger server if it is not running already
       (unless (get-process (gdscript-debug-process-name (gdscript-util--find-project-configuration-file)))
         (gdscript-debug-make-server))
