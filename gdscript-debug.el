@@ -612,6 +612,34 @@
             (t (message "Ignoring property %s" property))))
     (reverse property-info)))
 
+(defun get-children (iter)
+  (let ((child-count (get-integer (iter-next iter)))
+        (node-name (get-string (iter-next iter)))
+        (node-class (get-string (iter-next iter)))
+        (instance-id (get-integer (iter-next iter))))
+    (let ((children))
+      (dotimes (i child-count)
+        (push (get-children iter) children))
+      (scene-tree-level-edge-create :item (scene-tree-node-create
+                                           :node-name node-name
+                                           :node-class node-class
+                                           :instance-id instance-id)
+                                    :children children))))
+
+(cl-defstruct (scene-tree-level-edge (:constructor scene-tree-level-edge-create)
+                                     (:copier nil)
+                                     (:conc-name scene-tree-level-edge->))
+  item children)
+
+(cl-defstruct (scene-tree-node (:constructor scene-tree-node-create)
+                               (:copier nil)
+                               (:conc-name scene-tree-node->))
+  node-name node-class instance-id)
+
+(defun mk-scene-tree (iter)
+  (let ((array-size (get-integer (iter-next iter))))
+    (get-children iter)))
+
 (defun mk-inspect-object (iter)
   (let ((three (get-integer (iter-next iter)))
         (object-id (get-integer (iter-next iter)))
@@ -731,7 +759,7 @@
                   ;;(message "Received 'stack_dump' command")
                   (let ((cmd (mk-stack-dump iter)))
                     ;;(message "[stack_dump] cmd: %s" cmd)
-                    (gdscript-debug--refresh-stack-frame-vars-buffer cmd (process-get process 'project))
+                    (gdscript-debug--refresh-stack-dump-buffer cmd (process-get process 'project))
                     (gdscript-debug--on-stack-dump (car cmd) (process-get process 'project))
                     (gdscript-debug-get-stack-frame-vars (stack-dump->level (car cmd))))))
                 ("stack_frame_vars"
@@ -746,13 +774,20 @@
                   (let* ((cmd (mk-inspect-object iter))
                          (object-id (inspect-object->object-id cmd)))
                     (puthash object-id cmd gdscript-debug--inspected-objects)
-                    (gdscript-debug--add-type-of-object-id-into-buffer object-id))))
+                    (gdscript-debug--add-type-of-object-id-into-buffer object-id cmd))))
+                ("message:scene_tree"
+                 (gdscript-debug--command-handler
+                  (let* ((cmd (mk-scene-tree iter)))
+                    (gdscript-debug--refresh-scene-tree-buffer cmd)
+                    (gdscript-debug-display-scene-tree-buffer))))
                 (_ (error "Unknown command %s" str))))))
       ;;(iter-end-of-sequence (message "No more packets to process %s" x))
       (iter-end-of-sequence nil))))
 
-(defvar gdscript-debug--stack-frame-vars nil)
-(defvar gdscript-debug--inspect-object nil)
+(defvar gdscript-debug--stack-frame-vars nil
+  "Stores last received `stack_frame_vars' command data.")
+(defvar gdscript-debug--inspect-object nil
+  "Stores `message:inspect_object' command data displayed in * Inspector * buffer.")
 
 (defun gdscript-debug--construct-stack-var-buffer (stack-frame-vars)
   (let ((table (gdscript-debug-table-create)))
@@ -780,13 +815,13 @@
        nil)
       (gdscript-debug--fetch-object-id-data (cdr item) 'stack-frame-vars-buffer))))
 
-(defun gdscript-debug--add-type-of-object-id-into-buffer (object-id)
+(defun gdscript-debug--add-type-of-object-id-into-buffer (object-id cmd)
   (let ((buffer-symbol (gethash object-id gdscript-debug--object-to-buffer-mapping)))
     (pcase buffer-symbol
       ('stack-frame-vars-buffer
        (gdscript-debug--construct-stack-var-buffer gdscript-debug--stack-frame-vars))
       ('inspector-buffer
-       (gdscript-debug--refresh-inspector-buffer gdscript-debug--inspect-object)))))
+       (gdscript-debug--refresh-inspector-buffer (or gdscript-debug--inspect-object cmd))))))
 
 (defvar gdscript-debug--object-to-buffer-mapping (make-hash-table)
   "Stores mapping from ObjectID to buffer which needs to be updated
@@ -973,7 +1008,6 @@ Buffer which needs an update is either `stack-frame-vars-buffer' or `inspector-b
          (null (gethash (object-id->value object) gdscript-debug--inspected-objects)))
     (let ((object-id (object-id->value object)))
       (puthash object-id buffer-symbol gdscript-debug--object-to-buffer-mapping)
-      (message "[gdscript-debug--fetch-object-id-data][%s] object-id: %s" buffer-symbol object-id)
       (gdscript-debug-inspect-object object-id))))
 
 (defvar server-clients '()
@@ -1019,9 +1053,13 @@ Buffer which needs an update is either `stack-frame-vars-buffer' or `inspector-b
 
 ;;(print (macroexpand '(gdscript-debug--send-command server-process (message "HIII %s" server-process))))
 
-(defun gdscript-debug-inspect-object(object-id)
+(defun gdscript-debug-inspect-object (object-id)
   (gdscript-debug--send-command
     (gdscript-debug--inspect-object object-id)))
+
+(defun gdscript-debug-request-scene-tree()
+  (interactive)
+  (gdscript-debug--send-command (gdscript-debug--command "request_scene_tree")))
 
 (defun gdscript-debug-get-stack-dump()
   (interactive)
@@ -1596,6 +1634,9 @@ calling `gdscript-debug--table-string'."
   (save-excursion
     (when (derived-mode-p 'gdscript-debug--stack-frame-vars-mode)
       (setq gdscript-debug--inspector-stack nil))
+    (when (derived-mode-p 'gdscript-debug--scene-tree-mode)
+      (setq gdscript-debug--inspector-stack nil
+            gdscript-debug--inspect-object nil))
     (let ((object-id (get-text-property (point) 'object-id)))
       (if object-id
           (gdscript-debug--show-object-id object-id)
@@ -1603,14 +1644,15 @@ calling `gdscript-debug--table-string'."
 
 (defun gdscript-debug--show-object-id (object-id)
   (let ((object-id-data (gethash object-id gdscript-debug--inspected-objects)))
-    (when object-id-data
-      (setq gdscript-debug--inspect-object object-id-data)
-      (gdscript-debug--refresh-inspector-buffer object-id-data)
-      (save-selected-window
-        (let* ((buffer (gdscript-debug--get-inspector-buffer))
-               (window (display-buffer buffer)))
-          (with-current-buffer buffer
-            (set-window-point window (point))))))))
+    (if object-id-data
+        (progn (setq gdscript-debug--inspect-object object-id-data)
+               (gdscript-debug--refresh-inspector-buffer object-id-data)
+               (save-selected-window
+                 (let* ((buffer (gdscript-debug--get-inspector-buffer))
+                        (window (display-buffer buffer)))
+                   (with-current-buffer buffer
+                     (set-window-point window (point))))))
+      (gdscript-debug--fetch-object-id-data (object-id-create :value object-id) 'inspector-buffer))))
 
 (defun gdscript-debug-show-stack-frame-vars ()
   (interactive)
@@ -1700,6 +1742,17 @@ calling `gdscript-debug--table-string'."
     (define-key map (kbd "C-c n") 'gdscript-debug-hydra)
     map))
 
+(defvar gdscript-debug--scene-tree-mode-map
+  (let ((map (make-sparse-keymap)))
+    (suppress-keymap map)
+    (define-key map "q" 'kill-current-buffer)
+    (define-key map "p" 'previous-line)
+    (define-key map "n" 'next-line)
+    (define-key map "\r" 'gdscript-debug-inspect-object-id)
+    (define-key map "?" 'describe-mode)
+    (define-key map (kbd "C-c n") 'gdscript-debug-hydra)
+    map))
+
 (defvar-local gdscript-debug--buffer-type nil
   "One of the symbols bound in `gdscript-debug--get-buffer-create'.")
 
@@ -1725,6 +1778,9 @@ In that buffer, `gdscript-debug--buffer-type' must be equal to BUFFER-TYPE."
 (defun gdscript-debug--get-inspector-buffer ()
   (gdscript-debug--get-buffer-create 'inspector-buffer))
 
+(defun gdscript-debug--get-scene-tree-buffer ()
+  (gdscript-debug--get-buffer-create 'scene-tree-buffer))
+
 (defun gdscript-debug-display-stack-dump-buffer ()
   "Display stack dump."
   (interactive)
@@ -1746,6 +1802,11 @@ In that buffer, `gdscript-debug--buffer-type' must be equal to BUFFER-TYPE."
   (interactive)
   (display-buffer (gdscript-debug--get-inspector-buffer)))
 
+(defun gdscript-debug-display-scene-tree-buffer ()
+  "Display the scene tree."
+  (interactive)
+  (display-buffer (gdscript-debug--get-scene-tree-buffer)))
+
 (defun gdscript-debug-display-source-buffer ()
   "Using stack dump jump to the source"
   (interactive)
@@ -1761,7 +1822,25 @@ In that buffer, `gdscript-debug--buffer-type' must be equal to BUFFER-TYPE."
   (unless (member breakpoint gdscript-debug--breakpoints)
     (push breakpoint gdscript-debug--breakpoints)))
 
-(defun gdscript-debug--refresh-stack-frame-vars-buffer (stack-dump project-root)
+(defun gdscript-debug--refresh-scene-tree-buffer (scene-tree-data)
+  (with-current-buffer (gdscript-debug--get-scene-tree-buffer)
+    (let ((inhibit-read-only t))
+      (erase-buffer)
+      (gdscript-debug--scene-tree-row scene-tree-data 0))))
+
+(defun gdscript-debug--scene-tree-row (scene-tree-level-edge level)
+  (let ((node (scene-tree-level-edge->item scene-tree-level-edge))
+        (children (scene-tree-level-edge->children scene-tree-level-edge)))
+    (insert (propertize (format "%s %s %s %s\n"
+                                (gdscript-debug--pad-string (if children "+" " ") (* 4 level))
+                                (gdscript-debug--variable-face (scene-tree-node->node-name node))
+                                (gdscript-debug--type-face (scene-tree-node->node-class node))
+                                (scene-tree-node->instance-id node))
+                        'object-id (scene-tree-node->instance-id node)))
+    (dolist (child children)
+      (gdscript-debug--scene-tree-row child (1+ level)))))
+
+(defun gdscript-debug--refresh-stack-dump-buffer (stack-dump project-root)
   (with-current-buffer (gdscript-debug--get-stack-dump-buffer)
     (let ((inhibit-read-only t)
           (longest-file-name 0))
@@ -1831,6 +1910,10 @@ In that buffer, `gdscript-debug--buffer-type' must be equal to BUFFER-TYPE."
   "Major mode for inspector management."
   (setq header-line-format "Inspector"))
 
+(define-derived-mode gdscript-debug--scene-tree-mode gdscript-debug--parent-mode "Scene Tree"
+  "Major mode for scene tree."
+  (setq header-line-format "Scene Tree"))
+
 (defvar gdscript-debug--inspector-stack nil
   "A stack of inspected objects for breadcrumb rendering.")
 
@@ -1845,6 +1928,9 @@ In that buffer, `gdscript-debug--buffer-type' must be equal to BUFFER-TYPE."
 
 (defun gdscript-debug--inspector-buffer-name ()
   (concat "* Inspector *"))
+
+(defun gdscript-debug--scene-tree-buffer-name ()
+  (concat "* Scene tree *"))
 
 (defvar gdscript-debug--buffer-rules '())
 (defvar gdscript-debug--breakpoints '())
@@ -1881,6 +1967,11 @@ In that buffer, `gdscript-debug--buffer-type' must be equal to BUFFER-TYPE."
  'inspector-buffer
  'gdscript-debug--inspector-buffer-name
  'gdscript-debug--inspector-mode)
+
+(gdscript-debug--set-buffer-rules
+ 'scene-tree-buffer
+ 'gdscript-debug--scene-tree-buffer-name
+ 'gdscript-debug--scene-tree-mode)
 
 (ignore-errors
   ;; Don't signal an error when hydra.el is not present
