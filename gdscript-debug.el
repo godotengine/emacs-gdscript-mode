@@ -7,6 +7,9 @@
 (require 'gdscript-customization)
 (require 'gdscript-utils)
 
+(eval-when-compile
+  (require 'subr-x))
+
 ;; Overlay arrow markers
 (defvar gdscript-debug--thread-position nil)
 
@@ -724,7 +727,8 @@
                     (pcase (debug-enter->reason cmd)
                       ("Breakpoint"
                        (gdscript-debug-get-stack-dump)
-                       (message "Breakpoint encountered."))
+                       (message "Breakpoint encountered.")
+                       (gdscript-debug-hydra))
                       (other
                        (gdscript-debug-get-stack-dump)
                        (message "%s" other))))))
@@ -767,7 +771,8 @@
                   ;;(message "Received 'stack_frame_vars' command")
                   (let ((cmd (mk-stack-frame-vars iter)))
                     (setq gdscript-debug--stack-frame-vars cmd)
-                    (gdscript-debug--construct-stack-var-buffer cmd))))
+                    (gdscript-debug--construct-stack-var-buffer cmd)
+                    (gdscript-debug-display-stack-frame-vars-buffer))))
                 ("message:inspect_object"
                  (gdscript-debug--command-handler
                   ;;(message "Received 'message:inspect_object' command")
@@ -786,8 +791,8 @@
 
 (defvar gdscript-debug--stack-frame-vars nil
   "Stores last received `stack_frame_vars' command data.")
-(defvar gdscript-debug--inspect-object nil
-  "Stores `message:inspect_object' command data displayed in * Inspector * buffer.")
+(defvar gdscript-debug--inspector-focused-object-id nil
+  "Stores `object-id' to display in * Inspector * buffer.")
 
 (defun gdscript-debug--construct-stack-var-buffer (stack-frame-vars)
   (let ((table (gdscript-debug-table-create)))
@@ -800,8 +805,7 @@
     (with-current-buffer (gdscript-debug--get-stack-frame-vars-buffer)
       (let ((inhibit-read-only t))
         (erase-buffer)
-        (insert (gdscript-debug--table-string table " ")))
-      (display-buffer (current-buffer)))))
+        (insert (gdscript-debug--table-string table " "))))))
 
 (defun gdscript-debug--add-stack-var-to-table (table items)
   (dolist (item items)
@@ -821,15 +825,16 @@
       ('stack-frame-vars-buffer
        (gdscript-debug--construct-stack-var-buffer gdscript-debug--stack-frame-vars))
       ('inspector-buffer
-       (gdscript-debug--refresh-inspector-buffer (or gdscript-debug--inspect-object cmd))))))
+       (gdscript-debug--refresh-inspector-buffer)))))
 
 (defvar gdscript-debug--object-to-buffer-mapping (make-hash-table)
   "Stores mapping from ObjectID to buffer which needs to be updated
 when `message:inspect_object' command is received.
 Buffer which needs an update is either `stack-frame-vars-buffer' or `inspector-buffer'.")
 
-(defun gdscript-debug--refresh-inspector-buffer (inspect-object)
-  (let ((table (gdscript-debug-table-create)))
+(defun gdscript-debug--refresh-inspector-buffer ()
+  (when-let* ((inspect-object (gethash gdscript-debug--inspector-focused-object-id gdscript-debug--inspected-objects))
+              (table (gdscript-debug-table-create)))
     (dolist (property (inspect-object->properties inspect-object))
       (let ((print-data (gdscript-debug--pure-stringify (property-info->variant property)))
             (usage (property-info->usage property))
@@ -930,7 +935,7 @@ Buffer which needs an update is either `stack-frame-vars-buffer' or `inspector-b
         ((color-p object)
          (gdscript-debug--to-print-data (gdscript-debug--type-face "Color") (gdscript-debug--color-to-string object)))
         ((node-path-p object)
-         (gdscript-debug--to-print-data (gdscript-debug--type-face "NodePath") (gdscript-debug--string-face (concat (when (prim-bool->value (node-path->absolute object)) "/") (mapconcat #'prim-string->value (node-path->names object) "/") (when (node-path->subnames object) (concat ":" (mapconcat #'prim-string->value (node-path->subnames object) ":")))))))
+         (gdscript-debug--to-print-data (gdscript-debug--type-face "NodePath") (gdscript-debug--string-face (concat (when (prim-bool->value (node-path->absolute object)) "/") (mapconcat #'prim-string->value (node-path->names object) "/") (when-let* ((subnames (node-path->subnames object))) (concat ":" (mapconcat #'prim-string->value subnames ":")))))))
         ((rid-p object)
          (gdscript-debug--to-print-data (gdscript-debug--type-face "RID") nil))
         ((object-id-p object)
@@ -1001,7 +1006,6 @@ Buffer which needs an update is either `stack-frame-vars-buffer' or `inspector-b
 (defun gdscript-debug--vector3-to-string (vector3)
   (concat "(" (number-to-string (vector3->x vector3)) ", " (number-to-string (vector3->y vector3)) ", " (number-to-string (vector3->z vector3)) ")"))
 
-
 (defun gdscript-debug--fetch-object-id-data (object buffer-symbol)
   (when (and
          (object-id-p object)
@@ -1030,6 +1034,7 @@ Buffer which needs an update is either `stack-frame-vars-buffer' or `inspector-b
           gdscript-debug--inspected-objects (make-hash-table)
           gdscript-debug--object-to-buffer-mapping (make-hash-table)
           gdscript-debug--inspector-stack nil
+          gdscript-debug--inspector-focused-object-id nil
           server-clients '())
     (message "Resetting server to accept data."))
    ((eq (process-status process) 'closed)
@@ -1087,9 +1092,7 @@ Buffer which needs an update is either `stack-frame-vars-buffer' or `inspector-b
   (setq gdscript-debug--thread-position (make-marker))
   (add-to-list 'overlay-arrow-variable-list 'gdscript-debug--thread-position)
 
-  (let ((project-root (gdscript-util--find-project-configuration-file)))
-    (if (not project-root)
-        (error "Not in Godot project!")
+  (if-let* ((project-root (gdscript-util--find-project-configuration-file)))
       (let ((server-process
              (make-network-process
               :name (gdscript-debug-process-name project-root)
@@ -1103,7 +1106,8 @@ Buffer which needs an update is either `stack-frame-vars-buffer' or `inspector-b
               :filter-multibyte nil
               :sentinel #'gdscript-debug--sentinel-function)))
         (process-put server-process 'project project-root)
-        (message "Debugger server started - project: %s" project-root)))))
+        (message "Debugger server started - project: %s" project-root))
+    (error "Not in Godot project!")))
 
 (defun gdscript-debug--inspect-object-definition (command-length)
   `((:packet-length u32r)
@@ -1602,84 +1606,75 @@ calling `gdscript-debug--table-string'."
 
 (defun gdscript-debug-delete-breakpoint ()
   (interactive)
-  (let ((breakpoint (get-text-property (point) 'gdscript-debug--breakpoint)))
-    (if breakpoint
-        (let ((file (breakpoint->file-absolute breakpoint))
-              (line (breakpoint->line breakpoint)))
-          (save-selected-window
-            (let ((buffer (find-file-noselect file)))
-              (with-current-buffer buffer
-                (goto-char (point-min))
-                (forward-line (1- line))
-                (gdscript-debug-remove-breakpoint)))))
-      (error "Not recognized as breakpoint line"))))
+  (if-let* ((breakpoint (get-text-property (point) 'gdscript-debug--breakpoint)))
+      (let ((file (breakpoint->file-absolute breakpoint))
+            (line (breakpoint->line breakpoint)))
+        (save-selected-window
+          (let ((buffer (find-file-noselect file)))
+            (with-current-buffer buffer
+              (goto-char (point-min))
+              (forward-line (1- line))
+              (gdscript-debug-remove-breakpoint)))))
+    (error "Not recognized as breakpoint line")))
 
 (defun gdscript-debug-goto-breakpoint ()
   (interactive)
-  (let ((breakpoint (get-text-property (point) 'gdscript-debug--breakpoint)))
-    (if breakpoint
-        (let ((file (breakpoint->file-absolute breakpoint))
-              (line (breakpoint->line breakpoint)))
-          (save-selected-window
-            (let* ((buffer (find-file-noselect file))
-                   (window (display-buffer buffer)))
-              (with-current-buffer buffer
-                (goto-char (point-min))
-                (forward-line (1- line))
-                (set-window-point window (point))))))
-      (error "Not recognized as breakpoint line"))))
+  (if-let* ((breakpoint (get-text-property (point) 'gdscript-debug--breakpoint)))
+      (let ((file (breakpoint->file-absolute breakpoint))
+            (line (breakpoint->line breakpoint)))
+        (save-selected-window
+          (let* ((buffer (find-file-noselect file))
+                 (window (display-buffer buffer)))
+            (with-current-buffer buffer
+              (goto-char (point-min))
+              (forward-line (1- line))
+              (set-window-point window (point))))))
+    (error "Not recognized as breakpoint line")))
 
 (defun gdscript-debug-inspect-object-id ()
   (interactive)
   (save-excursion
-    (when (derived-mode-p 'gdscript-debug--stack-frame-vars-mode)
+    (when (or (derived-mode-p 'gdscript-debug--scene-tree-mode)
+              (derived-mode-p 'gdscript-debug--stack-frame-vars-mode))
       (setq gdscript-debug--inspector-stack nil))
-    (when (derived-mode-p 'gdscript-debug--scene-tree-mode)
-      (setq gdscript-debug--inspector-stack nil
-            gdscript-debug--inspect-object nil))
-    (let ((object-id (get-text-property (point) 'object-id)))
-      (if object-id
-          (gdscript-debug--show-object-id object-id)
-        (error "Not recognized as object-id line")))))
+    (if-let* ((object-id (get-text-property (point) 'object-id)))
+        (progn
+          (setq gdscript-debug--inspector-focused-object-id object-id)
+          (gdscript-debug--show-object-id object-id))
+      (error "Not recognized as object-id line"))))
 
 (defun gdscript-debug--show-object-id (object-id)
-  (let ((object-id-data (gethash object-id gdscript-debug--inspected-objects)))
-    (if object-id-data
-        (progn (setq gdscript-debug--inspect-object object-id-data)
-               (gdscript-debug--refresh-inspector-buffer object-id-data)
-               (save-selected-window
-                 (let* ((buffer (gdscript-debug--get-inspector-buffer))
-                        (window (display-buffer buffer)))
-                   (with-current-buffer buffer
-                     (set-window-point window (point))))))
-      (gdscript-debug--fetch-object-id-data (object-id-create :value object-id) 'inspector-buffer))))
+  (if (gethash object-id gdscript-debug--inspected-objects)
+      (gdscript-debug--refresh-inspector-buffer)
+    (gdscript-debug--fetch-object-id-data (object-id-create :value object-id) 'inspector-buffer))
+  (save-selected-window
+    (let* ((buffer (gdscript-debug--get-inspector-buffer))
+           (window (display-buffer buffer)))
+      (with-current-buffer buffer
+        (set-window-point window (point))))))
 
 (defun gdscript-debug-show-stack-frame-vars ()
   (interactive)
   (save-excursion
     (beginning-of-line)
-    (let ((stack (get-text-property (point) 'gdscript-debug--stack-dump)))
-      (if stack
-          (gdscript-debug-get-stack-frame-vars (stack-dump->level stack))
-        (error "Not recognized as stack-frame line")))))
+    (if-let* ((stack (get-text-property (point) 'gdscript-debug--stack-dump)))
+        (gdscript-debug-get-stack-frame-vars (stack-dump->level stack))
+      (error "Not recognized as stack-frame line"))))
 
 (defun gdscript-debug-jump-to-stack-point ()
   (interactive)
   (save-excursion
     (beginning-of-line)
-    (let ((stack-dump (get-text-property (point) 'gdscript-debug--stack-dump))
-          (project-root (get-text-property (point) 'gdscript-debug--project-root)))
-      (if stack-dump
-          (let* ((file (stack-dump->file stack-dump))
-                 (line (stack-dump->line stack-dump))
-                 (full-file-path (concat project-root (gdscript-debug--drop-res file))))
-            (if (not project-root)
-                (error "Project for file %s not found." file)
-              (with-current-buffer (find-file full-file-path)
-                (let* ((posns (line-posns line))
-                       (start-posn (car posns)))
-                  (goto-char start-posn)))))
-        (error "Not recognized as stack-frame line")))))
+    (if-let* ((stack-dump (get-text-property (point) 'gdscript-debug--stack-dump))
+              (project-root (get-text-property (point) 'gdscript-debug--project-root)))
+        (let* ((file (stack-dump->file stack-dump))
+               (line (stack-dump->line stack-dump))
+               (full-file-path (concat project-root (gdscript-debug--drop-res file))))
+          (with-current-buffer (find-file full-file-path)
+            (let* ((posns (line-posns line))
+                   (start-posn (car posns)))
+              (goto-char start-posn))))
+      (error "Not recognized as stack-frame line"))))
 
 (defun gdscript-debug-go-back ()
   (interactive)
@@ -1687,9 +1682,11 @@ calling `gdscript-debug--table-string'."
    ((>= 1 (length gdscript-debug--inspector-stack))
     (message "Top level"))
    (t
-    (let ((last-breadcrumb (pop gdscript-debug--inspector-stack))
-          (show-breadcrumb (car gdscript-debug--inspector-stack)))
-      (gdscript-debug--show-object-id (gdscript-debug-breadcrumb-entry->object-id show-breadcrumb))
+    (let* ((last-breadcrumb (pop gdscript-debug--inspector-stack))
+           (show-breadcrumb (car gdscript-debug--inspector-stack))
+           (object-id (gdscript-debug-breadcrumb-entry->object-id show-breadcrumb)))
+      (setq gdscript-debug--inspector-focused-object-id object-id)
+      (gdscript-debug--show-object-id object-id)
       (goto-char (gdscript-debug-breadcrumb-entry->point last-breadcrumb))))))
 
 (defvar gdscript-debug--stack-dump-mode-map
@@ -1748,6 +1745,7 @@ calling `gdscript-debug--table-string'."
     (define-key map "q" 'kill-current-buffer)
     (define-key map "p" 'previous-line)
     (define-key map "n" 'next-line)
+    (define-key map "g" 'gdscript-debug-request-scene-tree)
     (define-key map "\r" 'gdscript-debug-inspect-object-id)
     (define-key map "?" 'describe-mode)
     (define-key map (kbd "C-c n") 'gdscript-debug-hydra)
@@ -1942,11 +1940,10 @@ In that buffer, `gdscript-debug--buffer-type' must be equal to BUFFER-TYPE."
   (nth 2 rules-entry))
 
 (defun gdscript-debug--set-buffer-rules (buffer-type &rest rules)
-  (let ((binding (assoc buffer-type gdscript-debug--buffer-rules)))
-    (if binding
-	(setcdr binding rules)
-      (push (cons buffer-type rules)
-	    gdscript-debug--buffer-rules))))
+  (if-let* ((binding (assoc buffer-type gdscript-debug--buffer-rules)))
+      (setcdr binding rules)
+    (push (cons buffer-type rules)
+	  gdscript-debug--buffer-rules)))
 
 (gdscript-debug--set-buffer-rules
  'stack-frame-vars-buffer
@@ -1977,7 +1974,7 @@ In that buffer, `gdscript-debug--buffer-type' must be equal to BUFFER-TYPE."
   ;; Don't signal an error when hydra.el is not present
   (defhydra gdscript-debug--hydra (:hint none)
     "
-_n_ next  _c_ continue  _m_ step _d_ stack _b_ breakpoints _v_ vars _i_ inspector _s_ source _q_ quit
+_n_ next  _c_ continue  _m_ step _b_ breakpoints _d_ stack _v_ vars _i_ inspector _t_ scene-tree _s_ source _q_ quit
 "
     ("n" (gdscript-debug-next))
     ("c" (gdscript-debug-continue))
@@ -1986,6 +1983,7 @@ _n_ next  _c_ continue  _m_ step _d_ stack _b_ breakpoints _v_ vars _i_ inspecto
     ("b" (gdscript-debug-display-breakpoint-buffer))
     ("v" (gdscript-debug-display-stack-frame-vars-buffer))
     ("i" (gdscript-debug-display-inspector-buffer))
+    ("t" (gdscript-debug-display-scene-tree-buffer))
     ("s" (gdscript-debug-display-source-buffer))
     ("q" nil)))
 
