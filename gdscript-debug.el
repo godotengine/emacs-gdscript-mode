@@ -764,8 +764,10 @@
                   (let ((cmd (mk-stack-dump iter)))
                     ;;(message "[stack_dump] cmd: %s" cmd)
                     (gdscript-debug--refresh-stack-dump-buffer cmd (process-get process 'project))
-                    (gdscript-debug--on-stack-dump (car cmd) (process-get process 'project))
-                    (gdscript-debug-get-stack-frame-vars (stack-dump->level (car cmd))))))
+                    (let ((top-stack-dump (car cmd)))
+                      (setq gdscript-debug--selected-stack-dump top-stack-dump)
+                      (gdscript-debug--on-stack-dump top-stack-dump (process-get process 'project))
+                      (gdscript-debug-get-stack-frame-vars (stack-dump->level top-stack-dump))))))
                 ("stack_frame_vars"
                  (gdscript-debug--command-handler
                   ;;(message "Received 'stack_frame_vars' command")
@@ -793,6 +795,8 @@
   "Stores last received `stack_frame_vars' command data.")
 (defvar gdscript-debug--inspector-focused-object-id nil
   "Stores `object-id' to display in * Inspector * buffer.")
+(defvar gdscript-debug--selected-stack-dump nil
+  "Stores selected `stack-dump' data.")
 
 (defun gdscript-debug--construct-stack-var-buffer (stack-frame-vars)
   (let ((table (gdscript-debug-table-create)))
@@ -804,19 +808,26 @@
     (gdscript-debug--add-stack-var-to-table table (stack-frame-vars->globals stack-frame-vars))
     (with-current-buffer (gdscript-debug--get-stack-frame-vars-buffer)
       (let ((inhibit-read-only t))
+        (setq header-line-format
+              (format "Stack frame vars - %s:%s %s"
+                      (stack-dump->file gdscript-debug--selected-stack-dump)
+                      (stack-dump->line gdscript-debug--selected-stack-dump)
+                      (stack-dump->function-name gdscript-debug--selected-stack-dump)))
         (erase-buffer)
         (insert (gdscript-debug--table-string table " "))))))
 
 (defun gdscript-debug--add-stack-var-to-table (table items)
   (dolist (item items)
-    (let ((print-data (gdscript-debug--pure-stringify (cdr item))))
+    (let* ((object (cdr item))
+           (print-data (gdscript-debug--pure-stringify object)))
       (gdscript-debug--table-add-row
        table
        (list
         (gdscript-debug--variable-face (car item))
         (print-data->type-name print-data)
         (print-data->string-repr print-data))
-       nil)
+       (cond ((object-id-p object)
+              (list 'object-id (object-id->value object)))))
       (gdscript-debug--fetch-object-id-data (cdr item) 'stack-frame-vars-buffer))))
 
 (defun gdscript-debug--add-type-of-object-id-into-buffer (object-id cmd)
@@ -836,11 +847,12 @@ Buffer which needs an update is either `stack-frame-vars-buffer' or `inspector-b
   (when-let* ((inspect-object (gethash gdscript-debug--inspector-focused-object-id gdscript-debug--inspected-objects))
               (table (gdscript-debug-table-create)))
     (dolist (property (inspect-object->properties inspect-object))
-      (let ((print-data (gdscript-debug--pure-stringify (property-info->variant property)))
-            (usage (property-info->usage property))
-            (hint (property-info->hint property))
-            (name (property-info->name property)))
-        (gdscript-debug--fetch-object-id-data (property-info->variant property) 'inspector-buffer)
+      (let* ((object (property-info->variant property))
+             (print-data (gdscript-debug--pure-stringify object))
+             (usage (property-info->usage property))
+             (hint (property-info->hint property))
+             (name (property-info->name property)))
+        (gdscript-debug--fetch-object-id-data object 'inspector-buffer)
         (gdscript-debug--table-add-row
          table
          (cond ((eq 256 (logand 256 usage))
@@ -852,7 +864,11 @@ Buffer which needs an update is either `stack-frame-vars-buffer' or `inspector-b
                    (concat (format "[%s]" usage) (format "[%s] " hint) name)
                    (print-data->type-name print-data)
                    (print-data->string-repr print-data))))
-         nil)))
+         (cond ((equal name "Node/path")
+                (list 'node-path (substring-no-properties (print-data->string-repr print-data)) 'keymap gdscript-debug--show-in-scene-tree-map))
+               ((object-id-p object)
+                (list 'object-id (object-id->value object)))
+               (t nil)))))
     (with-current-buffer (gdscript-debug--get-inspector-buffer)
       (let ((inhibit-read-only t)
             (class (inspect-object->class inspect-object))
@@ -870,6 +886,27 @@ Buffer which needs an update is either `stack-frame-vars-buffer' or `inspector-b
         (insert "\n")
         (insert (gdscript-debug--table-string table " "))
         (goto-char (point-min))))))
+
+(defun gdscript-debug--show-in-scene-tree ()
+  (interactive)
+  (if-let* ((node-path (get-text-property (point) 'node-path)))
+      (with-current-buffer (gdscript-debug--get-scene-tree-buffer)
+        (let ((change-pos 1))
+          (while change-pos
+            (setq change-pos (next-single-property-change change-pos 'node-path))
+            (if change-pos
+                (if (equal (get-text-property change-pos 'node-path) node-path)
+                    (let ((window (display-buffer (current-buffer))))
+                      (set-window-point window change-pos)
+                      (setq change-pos nil))
+                  (setq change-pos (1+ change-pos)))))))
+    (error "Not recognized as node-path line")))
+
+(defvar gdscript-debug--show-in-scene-tree-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [remap gdscript-debug-inspect-object-id] 'gdscript-debug--show-in-scene-tree)
+    map)
+  "Keymap for `Node/path' in `Inspector' buffer.")
 
 (defun gdscript-debug--inspector-bread-crumb ()
   (mapconcat (lambda (breadcrumb-entry)
@@ -941,11 +978,15 @@ Buffer which needs an update is either `stack-frame-vars-buffer' or `inspector-b
         ((object-id-p object)
          (let* ((object-id (object-id->value object))
                 (object-id-data (gethash object-id gdscript-debug--inspected-objects)))
-           (if object-id-data
-               (let ((class-name (concat (propertize (inspect-object->class object-id-data) 'font-lock-face font-lock-type-face))))
-                 (gdscript-debug--to-print-data (gdscript-debug--type-face class-name)
-                                                (propertize (format "ObjectID: %s" (number-to-string object-id)) 'object-id object-id)))
-             (gdscript-debug--to-print-data (format "Loading..." (number-to-string object-id)) (format "ObjectID: %s" (number-to-string object-id))))))
+           (gdscript-debug--to-print-data (if object-id-data
+                                              (gdscript-debug--type-face (inspect-object->class object-id-data))
+                                            (format "Loading..." (number-to-string object-id)))
+                                          (concat (format "ObjectID: %s" (number-to-string object-id))
+                                                  (when object-id-data
+                                                    (let* ((property (car (inspect-object->properties object-id-data)))
+                                                           (name (property-info->name property)))
+                                                      (when (equal name "Node/path")
+                                                        (concat " " (print-data->string-repr (gdscript-debug--pure-stringify (property-info->variant property)))))))))))
         ((dictionary-p object)
          (gdscript-debug--to-print-data (gdscript-debug--type-face "Dictionary") (concat "{" (mapconcat #'gdscript-debug--key-value-to-string (dictionary->elements object) ", ") "}")))
         ((prim-array-p object)
@@ -1658,7 +1699,8 @@ calling `gdscript-debug--table-string'."
   (save-excursion
     (beginning-of-line)
     (if-let* ((stack (get-text-property (point) 'gdscript-debug--stack-dump)))
-        (gdscript-debug-get-stack-frame-vars (stack-dump->level stack))
+        (progn (setq gdscript-debug--selected-stack-dump stack)
+               (gdscript-debug-get-stack-frame-vars (stack-dump->level stack)))
       (error "Not recognized as stack-frame line"))))
 
 (defun gdscript-debug-jump-to-stack-point ()
@@ -1680,7 +1722,7 @@ calling `gdscript-debug--table-string'."
   (interactive)
   (cond
    ((>= 1 (length gdscript-debug--inspector-stack))
-    (message "Top level"))
+    (switch-to-buffer (gdscript-debug--get-stack-frame-vars-buffer)))
    (t
     (let* ((last-breadcrumb (pop gdscript-debug--inspector-stack))
            (show-breadcrumb (car gdscript-debug--inspector-stack))
@@ -1722,6 +1764,7 @@ calling `gdscript-debug--table-string'."
     (define-key map "n" 'next-line)
     (define-key map "\r" 'gdscript-debug-inspect-object-id)
     (define-key map "\t" 'gdscript-debug-display-inspector-buffer)
+    (define-key map "l" 'gdscript-debug-display-stack-dump-buffer)
     (define-key map "?" 'describe-mode)
     (define-key map (kbd "C-c n") 'gdscript-debug-hydra)
     map))
@@ -1822,21 +1865,27 @@ In that buffer, `gdscript-debug--buffer-type' must be equal to BUFFER-TYPE."
 
 (defun gdscript-debug--refresh-scene-tree-buffer (scene-tree-data)
   (with-current-buffer (gdscript-debug--get-scene-tree-buffer)
-    (let ((inhibit-read-only t))
+    (let ((inhibit-read-only t)
+          (point (point)))
       (erase-buffer)
-      (gdscript-debug--scene-tree-row scene-tree-data 0))))
+      (gdscript-debug--scene-tree-row scene-tree-data 0 "")
+      (goto-char point))))
 
-(defun gdscript-debug--scene-tree-row (scene-tree-level-edge level)
-  (let ((node (scene-tree-level-edge->item scene-tree-level-edge))
-        (children (scene-tree-level-edge->children scene-tree-level-edge)))
+(defun gdscript-debug--scene-tree-row (scene-tree-level-edge level node-path)
+  (let* ((node (scene-tree-level-edge->item scene-tree-level-edge))
+         (children (scene-tree-level-edge->children scene-tree-level-edge))
+         (node-name (scene-tree-node->node-name node))
+         (node-class (scene-tree-node->node-class node))
+         (path (concat node-path "/" node-name)))
     (insert (propertize (format "%s %s %s %s\n"
                                 (gdscript-debug--pad-string (if children "+" " ") (* 4 level))
-                                (gdscript-debug--variable-face (scene-tree-node->node-name node))
-                                (gdscript-debug--type-face (scene-tree-node->node-class node))
+                                (gdscript-debug--variable-face node-name)
+                                (gdscript-debug--type-face node-class)
                                 (scene-tree-node->instance-id node))
-                        'object-id (scene-tree-node->instance-id node)))
+                        'object-id (scene-tree-node->instance-id node)
+                        'node-path path))
     (dolist (child children)
-      (gdscript-debug--scene-tree-row child (1+ level)))))
+      (gdscript-debug--scene-tree-row child (1+ level) path))))
 
 (defun gdscript-debug--refresh-stack-dump-buffer (stack-dump project-root)
   (with-current-buffer (gdscript-debug--get-stack-dump-buffer)
