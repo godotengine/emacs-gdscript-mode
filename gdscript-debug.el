@@ -5,11 +5,17 @@
 (require 'bindat)
 (require 'generator)
 (require 'gdscript-customization)
-(require 'gdscript-hydra)
+;;(require 'gdscript-hydra) -- this causes cyclic dependency
 (require 'gdscript-utils)
 
 (eval-when-compile
   (require 'subr-x))
+
+(defcustom gdscript-debug-emacs-executable "Emacs"
+  "The name of Emacs application. Used for focusing Emacs
+when breakpoint is encountered in Godot."
+  :type 'string
+  :group 'gdscript)
 
 ;; Overlay arrow markers
 (defvar gdscript-debug--thread-position nil)
@@ -20,7 +26,8 @@
   '((:boolean-data u32r)))
 
 (defvar gdscript-debug--integer-spec
-  '((:integer-data u32r)))
+  `((:data u32r)
+    (:integer-data eval (- (logand ,(lsh -1 -31) last) (logand last ,(lsh 1 31))))))
 
 (defvar gdscript-debug--integer-64-spec
   '((:data-a u32r)
@@ -707,6 +714,9 @@
            (substring gdscript-debug--previous-packet-data gdscript-debug--offset (length gdscript-debug--previous-packet-data)))
      (setq gdscript-debug--offset 0)))
 
+(defun gdscript-debug--switch-to-emacs ()
+  (do-applescript (format "tell application \"%s\" to activate" gdscript-debug-emacs-executable)))
+
 (defun gdscript-debug--handle-server-reply (process content)
   "Gets invoked whenever the server sends data to the client."
   ;;(message "(DATA received): %s" (length content))
@@ -728,7 +738,6 @@
                     (pcase (debug-enter->reason cmd)
                       ("Breakpoint"
                        (gdscript-debug-get-stack-dump)
-                       (message "Breakpoint encountered.")
                        (gdscript-debug-hydra))
                       (other
                        (gdscript-debug-get-stack-dump)
@@ -764,6 +773,7 @@
                   ;;(message "Received 'stack_dump' command")
                   (let ((cmd (mk-stack-dump iter)))
                     ;;(message "[stack_dump] cmd: %s" cmd)
+                    (run-at-time "0.25 sec" nil #'gdscript-debug--switch-to-emacs)
                     (gdscript-debug--refresh-stack-dump-buffer cmd (process-get process 'project))
                     (let ((top-stack-dump (car cmd)))
                       (setq gdscript-debug--selected-stack-dump top-stack-dump)
@@ -874,7 +884,8 @@ in buffer `buffer' should be rendered multiline.")
                  ""
                  ""))
                (t (list
-                   (concat (format "[%s]" usage) (format "[%s] " hint) name)
+                   ;;(concat (format "[%s]" usage) (format "[%s] " hint) name)
+                   name
                    (print-data->type-name print-data)
                    (print-data->string-repr print-data))))
          (append
@@ -905,17 +916,25 @@ in buffer `buffer' should be rendered multiline.")
 (defun gdscript-debug--show-in-scene-tree ()
   (interactive)
   (if-let* ((node-path (get-text-property (point) 'node-path)))
-      (with-current-buffer (gdscript-debug--get-scene-tree-buffer)
-        (let ((change-pos 1))
-          (while change-pos
-            (setq change-pos (next-single-property-change change-pos 'node-path))
-            (if change-pos
-                (if (equal (get-text-property change-pos 'node-path) node-path)
-                    (let ((window (display-buffer (current-buffer))))
-                      (set-window-point window change-pos)
-                      (setq change-pos nil))
-                  (setq change-pos (1+ change-pos)))))))
+      (gdscript-debug--jump-to-node-path node-path)
     (error "Not recognized as node-path line")))
+
+(defun gdscript-debug--jump-to-node-path (node-path)
+  (with-current-buffer (gdscript-debug--get-scene-tree-buffer)
+    (if (equal node-path "/root")
+        (let ((window (display-buffer (current-buffer))))
+          (set-window-point window 1))
+      (let ((change-pos 1))
+        (while change-pos
+          (setq change-pos (next-single-property-change change-pos 'node-path))
+          (if change-pos
+              (if (equal (get-text-property change-pos 'node-path) node-path)
+                  (let ((window (display-buffer (current-buffer))))
+                    (set-window-point window change-pos)
+                    (setq change-pos nil))
+                (setq change-pos (1+ change-pos)))
+            (setq gdscript-debug--after-refresh-function (lambda () (gdscript-debug--jump-to-node-path node-path)))
+            (gdscript-debug-request-scene-tree)))))))
 
 (defvar gdscript-debug--show-in-scene-tree-map
   (let ((map (make-sparse-keymap)))
@@ -1214,8 +1233,8 @@ in buffer `buffer' should be rendered multiline.")
 
 (defun gdscript-debug--sentinel-function (process event)
   "Gets called when the status of the network connection changes."
-  (message "[sentinel] process: %s" process)
-  (message "[sentinel] event  : %s" event)
+  ;;(message "[sentinel] process: %s" process)
+  ;;(message "[sentinel] event  : %s" event)
   (cond
    ((string-match "open from .*\n" event)
     (push process server-clients))
@@ -1903,7 +1922,8 @@ calling `gdscript-debug--table-string'."
            (multiline-invisible (get-pos-property multiline-end 'invisible)))
       (put-text-property inline-start inline-end 'invisible (not inline-invisible))
       (put-text-property multiline-start multiline-end 'invisible (not multiline-invisible))
-      (puthash (cons gdscript-debug--buffer-type property-name) multiline-invisible gdscript-debug--multiline-on))))
+      (puthash (cons gdscript-debug--buffer-type property-name) multiline-invisible gdscript-debug--multiline-on)
+      (when inline-invisible (goto-char start)))))
 
 (defvar gdscript-debug--stack-dump-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1976,6 +1996,9 @@ calling `gdscript-debug--table-string'."
 (defvar-local gdscript-debug--buffer-type nil
   "One of the symbols bound in `gdscript-debug--get-buffer-create'.")
 
+(defvar-local gdscript-debug--after-refresh-function nil
+  "Function to call after command to popular buffer is received.")
+
 (defun gdscript-debug--get-buffer (buffer-type)
   "Get a specific buffer.
 
@@ -2023,7 +2046,7 @@ In that buffer, `gdscript-debug--buffer-type' must be equal to BUFFER-TYPE."
   (display-buffer (gdscript-debug--get-inspector-buffer)))
 
 (defun gdscript-debug-display-scene-tree-buffer ()
-  "Display the scene tree."
+  "Display the Scene tree."
   (interactive)
   (display-buffer (gdscript-debug--get-scene-tree-buffer)))
 
@@ -2048,7 +2071,10 @@ In that buffer, `gdscript-debug--buffer-type' must be equal to BUFFER-TYPE."
           (point (point)))
       (erase-buffer)
       (gdscript-debug--scene-tree-row scene-tree-data 0 "")
-      (goto-char point))))
+      (goto-char point)
+      (when gdscript-debug--after-refresh-function
+        (funcall gdscript-debug--after-refresh-function)
+        (setq gdscript-debug--after-refresh-function nil)))))
 
 (defun gdscript-debug--scene-tree-row (scene-tree-level-edge level node-path)
   (let* ((node (scene-tree-level-edge->item scene-tree-level-edge))
@@ -2211,7 +2237,7 @@ _n_ next  _c_ continue  _m_ step _b_ breakpoints _d_ stack _v_ vars _i_ inspecto
     ("b" (gdscript-debug-display-breakpoint-buffer))
     ("v" (gdscript-debug-display-stack-frame-vars-buffer))
     ("i" (gdscript-debug-display-inspector-buffer))
-    ("t" (gdscript-debug-display-scene-tree-buffer))
+    ("t" (gdscript-debug-request-scene-tree))
     ("s" (gdscript-debug-display-source-buffer))
     ("q" nil)))
 
