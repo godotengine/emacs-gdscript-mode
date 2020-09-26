@@ -5,6 +5,7 @@
 (require 'bindat)
 (require 'generator)
 (require 'gdscript-customization)
+(require 'gdscript-hydra)
 (require 'gdscript-utils)
 
 (eval-when-compile
@@ -773,8 +774,11 @@
                   ;;(message "Received 'stack_frame_vars' command")
                   (let ((cmd (mk-stack-frame-vars iter)))
                     (setq gdscript-debug--stack-frame-vars cmd)
-                    (gdscript-debug--construct-stack-var-buffer cmd)
-                    (gdscript-debug-display-stack-frame-vars-buffer))))
+                    (with-current-buffer (gdscript-debug--get-stack-frame-vars-buffer)
+                      (setq-local gdscript-debug--stack-frame-vars-loading nil)
+                      (gdscript-debug--construct-stack-var-buffer cmd)
+                      (gdscript-debug-display-stack-frame-vars-buffer)
+                      (setq-local gdscript-debug--stack-frame-vars-loading t)))))
                 ("message:inspect_object"
                  (gdscript-debug--command-handler
                   ;;(message "Received 'message:inspect_object' command")
@@ -814,21 +818,26 @@
                       (stack-dump->line gdscript-debug--selected-stack-dump)
                       (stack-dump->function-name gdscript-debug--selected-stack-dump)))
         (erase-buffer)
-        (insert (gdscript-debug--table-string table " "))))))
+        (insert (gdscript-debug--table-string table " "))
+        (goto-char (point-min))))))
 
 (defun gdscript-debug--add-stack-var-to-table (table items)
   (dolist (item items)
-    (let* ((object (cdr item))
-           (print-data (gdscript-debug--pure-stringify object)))
+    (pcase-let* ((`(,variable . ,object) item)
+                 (print-data (gdscript-debug--pure-stringify object variable 'stack-frame-vars-buffer)))
       (gdscript-debug--table-add-row
        table
        (list
-        (gdscript-debug--variable-face (car item))
+        (gdscript-debug--variable-face variable)
         (print-data->type-name print-data)
         (print-data->string-repr print-data))
-       (cond ((object-id-p object)
-              (list 'object-id (object-id->value object)))))
-      (gdscript-debug--fetch-object-id-data (cdr item) 'stack-frame-vars-buffer))))
+       (append
+        (list 'property-name variable)
+        (cond ((object-id-p object)
+               (list 'object-id (object-id->value object))))))
+      (with-current-buffer (gdscript-debug--get-stack-frame-vars-buffer)
+        (unless gdscript-debug--stack-frame-vars-loading
+          (gdscript-debug--fetch-object-id-data (cdr item) 'stack-frame-vars-buffer))))))
 
 (defun gdscript-debug--add-type-of-object-id-into-buffer (object-id cmd)
   (let ((buffer-symbol (gethash object-id gdscript-debug--object-to-buffer-mapping)))
@@ -843,15 +852,19 @@
 when `message:inspect_object' command is received.
 Buffer which needs an update is either `stack-frame-vars-buffer' or `inspector-buffer'.")
 
+(defvar gdscript-debug--multiline-on (make-hash-table :test #'equal)
+  "Stores mapping from (`buffer' . `property-name') to bool indicating that `property-name'
+in buffer `buffer' should be rendered multiline.")
+
 (defun gdscript-debug--refresh-inspector-buffer ()
   (when-let* ((inspect-object (gethash gdscript-debug--inspector-focused-object-id gdscript-debug--inspected-objects))
               (table (gdscript-debug-table-create)))
     (dolist (property (inspect-object->properties inspect-object))
       (let* ((object (property-info->variant property))
-             (print-data (gdscript-debug--pure-stringify object))
              (usage (property-info->usage property))
              (hint (property-info->hint property))
-             (name (property-info->name property)))
+             (name (property-info->name property))
+             (print-data (gdscript-debug--pure-stringify object name 'inspector-buffer)))
         (gdscript-debug--fetch-object-id-data object 'inspector-buffer)
         (gdscript-debug--table-add-row
          table
@@ -864,11 +877,13 @@ Buffer which needs an update is either `stack-frame-vars-buffer' or `inspector-b
                    (concat (format "[%s]" usage) (format "[%s] " hint) name)
                    (print-data->type-name print-data)
                    (print-data->string-repr print-data))))
-         (cond ((equal name "Node/path")
-                (list 'node-path (substring-no-properties (print-data->string-repr print-data)) 'keymap gdscript-debug--show-in-scene-tree-map))
-               ((object-id-p object)
-                (list 'object-id (object-id->value object)))
-               (t nil)))))
+         (append
+          (list 'property-name name)
+          (cond ((equal name "Node/path")
+                 (list 'node-path (substring-no-properties (print-data->string-repr print-data)) 'keymap gdscript-debug--show-in-scene-tree-map))
+                ((object-id-p object)
+                 (list 'object-id (object-id->value object)))
+                (t nil))))))
     (with-current-buffer (gdscript-debug--get-inspector-buffer)
       (let ((inhibit-read-only t)
             (class (inspect-object->class inspect-object))
@@ -940,75 +955,212 @@ Buffer which needs an update is either `stack-frame-vars-buffer' or `inspector-b
 ;; (defun gdscript-debug--object-id-property (object-id)
 ;;   (intern (format "object-id-%s" object-id)))
 
-(defun gdscript-debug--pure-stringify (object)
-  (cond ((prim-null-p object)
-         (gdscript-debug--to-print-data (gdscript-debug--builtin-face "null") nil))
-        ((prim-bool-p object)
-         (gdscript-debug--to-print-data (gdscript-debug--builtin-face "bool") (gdscript-debug--prim-bool-to-string object)))
-        ((prim-integer-p object)
-         (gdscript-debug--to-print-data (gdscript-debug--builtin-face "int") (number-to-string (prim-integer->value object))))
-        ((prim-float-p object)
-         (gdscript-debug--to-print-data (gdscript-debug--builtin-face "float") (number-to-string (prim-float->value object))))
-        ((prim-string-p object)
-         (gdscript-debug--to-print-data (gdscript-debug--type-face "String") (prim-string->value object)))
-        ((vector2-p object)
-         (gdscript-debug--to-print-data (gdscript-debug--type-face "Vector2") (gdscript-debug--vector2-to-string object)))
-        ((rect2-p object)
-         (gdscript-debug--to-print-data (gdscript-debug--type-face "Rect2") (concat (gdscript-debug--vector2-to-string (rect2->coordinate object)) " " (gdscript-debug--vector2-to-string (rect2->size object)))))
-        ((vector3-p object)
-         (gdscript-debug--to-print-data (gdscript-debug--type-face "Vector3") (gdscript-debug--vector3-to-string object)))
-        ((transform2d-p object)
-         (gdscript-debug--to-print-data (gdscript-debug--type-face "Transform2D") (mapconcat #'gdscript-debug--vector2-to-string (list (transform2d->x object) (transform2d->y object) (transform2d->origin object)) " ")))
-        ((plane-p object)
-         (gdscript-debug--to-print-data (gdscript-debug--type-face "Plane") (concat (gdscript-debug--vector3-to-string (plane->normal object)) " " (number-to-string (plane->distance object)))))
-        ((quat-p object)
-         (gdscript-debug--to-print-data (gdscript-debug--type-face "Quat") (mapconcat #'number-to-string (list (quat->x-imaginary object) (quat->y-imaginary object) (quat->z-imaginary object) (quat->real-w object)) " ")))
-        ((aabb-p object)
-         (gdscript-debug--to-print-data (gdscript-debug--type-face "AABB") (mapconcat #'gdscript-debug--vector3-to-string (list (aabb->position object) (aabb->size object)) " ")))
-        ((basis-p object)
-         (gdscript-debug--to-print-data (gdscript-debug--type-face "Basis") (gdscript-debug--basis-to-string object)))
-        ((transform-p object)
-         (gdscript-debug--to-print-data (gdscript-debug--type-face "Transform") (concat (gdscript-debug--basis-to-string (transform->basis object)) " " (gdscript-debug--vector3-to-string (transform->origin object)))))
-        ((color-p object)
-         (gdscript-debug--to-print-data (gdscript-debug--type-face "Color") (gdscript-debug--color-to-string object)))
-        ((node-path-p object)
-         (gdscript-debug--to-print-data (gdscript-debug--type-face "NodePath") (gdscript-debug--string-face (concat (when (prim-bool->value (node-path->absolute object)) "/") (mapconcat #'prim-string->value (node-path->names object) "/") (when-let* ((subnames (node-path->subnames object))) (concat ":" (mapconcat #'prim-string->value subnames ":")))))))
-        ((rid-p object)
-         (gdscript-debug--to-print-data (gdscript-debug--type-face "RID") nil))
-        ((object-id-p object)
-         (let* ((object-id (object-id->value object))
-                (object-id-data (gethash object-id gdscript-debug--inspected-objects)))
-           (gdscript-debug--to-print-data (if object-id-data
-                                              (gdscript-debug--type-face (inspect-object->class object-id-data))
-                                            (format "Loading..." (number-to-string object-id)))
-                                          (concat (format "ObjectID: %s" (number-to-string object-id))
-                                                  (when object-id-data
-                                                    (let* ((property (car (inspect-object->properties object-id-data)))
-                                                           (name (property-info->name property)))
-                                                      (when (equal name "Node/path")
-                                                        (concat " " (print-data->string-repr (gdscript-debug--pure-stringify (property-info->variant property)))))))))))
-        ((dictionary-p object)
-         (gdscript-debug--to-print-data (gdscript-debug--type-face "Dictionary") (concat "{" (mapconcat #'gdscript-debug--key-value-to-string (dictionary->elements object) ", ") "}")))
-        ((prim-array-p object)
-         (gdscript-debug--to-print-data (gdscript-debug--type-face "Array") (concat "[" (mapconcat (lambda (element) (print-data->string-repr (gdscript-debug--pure-stringify element))) (prim-array->elements object) ", ") "]")))
-        ((pool-byte-array-p object)
-         (gdscript-debug--to-print-data (gdscript-debug--type-face "PoolByteArray") (concat "[" (mapconcat #'number-to-string (pool-byte-array->elements object) " ") "]")))
-        ((pool-int-array-p object)
-         (gdscript-debug--to-print-data (gdscript-debug--type-face "PoolIntArray") (concat "[" (mapconcat (lambda (int) (number-to-string (prim-integer->value int))) (pool-int-array->elements object) " ") "]")))
-        ((pool-real-array-p object)
-         (gdscript-debug--to-print-data (gdscript-debug--type-face "PoolRealArray") (concat "[" (mapconcat (lambda (real) (number-to-string (prim-float->value real))) (pool-real-array->elements object) " ") "]")))
-        ((pool-string-array-p object)
-         (gdscript-debug--to-print-data (gdscript-debug--type-face "PoolStringArray") (concat "[" (mapconcat #'prim-string->value (pool-string-array->elements object) " ") "]")))
-        ((pool-vector2-array-p object)
-         (gdscript-debug--to-print-data (gdscript-debug--type-face "PoolVector2Array") (concat "[" (mapconcat #'gdscript-debug--vector2-to-string (pool-vector2-array->elements object) " ") "]")))
-        ((pool-vector3-array-p object)
-         (gdscript-debug--to-print-data (gdscript-debug--type-face "PoolVector3Array") (concat "[" (mapconcat #'gdscript-debug--vector3-to-string (pool-vector3-array->elements object) " ") "]")))
-        ((pool-color-array-p object)
-         (gdscript-debug--to-print-data (gdscript-debug--type-face "PoolColorArray") (concat "[" (mapconcat #'gdscript-debug--color-to-string (pool-color-array->elements object) " ") "]")))
-        (t (error "[gdscript-debug--pure-stringify] Invalid type %s" object))))
+;;(defmacro abc (object))
 
-(defun gdscript-debug--to-print-data (type-name string-repr)
-  (print-data-create :type-name type-name :string-repr string-repr))
+(defun gdscript-debug--pure-stringify (object property-name buffer-type &optional inline-only)
+  (gdscript-debug--to-print-data
+   (cond ((prim-null-p object)
+          (list
+           (gdscript-debug--builtin-face "null")))
+         ((prim-bool-p object)
+          (list
+           (gdscript-debug--builtin-face "bool")
+           (gdscript-debug--prim-bool-to-string object)))
+         ((prim-integer-p object)
+          (list
+           (gdscript-debug--builtin-face "int")
+           (number-to-string (prim-integer->value object))))
+         ((prim-float-p object)
+          (list
+           (gdscript-debug--builtin-face "float")
+           (number-to-string (prim-float->value object))))
+         ((prim-string-p object)
+          (list
+           (gdscript-debug--type-face "String")
+           (prim-string->value object)))
+         ((vector2-p object)
+          (list
+           (gdscript-debug--type-face "Vector2")
+           (gdscript-debug--vector2-to-string object)))
+         ((rect2-p object)
+          (list
+           (gdscript-debug--type-face "Rect2")
+           (concat (gdscript-debug--vector2-to-string (rect2->coordinate object)) " " (gdscript-debug--vector2-to-string (rect2->size object)))))
+         ((vector3-p object)
+          (list
+           (gdscript-debug--type-face "Vector3")
+           (gdscript-debug--vector3-to-string object)))
+         ((transform2d-p object)
+          (list
+           (gdscript-debug--type-face "Transform2D")
+           (mapconcat #'gdscript-debug--vector2-to-string (list (transform2d->x object) (transform2d->y object) (transform2d->origin object)) " ")))
+         ((plane-p object)
+          (list
+           (gdscript-debug--type-face "Plane")
+           (concat (gdscript-debug--vector3-to-string (plane->normal object)) " " (number-to-string (plane->distance object)))))
+         ((quat-p object)
+          (list
+           (gdscript-debug--type-face "Quat")
+           (mapconcat #'number-to-string (list (quat->x-imaginary object) (quat->y-imaginary object) (quat->z-imaginary object) (quat->real-w object)) " ")))
+         ((aabb-p object)
+          (list
+           (gdscript-debug--type-face "AABB")
+           (mapconcat #'gdscript-debug--vector3-to-string (list (aabb->position object) (aabb->size object)) " ")))
+         ((basis-p object)
+          (list
+           (gdscript-debug--type-face "Basis")
+           (gdscript-debug--basis-to-string object)))
+         ((transform-p object)
+          (list
+           (gdscript-debug--type-face "Transform")
+           (concat (gdscript-debug--basis-to-string (transform->basis object)) " " (gdscript-debug--vector3-to-string (transform->origin object)))))
+         ((color-p object)
+          (list
+           (gdscript-debug--type-face "Color")
+           (gdscript-debug--color-to-string object)))
+         ((node-path-p object)
+          (list
+           (gdscript-debug--type-face "NodePath")
+           (gdscript-debug--string-face (concat (when (prim-bool->value (node-path->absolute object)) "/") (mapconcat #'prim-string->value (node-path->names object) "/") (when-let* ((subnames (node-path->subnames object))) (concat ":" (mapconcat #'prim-string->value subnames ":")))))))
+         ((rid-p object)
+          (list
+           (gdscript-debug--type-face "RID")))
+         ((object-id-p object)
+          (let* ((object-id (object-id->value object))
+                 (object-id-data (gethash object-id gdscript-debug--inspected-objects)))
+            (list
+             (if object-id-data
+                 (gdscript-debug--type-face (inspect-object->class object-id-data))
+               (format "Loading..." (number-to-string object-id)))
+             (concat (format "ObjectID: %s" (number-to-string object-id))
+                     (when object-id-data
+                       (let* ((property (car (inspect-object->properties object-id-data)))
+                              (name (property-info->name property)))
+                         (when (equal name "Node/path")
+                           (concat " " (print-data->string-repr (gdscript-debug--pure-stringify (property-info->variant property) property-name buffer-type t))))))))))
+         ((dictionary-p object)
+          (list
+           (gdscript-debug--type-face "Dictionary")
+           (gdscript-debug--dictionary-inline-string object property-name buffer-type)
+           (gdscript-debug--dictionary-multiline-string object property-name buffer-type)))
+         ((prim-array-p object)
+          (list
+           (gdscript-debug--type-face "Array")
+           (concat "[" (mapconcat (lambda (element) (print-data->string-repr (gdscript-debug--pure-stringify element property-name buffer-type t))) (prim-array->elements object) ", ") "]")
+           (concat "[" (mapconcat (lambda (element) (print-data->string-repr (gdscript-debug--pure-stringify element property-name buffer-type t))) (prim-array->elements object) ", ") "]")))
+         ((pool-byte-array-p object)
+          (list
+           (gdscript-debug--type-face "PoolByteArray")
+           (concat "[" (mapconcat #'number-to-string (pool-byte-array->elements object) " ") "]")
+           (concat "[" (mapconcat #'number-to-string (pool-byte-array->elements object) " ") "]")))
+         ((pool-int-array-p object)
+          (list
+           (gdscript-debug--type-face "PoolIntArray")
+           (concat "[" (mapconcat (lambda (int) (number-to-string (prim-integer->value int))) (pool-int-array->elements object) " ") "]")
+           (concat "[" (mapconcat (lambda (int) (number-to-string (prim-integer->value int))) (pool-int-array->elements object) " ") "]")))
+         ((pool-real-array-p object)
+          (list
+           (gdscript-debug--type-face "PoolRealArray")
+           (gdscript-debug--pool-real-array-inline-string object)
+           (gdscript-debug--pool-real-array-multiline-string object)))
+         ((pool-string-array-p object)
+          (list
+           (gdscript-debug--type-face "PoolStringArray")
+           (gdscript-debug--pool-string-array-inline-string object)
+           (gdscript-debug--pool-string-array-multiline-string object)))
+         ((pool-vector2-array-p object)
+          (list
+           (gdscript-debug--type-face "PoolVector2Array")
+           (gdscript-debug--pool-vector2-array-inline-string object)
+           (gdscript-debug--pool-vector2-array-multiline-string object)))
+         ((pool-vector3-array-p object)
+          (list
+           (gdscript-debug--type-face "PoolVector3Array")
+           (gdscript-debug--pool-vector3-array-inline-string object)
+           (gdscript-debug--pool-vector3-array-multiline-string object)))
+         ((pool-color-array-p object)
+          (list
+           (gdscript-debug--type-face "PoolColorArray")
+           (gdscript-debug--pool-color-array-inline-string object)
+           (gdscript-debug--pool-color-array-multiline-string object)))
+         (t (error "[gdscript-debug--pure-stringify] Invalid type %s" object)))
+   property-name
+   buffer-type
+   inline-only))
+
+(defun gdscript-debug--initial-inline-visibility (string init)
+  (propertize string 'invisible init 'inline t))
+
+(defun gdscript-debug--initial-multiline-visibility (string init)
+  (propertize string 'invisible init 'multiline t))
+
+(defun gdscript-debug--dictionary-inline-string (object property-name buffer-type)
+  (concat "{" (mapconcat (lambda (key-value)
+                           (gdscript-debug--key-value-to-string key-value property-name buffer-type)) (dictionary->elements object) ", ") "}"))
+
+(defun gdscript-debug--dictionary-multiline-string (dictionary property-name buffer-type)
+  (let ((table (gdscript-debug-table-create)))
+    (dolist (element (dictionary->elements dictionary))
+      (pcase-let ((`(,key . ,value) element))
+        (gdscript-debug--table-add-row
+         table
+         (list
+          (concat "  "(print-data->string-repr (gdscript-debug--pure-stringify key property-name buffer-type t)) ":")
+          (print-data->string-repr (gdscript-debug--pure-stringify value property-name buffer-type t)))
+         (cond ((object-id-p value)
+                (list 'object-id (object-id->value value)))
+               (t nil)))))
+    (concat "{\n" (gdscript-debug--table-string table " ") "\n}")))
+
+(defun gdscript-debug--pool-real-array-inline-string (object)
+  (concat "[" (mapconcat (lambda (real) (number-to-string (prim-float->value real))) (pool-real-array->elements object) " ") "]"))
+
+(defun gdscript-debug--pool-real-array-multiline-string (object)
+  (concat "[\n" (mapconcat (lambda (real) (concat "  " (number-to-string (prim-float->value real)) "\n")) (pool-real-array->elements object) "") "]"))
+
+(defun gdscript-debug--pool-string-array-inline-string (object)
+  (concat "[" (mapconcat #'prim-string->value (pool-string-array->elements object) " ") "]"))
+
+(defun gdscript-debug--pool-string-array-multiline-string (object)
+  (concat "[\n" (mapconcat (lambda (o)
+                             (concat "  " (prim-string->value o) "\n")) (pool-string-array->elements object) "") "]"))
+
+(defun gdscript-debug--pool-vector2-array-inline-string (object)
+  (concat "[" (mapconcat #'gdscript-debug--vector2-to-string (pool-vector2-array->elements object) " ") "]"))
+
+(defun gdscript-debug--pool-vector2-array-multiline-string (object)
+  (concat "[\n" (mapconcat (lambda (o)
+                             (concat "  " (gdscript-debug--vector2-to-string o) "\n")) (pool-vector2-array->elements object) "") "]"))
+
+(defun gdscript-debug--pool-vector3-array-inline-string (object)
+  (concat "[" (mapconcat #'gdscript-debug--vector3-to-string (pool-vector3-array->elements object) " ") "]"))
+
+(defun gdscript-debug--pool-vector3-array-multiline-string (object)
+  (concat "[\n" (mapconcat (lambda (o)
+                             (concat "  " (gdscript-debug--vector3-to-string o) "\n")) (pool-vector3-array->elements object) "") "]"))
+
+(defun gdscript-debug--pool-color-array-inline-string (object)
+  (concat "[" (mapconcat #'gdscript-debug--color-to-string (pool-color-array->elements object) " ") "]"))
+
+(defun gdscript-debug--pool-color-array-multiline-string (object)
+  (concat "[\n" (mapconcat (lambda (o)
+                             (concat "  " (gdscript-debug--color-to-string o) "\n")) (pool-color-array->elements object) "") "]"))
+
+(defun gdscript-debug--to-print-data (args property-name buffer-type &optional inline-only)
+  (pcase args
+    (`(,type-name)
+     (print-data-create :type-name type-name
+                        :string-repr ""))
+    (`(,type-name ,inline-string-repr)
+     (print-data-create :type-name type-name
+                        :string-repr (gdscript-debug--initial-inline-visibility inline-string-repr nil)))
+    (`(,type-name ,inline-string-repr ,multiline-string-repr)
+     (let ((multiline-invisible (gethash (cons buffer-type property-name) gdscript-debug--multiline-on)))
+       (print-data-create :type-name type-name
+                          :string-repr (concat
+                                        (gdscript-debug--initial-inline-visibility inline-string-repr multiline-invisible)
+                                        (unless inline-only
+                                          (gdscript-debug--initial-multiline-visibility multiline-string-repr (not multiline-invisible)))))))))
 
 (cl-defstruct (print-data (:constructor print-data-create)
                           (:copier nil)
@@ -1027,10 +1179,12 @@ Buffer which needs an update is either `stack-frame-vars-buffer' or `inspector-b
 (defun gdscript-debug--variable-face (string)
   (propertize string 'font-lock-face font-lock-variable-name-face))
 
-(defun gdscript-debug--key-value-to-string (key-value)
+(defun gdscript-debug--key-value-to-string (key-value property-name buffer-type)
   (let ((key (car key-value))
         (value (cdr key-value)))
-    (concat (print-data->string-repr (gdscript-debug--pure-stringify key)) ":" (print-data->string-repr (gdscript-debug--pure-stringify value)))))
+    (concat (print-data->string-repr (gdscript-debug--pure-stringify key property-name buffer-type t))
+            ":"
+            (print-data->string-repr (gdscript-debug--pure-stringify value property-name buffer-type t)))))
 
 (defun gdscript-debug--prim-bool-to-string (prim-bool)
   (if (prim-bool->value prim-bool) "true" "false"))
@@ -1074,6 +1228,7 @@ Buffer which needs an update is either `stack-frame-vars-buffer' or `inspector-b
           gdscript-debug--data-needed nil
           gdscript-debug--inspected-objects (make-hash-table)
           gdscript-debug--object-to-buffer-mapping (make-hash-table)
+          gdscript-debug--multiline-on (make-hash-table :test #'equal)
           gdscript-debug--inspector-stack nil
           gdscript-debug--inspector-focused-object-id nil
           server-clients '())
@@ -1731,6 +1886,25 @@ calling `gdscript-debug--table-string'."
       (gdscript-debug--show-object-id object-id)
       (goto-char (gdscript-debug-breadcrumb-entry->point last-breadcrumb))))))
 
+(defun gdscript-debug-toggle-visibility ()
+  (interactive)
+  (when-let ((is-on-multiline (get-pos-property (point) 'multiline)))
+    (goto-char (previous-single-property-change (point) 'multiline)))
+  (when (get-text-property (line-end-position) 'multiline)
+    (let* ((inhibit-read-only t)
+           (start (line-beginning-position))
+           (end (line-end-position))
+           (property-name (get-text-property start 'property-name))
+           (inline-start (next-single-property-change start 'inline (current-buffer) end))
+           (inline-end (next-single-property-change inline-start 'inline))
+           (multiline-start inline-end)
+           (multiline-end (next-single-property-change multiline-start 'multiline))
+           (inline-invisible (get-pos-property inline-end 'invisible))
+           (multiline-invisible (get-pos-property multiline-end 'invisible)))
+      (put-text-property inline-start inline-end 'invisible (not inline-invisible))
+      (put-text-property multiline-start multiline-end 'invisible (not multiline-invisible))
+      (puthash (cons gdscript-debug--buffer-type property-name) multiline-invisible gdscript-debug--multiline-on))))
+
 (defvar gdscript-debug--stack-dump-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
@@ -1742,6 +1916,7 @@ calling `gdscript-debug--table-string'."
     (define-key map "\t" 'gdscript-debug-display-stack-frame-vars-buffer)
     (define-key map "?" 'describe-mode)
     (define-key map (kbd "C-c n") 'gdscript-debug-hydra)
+    (define-key map (kbd "C-c r") 'gdscript-hydra-show)
     map))
 
 (defvar gdscript-debug--breakpoints-mode-map
@@ -1754,6 +1929,7 @@ calling `gdscript-debug--table-string'."
     (define-key map "\t" 'gdscript-debug-display-stack-dump-buffer)
     (define-key map "?" 'describe-mode)
     (define-key map (kbd "C-c n") 'gdscript-debug-hydra)
+    (define-key map (kbd "C-c r") 'gdscript-hydra-show)
     map))
 
 (defvar gdscript-debug--stack-frame-vars-mode-map
@@ -1763,10 +1939,11 @@ calling `gdscript-debug--table-string'."
     (define-key map "p" 'previous-line)
     (define-key map "n" 'next-line)
     (define-key map "\r" 'gdscript-debug-inspect-object-id)
-    (define-key map "\t" 'gdscript-debug-display-inspector-buffer)
+    (define-key map "\t" 'gdscript-debug-toggle-visibility)
     (define-key map "l" 'gdscript-debug-display-stack-dump-buffer)
     (define-key map "?" 'describe-mode)
     (define-key map (kbd "C-c n") 'gdscript-debug-hydra)
+    (define-key map (kbd "C-c r") 'gdscript-hydra-show)
     map))
 
 (defvar gdscript-debug--inspector-mode-map
@@ -1775,11 +1952,12 @@ calling `gdscript-debug--table-string'."
     (define-key map "q" 'kill-current-buffer)
     (define-key map "p" 'previous-line)
     (define-key map "n" 'next-line)
-    (define-key map "\t" 'gdscript-debug-display-breakpoint-buffer)
+    (define-key map "\t" 'gdscript-debug-toggle-visibility)
     (define-key map "\r" 'gdscript-debug-inspect-object-id)
     (define-key map "l" 'gdscript-debug-go-back)
     (define-key map "?" 'describe-mode)
     (define-key map (kbd "C-c n") 'gdscript-debug-hydra)
+    (define-key map (kbd "C-c r") 'gdscript-hydra-show)
     map))
 
 (defvar gdscript-debug--scene-tree-mode-map
@@ -1792,6 +1970,7 @@ calling `gdscript-debug--table-string'."
     (define-key map "\r" 'gdscript-debug-inspect-object-id)
     (define-key map "?" 'describe-mode)
     (define-key map (kbd "C-c n") 'gdscript-debug-hydra)
+    (define-key map (kbd "C-c r") 'gdscript-hydra-show)
     map))
 
 (defvar-local gdscript-debug--buffer-type nil
