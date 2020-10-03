@@ -27,14 +27,16 @@ when breakpoint is encountered in Godot."
 
 (defvar gdscript-debug--integer-spec
   `((:data u32r)
-    (:integer-data eval (- (logand ,(lsh -1 -31) last) (logand last ,(lsh 1 31))))))
+    (:integer-data eval (- (logand last ,(lognot (lsh 1 31))) (logand last ,(lsh 1 31))))))
 
 (defvar gdscript-debug--integer-64-spec
-  '((:data-a u32r)
+  `((:data-a u32r)
     (:data-b u32r)
-    (:integer-data eval (let ((a (bindat-get-field struct :data-a))
-                              (b (bindat-get-field struct :data-b)))
-                          (logior (lsh b 32) a)))))
+    (:data eval (let ((a (bindat-get-field struct :data-a))
+                      (b (bindat-get-field struct :data-b)))
+                  (logior (lsh b 32) a)))
+    (:integer-data eval (let ((a (bindat-get-field struct :data)))
+                          (- (logand a ,(lognot (lsh 1 63))) (logand a ,(lsh 1 63)))))))
 
 ;; Credit goes to https://github.com/skeeto/bitpack/blob/master/bitpack.el
 (defsubst gdscript-debug--load-f32 (b0 b1 b2 b3)
@@ -700,7 +702,7 @@ when breakpoint is encountered in Godot."
          (line (stack-dump->line stack-dump))
          (full-file-path (concat project-root (gdscript-debug--drop-res file))))
     (if (not project-root)
-        (error "Project for file %s not found." file)
+        (error "Project for file %s not found" file)
       (with-current-buffer (find-file full-file-path)
         (let* ((posns (line-posns line))
                (start-posn (car posns)))
