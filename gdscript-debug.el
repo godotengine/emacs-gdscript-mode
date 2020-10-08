@@ -170,8 +170,6 @@ when breakpoint is encountered in Godot."
   '((:array-length u32r)
     (:items repeat (:array-length) (struct gdscript-debug--color-spec))))
 
-;;(print (macroexpand '(gdscript-debug--capture-float-spec :hi)))
-
 (defvar gdscript-debug--plane-spec
   `(,@(gdscript-debug--capture-float-spec :normal-x)
     ,@(gdscript-debug--capture-float-spec :normal-y)
@@ -286,10 +284,7 @@ when breakpoint is encountered in Godot."
 (defvar gdscript-debug--previous-packet-data nil)
 (defvar gdscript-debug--data-needed nil)
 (defvar gdscript-debug--offset 0)
-(defvar gdscript-debug--inspected-objects (make-hash-table))
-
-(defvar gdscript-debug--packet-length-bindat-spec
-  '((:packet-length u32r)))
+(defvar gdscript-debug--packet-length-bindat-spec '((:packet-length u32r)))
 
 (defun gdscript-debug--current-packet (content offset)
   (bindat-unpack gdscript-debug--packet-length-bindat-spec content offset))
@@ -703,11 +698,12 @@ when breakpoint is encountered in Godot."
          (full-file-path (concat project-root (gdscript-debug--drop-res file))))
     (if (not project-root)
         (error "Project for file %s not found" file)
-      (with-current-buffer (find-file full-file-path)
+      (with-current-buffer (find-file-noselect full-file-path)
         (let* ((posns (line-posns line))
                (start-posn (car posns)))
-          (set-marker gdscript-debug--thread-position start-posn (current-buffer))
-          (goto-char gdscript-debug--thread-position))))))
+          (set-marker gdscript-debug--thread-position start-posn)
+          (goto-char gdscript-debug--thread-position)
+          (current-buffer))))))
 
 (defmacro gdscript-debug--command-handler (&rest body)
   `(progn
@@ -721,8 +717,6 @@ when breakpoint is encountered in Godot."
 
 (defun gdscript-debug--handle-server-reply (process content)
   "Gets invoked whenever the server sends data to the client."
-  ;;(message "(DATA received): %s" (length content))
-  ;;(message "(Old DATA): %s" (length gdscript-debug--previous-packet-data))
   (setq gdscript-debug--previous-packet-data (concat gdscript-debug--previous-packet-data content))
   (when (or (null gdscript-debug--data-needed)
             (<= gdscript-debug--data-needed (length gdscript-debug--previous-packet-data)))
@@ -736,68 +730,96 @@ when breakpoint is encountered in Godot."
                  (gdscript-debug--command-handler
                   ;;(message "Received 'debug_enter' command")
                   (let ((cmd (mk-debug-enter iter)))
-                    ;;(message "-- cmd: %s" cmd)
-                    (pcase (debug-enter->reason cmd)
-                      ("Breakpoint"
-                       (gdscript-debug-get-stack-dump)
-                       (gdscript-debug-hydra))
-                      (other
-                       (gdscript-debug-get-stack-dump)
-                       (message "%s" other))))))
+                    (setq gdscript-debug--debug-enter cmd)
+                    (gdscript-debug-get-stack-dump))))
                 ("debug_exit"
                  (gdscript-debug--command-handler
                   ;;(message "Received 'debug_exit' command")
-                  (let ((cmd (mk-debug-exit iter)))
-                    ;; (message "Debug_exit: %s " cmd)
-                    )))
+                  (let ((cmd (mk-debug-exit iter))))))
                 ("output"
                  (gdscript-debug--command-handler
                   ;;(message "Received 'output' command")
-                  (let ((cmd (mk-output iter)))
-                    ;;(message "Output: %s" (plist-get cmd 'outputs))
-                    ;; (dolist (element (plist-get cmd 'outputs))
-                    ;;   (message "output: %s" element))
-                    )))
+                  (let ((cmd (mk-output iter))))))
                 ("error"
                  (gdscript-debug--command-handler
                   ;;(message "Received 'error' command")
-                  (let ((cmd (mk-error iter)))
-                    ;;(message "Error: %s" cmd)
-                    )))
+                  (let ((cmd (mk-error iter))))))
                 ("performance"
                  (gdscript-debug--command-handler
                   ;;(message "Received 'performance' command")
-                  (let ((cmd (mk-performance iter)))
-                    ;; (message "Performace: %s" cmd)
-                    )))
+                  (let ((cmd (mk-performance iter))))))
                 ("stack_dump"
                  (gdscript-debug--command-handler
                   ;;(message "Received 'stack_dump' command")
-                  (let ((cmd (mk-stack-dump iter)))
-                    ;;(message "[stack_dump] cmd: %s" cmd)
-                    (run-at-time "0.25 sec" nil #'gdscript-debug--switch-to-emacs)
-                    (gdscript-debug--refresh-stack-dump-buffer cmd (process-get process 'project))
-                    (let ((top-stack-dump (car cmd)))
-                      (setq gdscript-debug--selected-stack-dump top-stack-dump)
-                      (gdscript-debug--on-stack-dump top-stack-dump (process-get process 'project))
-                      (gdscript-debug-get-stack-frame-vars (stack-dump->level top-stack-dump))))))
+                  (let ((cmd (mk-stack-dump iter))
+                        (project-root (process-get process 'project)))
+                    (pcase (debug-enter->reason gdscript-debug--debug-enter)
+                      ("Breakpoint"
+                       (gdscript-debug--refresh-stack-dump-buffer cmd project-root)
+                       (setq gdscript-debug--stack-dump (cons cmd project-root))
+                       (let ((top-stack-dump (car cmd)))
+                         (setq gdscript-debug--selected-stack-dump top-stack-dump)
+                         (gdscript-debug--on-stack-dump top-stack-dump project-root)
+                         (gdscript-debug-get-stack-frame-vars (stack-dump->level top-stack-dump)))
+                       (gdscript-debug-hydra))
+                      (other
+                       (select-window (display-buffer (gdscript-debug--on-stack-dump (car cmd) project-root)))
+                       (message "%s" other)))
+                    (run-at-time "0.25 sec" nil #'gdscript-debug--switch-to-emacs))))
                 ("stack_frame_vars"
                  (gdscript-debug--command-handler
                   ;;(message "Received 'stack_frame_vars' command")
                   (let ((cmd (mk-stack-frame-vars iter)))
-                    (setq gdscript-debug--stack-frame-vars cmd)
-                    (with-current-buffer (gdscript-debug--get-stack-frame-vars-buffer)
-                      (setq-local gdscript-debug--stack-frame-vars-loading nil)
-                      (gdscript-debug--construct-stack-var-buffer cmd)
-                      (gdscript-debug-display-stack-frame-vars-buffer)
-                      (setq-local gdscript-debug--stack-frame-vars-loading t)))))
+                    (setq gdscript-debug--stack-frame-vars cmd
+                          gdscript-debug--inspected-objects (make-hash-table)
+                          gdscript-debug--object-ids-to-fetch nil
+                          gdscript-debug-state nil)
+                    (gdscript-debug--construct-stack-var-buffer cmd)
+                    (let* ((self (cdar (stack-frame-vars->members cmd)))
+                           (object-id (object-id->value self)))
+                      (setq gdscript-debug--current-self object-id)
+                      (if (and gdscript-debug--inspector-focused-object-id
+                               (not (eq gdscript-debug--current-self gdscript-debug--inspector-focused-object-id)))
+                          (progn
+                            (gdscript-debug-inspect-object gdscript-debug--inspector-focused-object-id)
+                            (gdscript-debug-inspect-object gdscript-debug--current-self)
+                            (setq gdscript-debug-state :expect-two))
+
+                        (gdscript-debug-inspect-object gdscript-debug--current-self)
+                        (setq gdscript-debug--inspector-focused-object-id gdscript-debug--current-self
+                              gdscript-debug-state :expect-one)))))
+                 (gdscript-debug-windows))
                 ("message:inspect_object"
                  (gdscript-debug--command-handler
                   ;;(message "Received 'message:inspect_object' command")
                   (let* ((cmd (mk-inspect-object iter))
                          (object-id (inspect-object->object-id cmd)))
                     (puthash object-id cmd gdscript-debug--inspected-objects)
-                    (gdscript-debug--add-type-of-object-id-into-buffer object-id cmd))))
+                    (cond ((eq gdscript-debug-state :fetching)
+                           (setq gdscript-debug--object-ids-to-fetch (delete (object-id-create :value object-id) gdscript-debug--object-ids-to-fetch))
+                           (when (null gdscript-debug--object-ids-to-fetch)
+                             (setq gdscript-debug-state nil)
+                             (gdscript-debug--construct-stack-var-buffer gdscript-debug--stack-frame-vars)
+                             (gdscript-debug--refresh-inspector-buffer)))
+                          ((eq gdscript-debug-state :refresh-inspector)
+                           (setq gdscript-debug-state nil)
+                           (gdscript-debug--refresh-inspector-buffer))
+                          ((and
+                            (eq gdscript-debug-state :expect-two)
+                            (eq object-id gdscript-debug--inspector-focused-object-id))
+                           (setq gdscript-debug-state :expect-one))
+                          ((and
+                            (eq gdscript-debug-state :expect-two)
+                            (eq object-id gdscript-debug--current-self))
+                           ;; Expected `gdscript-debug--inspector-focused-object-id' but got `gdscript-debug--current-self'
+                           ;; instead. That means `gdscript-debug--inspector-focused-object-id' doesn't exists anymore.
+                           (setq gdscript-debug--inspector-focused-object-id object-id
+                                 gdscript-debug--inspector-stack nil
+                                 gdscript-debug-state nil)
+                           (gdscript-debug--refresh-inspector-buffer))
+                          ((eq gdscript-debug-state :expect-one)
+                           (setq gdscript-debug-state nil)
+                           (gdscript-debug--refresh-inspector-buffer))))))
                 ("message:scene_tree"
                  (gdscript-debug--command-handler
                   (let* ((cmd (mk-scene-tree iter)))
@@ -807,12 +829,33 @@ when breakpoint is encountered in Godot."
       ;;(iter-end-of-sequence (message "No more packets to process %s" x))
       (iter-end-of-sequence nil))))
 
+(defun gdscript-debug-fetch-object-ids-detail ()
+  (interactive)
+  (setq gdscript-debug-state :fetching)
+  (mapc #'gdscript-debug-inspect-object (mapcar #'object-id->value gdscript-debug--object-ids-to-fetch)))
+
+(defvar gdscript-debug--debug-enter nil
+  "Stores last received `debug_enter' command data.")
 (defvar gdscript-debug--stack-frame-vars nil
   "Stores last received `stack_frame_vars' command data.")
 (defvar gdscript-debug--inspector-focused-object-id nil
   "Stores `object-id' to display in * Inspector * buffer.")
+(defvar gdscript-debug--stack-dump nil
+  "Stores last received `stack_dump' command data.")
 (defvar gdscript-debug--selected-stack-dump nil
   "Stores selected `stack-dump' data.")
+(defvar gdscript-debug--current-self nil
+  "Stores selected `stack-dump' data.")
+(defvar gdscript-debug--inspected-objects (make-hash-table)
+  "Mapping from `object-id' to `inspect-object' struct")
+(defvar gdscript-debug-state nil)
+(defvar gdscript-debug--object-ids-to-fetch nil
+  "List of all object-id to fetch on demand")
+(defvar gdscript-debug--multiline-on (make-hash-table :test #'equal)
+  "Stores mapping from (`buffer' . `property-name') to bool indicating that `property-name'
+in buffer `buffer' should be rendered multiline.")
+(defvar gdscript-debug--inspector-stack nil
+  "A stack of inspected objects for breadcrumb rendering.")
 
 (defun gdscript-debug--construct-stack-var-buffer (stack-frame-vars)
   (let ((table (gdscript-debug-table-create)))
@@ -823,7 +866,8 @@ when breakpoint is encountered in Godot."
     (gdscript-debug--table-add-row table (list "Globals:" "" "") nil)
     (gdscript-debug--add-stack-var-to-table table (stack-frame-vars->globals stack-frame-vars))
     (with-current-buffer (gdscript-debug--get-stack-frame-vars-buffer)
-      (let ((inhibit-read-only t))
+      (let ((inhibit-read-only t)
+            (point (point)))
         (setq header-line-format
               (format "Stack frame vars - %s:%s %s"
                       (stack-dump->file gdscript-debug--selected-stack-dump)
@@ -831,12 +875,14 @@ when breakpoint is encountered in Godot."
                       (stack-dump->function-name gdscript-debug--selected-stack-dump)))
         (erase-buffer)
         (insert (gdscript-debug--table-string table " "))
-        (goto-char (point-min))))))
+        ;; Keep point in `stack-frame-vars-buffer' as close as possible to previous state
+        (goto-char point)
+        (set-window-point (get-buffer-window (current-buffer)) (line-beginning-position))))))
 
 (defun gdscript-debug--add-stack-var-to-table (table items)
   (dolist (item items)
-    (pcase-let* ((`(,variable . ,object) item)
-                 (print-data (gdscript-debug--pure-stringify object variable 'stack-frame-vars-buffer)))
+    (pcase-let* ((`(,variable . ,variant) item)
+                 (print-data (gdscript-debug--pure-stringify variant variable 'stack-frame-vars-buffer)))
       (gdscript-debug--table-add-row
        table
        (list
@@ -845,39 +891,28 @@ when breakpoint is encountered in Godot."
         (print-data->string-repr print-data))
        (append
         (list 'property-name variable)
-        (cond ((object-id-p object)
-               (list 'object-id (object-id->value object))))))
-      (with-current-buffer (gdscript-debug--get-stack-frame-vars-buffer)
-        (unless gdscript-debug--stack-frame-vars-loading
-          (gdscript-debug--fetch-object-id-data (cdr item) 'stack-frame-vars-buffer))))))
+        (cond ((object-id-p variant)
+               (list 'object-id (object-id->value variant))))))
+      (when (object-id-p variant)
+        (unless (gethash (object-id->value variant) gdscript-debug--inspected-objects)
+          (push variant gdscript-debug--object-ids-to-fetch))))))
 
-(defun gdscript-debug--add-type-of-object-id-into-buffer (object-id cmd)
-  (let ((buffer-symbol (gethash object-id gdscript-debug--object-to-buffer-mapping)))
-    (pcase buffer-symbol
-      ('stack-frame-vars-buffer
-       (gdscript-debug--construct-stack-var-buffer gdscript-debug--stack-frame-vars))
-      ('inspector-buffer
-       (gdscript-debug--refresh-inspector-buffer)))))
+(let ((res)) (maphash (lambda (key value) (push key res)) gdscript-debug--inspected-objects) res)
 
-(defvar gdscript-debug--object-to-buffer-mapping (make-hash-table)
-  "Stores mapping from ObjectID to buffer which needs to be updated
-when `message:inspect_object' command is received.
-Buffer which needs an update is either `stack-frame-vars-buffer' or `inspector-buffer'.")
-
-(defvar gdscript-debug--multiline-on (make-hash-table :test #'equal)
-  "Stores mapping from (`buffer' . `property-name') to bool indicating that `property-name'
-in buffer `buffer' should be rendered multiline.")
 
 (defun gdscript-debug--refresh-inspector-buffer ()
   (when-let* ((inspect-object (gethash gdscript-debug--inspector-focused-object-id gdscript-debug--inspected-objects))
               (table (gdscript-debug-table-create)))
     (dolist (property (inspect-object->properties inspect-object))
-      (let* ((object (property-info->variant property))
+      (let* ((variant (property-info->variant property))
              (usage (property-info->usage property))
              (hint (property-info->hint property))
              (name (property-info->name property))
-             (print-data (gdscript-debug--pure-stringify object name 'inspector-buffer)))
-        (gdscript-debug--fetch-object-id-data object 'inspector-buffer)
+             (print-data (gdscript-debug--pure-stringify variant name 'inspector-buffer)))
+        (when-let ((variant (property-info->variant property))
+                   (is-object-id (object-id-p variant)))
+          (unless (gethash (object-id->value variant) gdscript-debug--inspected-objects)
+            (push variant gdscript-debug--object-ids-to-fetch)))
         (gdscript-debug--table-add-row
          table
          (cond ((eq 256 (logand 256 usage))
@@ -894,9 +929,10 @@ in buffer `buffer' should be rendered multiline.")
           (list 'property-name name)
           (cond ((equal name "Node/path")
                  (list 'node-path (substring-no-properties (print-data->string-repr print-data)) 'keymap gdscript-debug--show-in-scene-tree-map))
-                ((object-id-p object)
-                 (list 'object-id (object-id->value object)))
+                ((object-id-p variant)
+                 (list 'object-id (object-id->value variant)))
                 (t nil))))))
+    (delete-dups gdscript-debug--object-ids-to-fetch)
     (with-current-buffer (gdscript-debug--get-inspector-buffer)
       (let ((inhibit-read-only t)
             (class (inspect-object->class inspect-object))
@@ -913,7 +949,8 @@ in buffer `buffer' should be rendered multiline.")
         (insert (gdscript-debug--inspector-bread-crumb))
         (insert "\n")
         (insert (gdscript-debug--table-string table " "))
-        (goto-char (point-min))))))
+        (goto-char (point-min))
+        (gdscript-debug--display-buffer (current-buffer))))))
 
 (defun gdscript-debug--show-in-scene-tree ()
   (interactive)
@@ -924,14 +961,14 @@ in buffer `buffer' should be rendered multiline.")
 (defun gdscript-debug--jump-to-node-path (node-path)
   (with-current-buffer (gdscript-debug--get-scene-tree-buffer)
     (if (equal node-path "/root")
-        (let ((window (display-buffer (current-buffer))))
+        (let ((window (display-buffer (current-buffer) '((display-buffer-same-window)))))
           (set-window-point window 1))
       (let ((change-pos 1))
         (while change-pos
           (setq change-pos (next-single-property-change change-pos 'node-path))
           (if change-pos
               (if (equal (get-text-property change-pos 'node-path) node-path)
-                  (let ((window (display-buffer (current-buffer))))
+                  (let ((window (display-buffer (current-buffer) '((display-buffer-same-window)))))
                     (set-window-point window change-pos)
                     (setq change-pos nil))
                 (setq change-pos (1+ change-pos)))
@@ -973,138 +1010,131 @@ in buffer `buffer' should be rendered multiline.")
 (defun gdscript-debug--pad-string (string padding)
   (format (concat "%" (number-to-string padding) "s") string))
 
-;; (defun gdscript-debug--object-id-property (object-id)
-;;   (intern (format "object-id-%s" object-id)))
-
-;;(defmacro abc (object))
-
-(defun gdscript-debug--pure-stringify (object property-name buffer-type &optional inline-only)
+(defun gdscript-debug--pure-stringify (variant property-name buffer-type &optional inline-only)
   (gdscript-debug--to-print-data
-   (cond ((prim-null-p object)
+   (cond ((prim-null-p variant)
           (list
            (gdscript-debug--builtin-face "null")))
-         ((prim-bool-p object)
+         ((prim-bool-p variant)
           (list
            (gdscript-debug--builtin-face "bool")
-           (gdscript-debug--prim-bool-to-string object)))
-         ((prim-integer-p object)
+           (gdscript-debug--prim-bool-to-string variant)))
+         ((prim-integer-p variant)
           (list
            (gdscript-debug--builtin-face "int")
-           (number-to-string (prim-integer->value object))))
-         ((prim-float-p object)
+           (number-to-string (prim-integer->value variant))))
+         ((prim-float-p variant)
           (list
            (gdscript-debug--builtin-face "float")
-           (number-to-string (prim-float->value object))))
-         ((prim-string-p object)
+           (number-to-string (prim-float->value variant))))
+         ((prim-string-p variant)
           (list
            (gdscript-debug--type-face "String")
-           (prim-string->value object)))
-         ((vector2-p object)
+           (gdscript-debug--string-face (prim-string->value variant))))
+         ((vector2-p variant)
           (list
            (gdscript-debug--type-face "Vector2")
-           (gdscript-debug--vector2-to-string object)))
-         ((rect2-p object)
+           (gdscript-debug--vector2-to-string variant)))
+         ((rect2-p variant)
           (list
            (gdscript-debug--type-face "Rect2")
-           (concat (gdscript-debug--vector2-to-string (rect2->coordinate object)) " " (gdscript-debug--vector2-to-string (rect2->size object)))))
-         ((vector3-p object)
+           (concat (gdscript-debug--vector2-to-string (rect2->coordinate variant)) " " (gdscript-debug--vector2-to-string (rect2->size variant)))))
+         ((vector3-p variant)
           (list
            (gdscript-debug--type-face "Vector3")
-           (gdscript-debug--vector3-to-string object)))
-         ((transform2d-p object)
+           (gdscript-debug--vector3-to-string variant)))
+         ((transform2d-p variant)
           (list
            (gdscript-debug--type-face "Transform2D")
-           (mapconcat #'gdscript-debug--vector2-to-string (list (transform2d->x object) (transform2d->y object) (transform2d->origin object)) " ")))
-         ((plane-p object)
+           (mapconcat #'gdscript-debug--vector2-to-string (list (transform2d->x variant) (transform2d->y variant) (transform2d->origin variant)) " ")))
+         ((plane-p variant)
           (list
            (gdscript-debug--type-face "Plane")
-           (concat (gdscript-debug--vector3-to-string (plane->normal object)) " " (number-to-string (plane->distance object)))))
-         ((quat-p object)
+           (concat (gdscript-debug--vector3-to-string (plane->normal variant)) " " (number-to-string (plane->distance variant)))))
+         ((quat-p variant)
           (list
            (gdscript-debug--type-face "Quat")
-           (mapconcat #'number-to-string (list (quat->x-imaginary object) (quat->y-imaginary object) (quat->z-imaginary object) (quat->real-w object)) " ")))
-         ((aabb-p object)
+           (mapconcat #'number-to-string (list (quat->x-imaginary variant) (quat->y-imaginary variant) (quat->z-imaginary variant) (quat->real-w variant)) " ")))
+         ((aabb-p variant)
           (list
            (gdscript-debug--type-face "AABB")
-           (mapconcat #'gdscript-debug--vector3-to-string (list (aabb->position object) (aabb->size object)) " ")))
-         ((basis-p object)
+           (mapconcat #'gdscript-debug--vector3-to-string (list (aabb->position variant) (aabb->size variant)) " ")))
+         ((basis-p variant)
           (list
            (gdscript-debug--type-face "Basis")
-           (gdscript-debug--basis-to-string object)))
-         ((transform-p object)
+           (gdscript-debug--basis-to-string variant)))
+         ((transform-p variant)
           (list
            (gdscript-debug--type-face "Transform")
-           (concat (gdscript-debug--basis-to-string (transform->basis object)) " " (gdscript-debug--vector3-to-string (transform->origin object)))))
-         ((color-p object)
+           (concat (gdscript-debug--basis-to-string (transform->basis variant)) " " (gdscript-debug--vector3-to-string (transform->origin variant)))))
+         ((color-p variant)
           (list
            (gdscript-debug--type-face "Color")
-           (gdscript-debug--color-to-string object)))
-         ((node-path-p object)
+           (gdscript-debug--color-to-string variant)))
+         ((node-path-p variant)
           (list
            (gdscript-debug--type-face "NodePath")
-           (gdscript-debug--string-face (concat (when (prim-bool->value (node-path->absolute object)) "/") (mapconcat #'prim-string->value (node-path->names object) "/") (when-let* ((subnames (node-path->subnames object))) (concat ":" (mapconcat #'prim-string->value subnames ":")))))))
-         ((rid-p object)
+           (gdscript-debug--constant-face (concat (when (prim-bool->value (node-path->absolute variant)) "/") (mapconcat #'prim-string->value (node-path->names variant) "/") (when-let* ((subnames (node-path->subnames variant))) (concat ":" (mapconcat #'prim-string->value subnames ":")))))))
+         ((rid-p variant)
           (list
            (gdscript-debug--type-face "RID")))
-         ((object-id-p object)
-          (let* ((object-id (object-id->value object))
+         ((object-id-p variant)
+          (let* ((object-id (object-id->value variant))
                  (object-id-data (gethash object-id gdscript-debug--inspected-objects)))
             (list
-             (if object-id-data
-                 (gdscript-debug--type-face (inspect-object->class object-id-data))
-               (format "Loading..." (number-to-string object-id)))
-             (concat (format "ObjectID: %s" (number-to-string object-id))
+             (if object-id-data (gdscript-debug--type-face (inspect-object->class object-id-data)) "ObjectID")
+             (concat (gdscript-debug--comment-face (format "ObjectID: %s" (number-to-string object-id)))
                      (when object-id-data
                        (let* ((property (car (inspect-object->properties object-id-data)))
                               (name (property-info->name property)))
                          (when (equal name "Node/path")
                            (concat " " (print-data->string-repr (gdscript-debug--pure-stringify (property-info->variant property) property-name buffer-type t))))))))))
-         ((dictionary-p object)
+         ((dictionary-p variant)
           (list
            (gdscript-debug--type-face "Dictionary")
-           (gdscript-debug--dictionary-inline-string object property-name buffer-type)
-           (gdscript-debug--dictionary-multiline-string object property-name buffer-type)))
-         ((prim-array-p object)
+           (gdscript-debug--dictionary-inline-string variant property-name buffer-type)
+           (gdscript-debug--dictionary-multiline-string variant property-name buffer-type)))
+         ((prim-array-p variant)
           (list
            (gdscript-debug--type-face "Array")
-           (concat "[" (mapconcat (lambda (element) (print-data->string-repr (gdscript-debug--pure-stringify element property-name buffer-type t))) (prim-array->elements object) ", ") "]")
-           (concat "[" (mapconcat (lambda (element) (print-data->string-repr (gdscript-debug--pure-stringify element property-name buffer-type t))) (prim-array->elements object) ", ") "]")))
-         ((pool-byte-array-p object)
+           (concat "[" (mapconcat (lambda (element) (print-data->string-repr (gdscript-debug--pure-stringify element property-name buffer-type t))) (prim-array->elements variant) ", ") "]")
+           (concat "[" (mapconcat (lambda (element) (print-data->string-repr (gdscript-debug--pure-stringify element property-name buffer-type t))) (prim-array->elements variant) ", ") "]")))
+         ((pool-byte-array-p variant)
           (list
            (gdscript-debug--type-face "PoolByteArray")
-           (concat "[" (mapconcat #'number-to-string (pool-byte-array->elements object) " ") "]")
-           (concat "[" (mapconcat #'number-to-string (pool-byte-array->elements object) " ") "]")))
-         ((pool-int-array-p object)
+           (concat "[" (mapconcat #'number-to-string (pool-byte-array->elements variant) " ") "]")
+           (concat "[" (mapconcat #'number-to-string (pool-byte-array->elements variant) " ") "]")))
+         ((pool-int-array-p variant)
           (list
            (gdscript-debug--type-face "PoolIntArray")
-           (concat "[" (mapconcat (lambda (int) (number-to-string (prim-integer->value int))) (pool-int-array->elements object) " ") "]")
-           (concat "[" (mapconcat (lambda (int) (number-to-string (prim-integer->value int))) (pool-int-array->elements object) " ") "]")))
-         ((pool-real-array-p object)
+           (concat "[" (mapconcat (lambda (int) (number-to-string (prim-integer->value int))) (pool-int-array->elements variant) " ") "]")
+           (concat "[" (mapconcat (lambda (int) (number-to-string (prim-integer->value int))) (pool-int-array->elements variant) " ") "]")))
+         ((pool-real-array-p variant)
           (list
            (gdscript-debug--type-face "PoolRealArray")
-           (gdscript-debug--pool-real-array-inline-string object)
-           (gdscript-debug--pool-real-array-multiline-string object)))
-         ((pool-string-array-p object)
+           (gdscript-debug--pool-real-array-inline-string variant)
+           (gdscript-debug--pool-real-array-multiline-string variant)))
+         ((pool-string-array-p variant)
           (list
            (gdscript-debug--type-face "PoolStringArray")
-           (gdscript-debug--pool-string-array-inline-string object)
-           (gdscript-debug--pool-string-array-multiline-string object)))
-         ((pool-vector2-array-p object)
+           (gdscript-debug--pool-string-array-inline-string variant)
+           (gdscript-debug--pool-string-array-multiline-string variant)))
+         ((pool-vector2-array-p variant)
           (list
            (gdscript-debug--type-face "PoolVector2Array")
-           (gdscript-debug--pool-vector2-array-inline-string object)
-           (gdscript-debug--pool-vector2-array-multiline-string object)))
-         ((pool-vector3-array-p object)
+           (gdscript-debug--pool-vector2-array-inline-string variant)
+           (gdscript-debug--pool-vector2-array-multiline-string variant)))
+         ((pool-vector3-array-p variant)
           (list
            (gdscript-debug--type-face "PoolVector3Array")
-           (gdscript-debug--pool-vector3-array-inline-string object)
-           (gdscript-debug--pool-vector3-array-multiline-string object)))
-         ((pool-color-array-p object)
+           (gdscript-debug--pool-vector3-array-inline-string variant)
+           (gdscript-debug--pool-vector3-array-multiline-string variant)))
+         ((pool-color-array-p variant)
           (list
            (gdscript-debug--type-face "PoolColorArray")
-           (gdscript-debug--pool-color-array-inline-string object)
-           (gdscript-debug--pool-color-array-multiline-string object)))
-         (t (error "[gdscript-debug--pure-stringify] Invalid type %s" object)))
+           (gdscript-debug--pool-color-array-inline-string variant)
+           (gdscript-debug--pool-color-array-multiline-string variant)))
+         (t (error "[gdscript-debug--pure-stringify] Invalid type %s" variant)))
    property-name
    buffer-type
    inline-only))
@@ -1115,9 +1145,9 @@ in buffer `buffer' should be rendered multiline.")
 (defun gdscript-debug--initial-multiline-visibility (string init)
   (propertize string 'invisible init 'multiline t))
 
-(defun gdscript-debug--dictionary-inline-string (object property-name buffer-type)
+(defun gdscript-debug--dictionary-inline-string (is-object-id property-name buffer-type)
   (concat "{" (mapconcat (lambda (key-value)
-                           (gdscript-debug--key-value-to-string key-value property-name buffer-type)) (dictionary->elements object) ", ") "}"))
+                           (gdscript-debug--key-value-to-string key-value property-name buffer-type)) (dictionary->elements is-object-id) ", ") "}"))
 
 (defun gdscript-debug--dictionary-multiline-string (dictionary property-name buffer-type)
   (let ((table (gdscript-debug-table-create)))
@@ -1133,39 +1163,40 @@ in buffer `buffer' should be rendered multiline.")
                (t nil)))))
     (concat "{\n" (gdscript-debug--table-string table " ") "\n}")))
 
-(defun gdscript-debug--pool-real-array-inline-string (object)
-  (concat "[" (mapconcat (lambda (real) (number-to-string (prim-float->value real))) (pool-real-array->elements object) " ") "]"))
+(defun gdscript-debug--pool-real-array-inline-string (is-object-id)
+  (concat "[" (mapconcat (lambda (real) (number-to-string (prim-float->value real))) (pool-real-array->elements is-object-id) " ") "]"))
 
-(defun gdscript-debug--pool-real-array-multiline-string (object)
-  (concat "[\n" (mapconcat (lambda (real) (concat "  " (number-to-string (prim-float->value real)) "\n")) (pool-real-array->elements object) "") "]"))
+(defun gdscript-debug--pool-real-array-multiline-string (is-object-id)
+  (concat "[\n" (mapconcat (lambda (real) (concat "  " (number-to-string (prim-float->value real)) "\n")) (pool-real-array->elements is-object-id) "") "]"))
 
-(defun gdscript-debug--pool-string-array-inline-string (object)
-  (concat "[" (mapconcat #'prim-string->value (pool-string-array->elements object) " ") "]"))
+(defun gdscript-debug--pool-string-array-inline-string (is-object-id)
+  (concat "[" (mapconcat (lambda (o)
+                           (gdscript-debug--string-face (prim-string->value o))) (pool-string-array->elements is-object-id) " ") "]"))
 
-(defun gdscript-debug--pool-string-array-multiline-string (object)
+(defun gdscript-debug--pool-string-array-multiline-string (is-object-id)
   (concat "[\n" (mapconcat (lambda (o)
-                             (concat "  " (prim-string->value o) "\n")) (pool-string-array->elements object) "") "]"))
+                             (concat "  " (gdscript-debug--string-face (prim-string->value o)) "\n")) (pool-string-array->elements is-object-id) "") "]"))
 
-(defun gdscript-debug--pool-vector2-array-inline-string (object)
-  (concat "[" (mapconcat #'gdscript-debug--vector2-to-string (pool-vector2-array->elements object) " ") "]"))
+(defun gdscript-debug--pool-vector2-array-inline-string (is-object-id)
+  (concat "[" (mapconcat #'gdscript-debug--vector2-to-string (pool-vector2-array->elements is-object-id) " ") "]"))
 
-(defun gdscript-debug--pool-vector2-array-multiline-string (object)
+(defun gdscript-debug--pool-vector2-array-multiline-string (is-object-id)
   (concat "[\n" (mapconcat (lambda (o)
-                             (concat "  " (gdscript-debug--vector2-to-string o) "\n")) (pool-vector2-array->elements object) "") "]"))
+                             (concat "  " (gdscript-debug--vector2-to-string o) "\n")) (pool-vector2-array->elements is-object-id) "") "]"))
 
-(defun gdscript-debug--pool-vector3-array-inline-string (object)
-  (concat "[" (mapconcat #'gdscript-debug--vector3-to-string (pool-vector3-array->elements object) " ") "]"))
+(defun gdscript-debug--pool-vector3-array-inline-string (is-object-id)
+  (concat "[" (mapconcat #'gdscript-debug--vector3-to-string (pool-vector3-array->elements is-object-id) " ") "]"))
 
-(defun gdscript-debug--pool-vector3-array-multiline-string (object)
+(defun gdscript-debug--pool-vector3-array-multiline-string (is-object-id)
   (concat "[\n" (mapconcat (lambda (o)
-                             (concat "  " (gdscript-debug--vector3-to-string o) "\n")) (pool-vector3-array->elements object) "") "]"))
+                             (concat "  " (gdscript-debug--vector3-to-string o) "\n")) (pool-vector3-array->elements is-object-id) "") "]"))
 
-(defun gdscript-debug--pool-color-array-inline-string (object)
-  (concat "[" (mapconcat #'gdscript-debug--color-to-string (pool-color-array->elements object) " ") "]"))
+(defun gdscript-debug--pool-color-array-inline-string (is-object-id)
+  (concat "[" (mapconcat #'gdscript-debug--color-to-string (pool-color-array->elements is-object-id) " ") "]"))
 
-(defun gdscript-debug--pool-color-array-multiline-string (object)
+(defun gdscript-debug--pool-color-array-multiline-string (is-object-id)
   (concat "[\n" (mapconcat (lambda (o)
-                             (concat "  " (gdscript-debug--color-to-string o) "\n")) (pool-color-array->elements object) "") "]"))
+                             (concat "  " (gdscript-debug--color-to-string o) "\n")) (pool-color-array->elements is-object-id) "") "]"))
 
 (defun gdscript-debug--to-print-data (args property-name buffer-type &optional inline-only)
   (pcase args
@@ -1188,8 +1219,17 @@ in buffer `buffer' should be rendered multiline.")
                           (:conc-name print-data->))
   type-name string-repr)
 
+(defun gdscript-debug--keyword-face (string)
+  (propertize string 'font-lock-face font-lock-keyword-face))
+
 (defun gdscript-debug--string-face (string)
   (propertize string 'font-lock-face font-lock-string-face))
+
+(defun gdscript-debug--constant-face (string)
+  (propertize string 'font-lock-face font-lock-constant-face))
+
+(defun gdscript-debug--comment-face (string)
+  (propertize string 'font-lock-face font-lock-comment-face))
 
 (defun gdscript-debug--builtin-face (string)
   (propertize string 'font-lock-face font-lock-builtin-face))
@@ -1208,7 +1248,7 @@ in buffer `buffer' should be rendered multiline.")
             (print-data->string-repr (gdscript-debug--pure-stringify value property-name buffer-type t)))))
 
 (defun gdscript-debug--prim-bool-to-string (prim-bool)
-  (if (prim-bool->value prim-bool) "true" "false"))
+  (if (prim-bool->value prim-bool) (gdscript-debug--keyword-face "true") (gdscript-debug--keyword-face "false")))
 
 (defun gdscript-debug--color-to-string (color)
   (format "(%s)" (mapconcat #'number-to-string (list (color->red color) (color->green color) (color->blue color) (color->alpha color)) ", ")))
@@ -1221,14 +1261,6 @@ in buffer `buffer' should be rendered multiline.")
 
 (defun gdscript-debug--vector3-to-string (vector3)
   (concat "(" (number-to-string (vector3->x vector3)) ", " (number-to-string (vector3->y vector3)) ", " (number-to-string (vector3->z vector3)) ")"))
-
-(defun gdscript-debug--fetch-object-id-data (object buffer-symbol)
-  (when (and
-         (object-id-p object)
-         (null (gethash (object-id->value object) gdscript-debug--inspected-objects)))
-    (let ((object-id (object-id->value object)))
-      (puthash object-id buffer-symbol gdscript-debug--object-to-buffer-mapping)
-      (gdscript-debug-inspect-object object-id))))
 
 (defvar server-clients '()
   "List with client processes")
@@ -1248,7 +1280,6 @@ in buffer `buffer' should be rendered multiline.")
           gdscript-debug--offset 0
           gdscript-debug--data-needed nil
           gdscript-debug--inspected-objects (make-hash-table)
-          gdscript-debug--object-to-buffer-mapping (make-hash-table)
           gdscript-debug--multiline-on (make-hash-table :test #'equal)
           gdscript-debug--inspector-stack nil
           gdscript-debug--inspector-focused-object-id nil
@@ -1272,8 +1303,6 @@ in buffer `buffer' should be rendered multiline.")
   (declare (indent 0) (debug t))
   `(pcase server-clients
      (`(,server-process) (progn ,@body))))
-
-;;(print (macroexpand '(gdscript-debug--send-command server-process (message "HIII %s" server-process))))
 
 (defun gdscript-debug-inspect-object (object-id)
   (gdscript-debug--send-command
@@ -1384,8 +1413,6 @@ in buffer `buffer' should be rendered multiline.")
 
 (defun boolean-to-integer (b)
   (if (null b) 0 1))
-
-;; (print (symbol-function 'gdscript-debug--get-stack-frame-vars))
 
 (defun gdscript-debug--inspect-object (object-id)
   (let* ((command "inspect_object")
@@ -1506,8 +1533,6 @@ BUFFER nil or omitted means use the current buffer."
     (when (overlay-get overlay 'put-break)
       (delete-overlay overlay))))
 
-;;(make-overlay (line-beginning-position) (line-beginning-position) 'before-string)
-
 (defun gdscript-debug--absolute-path ()
   "Return the absolute path of current gdscript file."
   (when (and buffer-file-name
@@ -1528,10 +1553,6 @@ BUFFER nil or omitted means use the current buffer."
      (if (not (car ,file-info))
          (message "No GDScript file.")
        ,body)))
-
-;; (print (macroexpand '(gdscript-debug--with-gdscript-file gdscript-file
-;;  (let ((line (line-number-at-pos)))
-;;    (message "No breakpoint at %s:%s" line gdscript-file)))))
 
 (defun gdscript-debug-remove-breakpoint ()
   (interactive)
@@ -1841,7 +1862,7 @@ calling `gdscript-debug--table-string'."
             (line (breakpoint->line breakpoint)))
         (save-selected-window
           (let* ((buffer (find-file-noselect file))
-                 (window (display-buffer buffer)))
+                 (window (gdscript-debug--display-buffer buffer)))
             (with-current-buffer buffer
               (goto-char (point-min))
               (forward-line (1- line))
@@ -1863,12 +1884,10 @@ calling `gdscript-debug--table-string'."
 (defun gdscript-debug--show-object-id (object-id)
   (if (gethash object-id gdscript-debug--inspected-objects)
       (gdscript-debug--refresh-inspector-buffer)
-    (gdscript-debug--fetch-object-id-data (object-id-create :value object-id) 'inspector-buffer))
-  (save-selected-window
-    (let* ((buffer (gdscript-debug--get-inspector-buffer))
-           (window (display-buffer buffer)))
-      (with-current-buffer buffer
-        (set-window-point window (point))))))
+    (if gdscript-debug-state
+        (message "Cannot inspect object-id now")
+      (setq gdscript-debug-state :refresh-inspector)
+      (gdscript-debug-inspect-object object-id))))
 
 (defun gdscript-debug-show-stack-frame-vars ()
   (interactive)
@@ -1934,8 +1953,8 @@ calling `gdscript-debug--table-string'."
     (define-key map " " 'gdscript-debug-jump-to-stack-point)
     (define-key map "p" 'previous-line)
     (define-key map "n" 'next-line)
+    (define-key map "l" 'gdscript-debug-display-stack-frame-vars-buffer)
     (define-key map "\r" 'gdscript-debug-show-stack-frame-vars)
-    (define-key map "\t" 'gdscript-debug-display-stack-frame-vars-buffer)
     (define-key map "?" 'describe-mode)
     (define-key map (kbd "C-c n") 'gdscript-debug-hydra)
     (define-key map (kbd "C-c r") 'gdscript-hydra-show)
@@ -1957,6 +1976,7 @@ calling `gdscript-debug--table-string'."
 (defvar gdscript-debug--stack-frame-vars-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
+    (define-key map "d" 'gdscript-debug-fetch-object-ids-detail)
     (define-key map "q" 'kill-current-buffer)
     (define-key map "p" 'previous-line)
     (define-key map "n" 'next-line)
@@ -1971,6 +1991,7 @@ calling `gdscript-debug--table-string'."
 (defvar gdscript-debug--inspector-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
+    (define-key map "d" 'gdscript-debug-fetch-object-ids-detail)
     (define-key map "q" 'kill-current-buffer)
     (define-key map "p" 'previous-line)
     (define-key map "n" 'next-line)
@@ -2026,31 +2047,89 @@ In that buffer, `gdscript-debug--buffer-type' must be equal to BUFFER-TYPE."
 (defun gdscript-debug--get-scene-tree-buffer ()
   (gdscript-debug--get-buffer-create 'scene-tree-buffer))
 
+(defun gdscript-debug--many-windows (buffer-to-display action-alist)
+  (let ((mode-to-display (with-current-buffer buffer-to-display major-mode))
+        (window-to-switch))
+    (when
+        (or (eq mode-to-display 'gdscript-debug--breakpoints-mode)
+            (eq mode-to-display 'gdscript-debug--stack-dump-mode)
+            (eq mode-to-display 'gdscript-debug--stack-frame-vars-mode)
+            (eq mode-to-display 'gdscript-debug--inspector-mode)
+            (eq mode-to-display 'gdscript-debug--scene-tree-mode))
+      (mapc (lambda (window)
+              (with-current-buffer (window-buffer window)
+                (when (not
+                       (or (eq major-mode 'gdscript-mode)
+                           (eq window lv-wnd)))
+                  (setq window-to-switch window)
+                  (set-window-buffer window buffer-to-display))))
+            (window-list)))
+    window-to-switch))
+
+(defun gdscript-debug--set-window-buffer (window stack-dump)
+  (let ((buffer (find-file-noselect (concat (cdr gdscript-debug--stack-dump) (gdscript-debug--drop-res (stack-dump->file stack-dump))))))
+    (set-window-buffer window buffer)
+    (with-current-buffer buffer
+      (goto-char (point-min))
+      (forward-line (1-  (stack-dump->line stack-dump)))
+      (set-window-point window (point)))))
+
+(defun gdscript-debug-windows ()
+  (delete-other-windows)
+  (gdscript-debug-hydra)
+  (pcase (car gdscript-debug--stack-dump)
+    (`() nil)
+    (`(,a)
+     (let* ((top-left (selected-window))
+            (bottom-left (split-window))
+            (bottom-right (split-window bottom-left nil t)))
+       (set-window-buffer top-left (find-file-noselect (concat (cdr gdscript-debug--stack-dump) (gdscript-debug--drop-res (stack-dump->file a)))))
+       (set-window-buffer bottom-left (gdscript-debug--get-inspector-buffer))
+       (set-window-buffer bottom-right (gdscript-debug--get-stack-frame-vars-buffer))))
+    (_
+     (let ((a (caar gdscript-debug--stack-dump))
+           (b (cadr (car gdscript-debug--stack-dump))))
+       (let* ((top-left (selected-window))
+              (bottom-left (split-window))
+              (top-right (split-window nil nil t))
+              (bottom-right (split-window bottom-left nil t)))
+
+         (gdscript-debug--set-window-buffer top-left b)
+         (gdscript-debug--set-window-buffer top-right a)
+         (set-window-buffer bottom-left (gdscript-debug--get-inspector-buffer))
+         (set-window-buffer bottom-right (gdscript-debug--get-stack-frame-vars-buffer))
+         (select-window top-right))))))
+
+(defun gdscript-debug--display-buffer (buffer)
+  (display-buffer buffer
+                  '((display-buffer-reuse-window
+                     gdscript-debug--many-windows))))
+
 (defun gdscript-debug-display-stack-dump-buffer ()
   "Display stack dump."
   (interactive)
-  (display-buffer (gdscript-debug--get-stack-dump-buffer)))
+  (display-buffer (gdscript-debug--get-stack-dump-buffer) '((display-buffer-same-window))))
 
 (defun gdscript-debug-display-stack-frame-vars-buffer ()
   "Display the variables of current stack."
   (interactive)
-  (display-buffer (gdscript-debug--get-stack-frame-vars-buffer)))
+  (display-buffer (gdscript-debug--get-stack-frame-vars-buffer) '((display-buffer-same-window))))
 
 (defun gdscript-debug-display-breakpoint-buffer ()
   "Display the breakpoints."
   (interactive)
-  (display-buffer (gdscript-debug--get-breakpoint-buffer))
+  (display-buffer (gdscript-debug--get-breakpoint-buffer) '((display-buffer-same-window)))
   (refresh-breakpoints-buffer))
 
 (defun gdscript-debug-display-inspector-buffer ()
   "Display the inspector."
   (interactive)
-  (display-buffer (gdscript-debug--get-inspector-buffer)))
+  (gdscript-debug--display-buffer (gdscript-debug--get-inspector-buffer)))
 
 (defun gdscript-debug-display-scene-tree-buffer ()
   "Display the Scene tree."
   (interactive)
-  (display-buffer (gdscript-debug--get-scene-tree-buffer)))
+  (display-buffer (gdscript-debug--get-scene-tree-buffer) '((display-buffer-same-window))))
 
 (defun gdscript-debug-display-source-buffer ()
   "Using stack dump jump to the source"
@@ -2168,9 +2247,6 @@ In that buffer, `gdscript-debug--buffer-type' must be equal to BUFFER-TYPE."
   "Major mode for scene tree."
   (setq header-line-format "Scene Tree"))
 
-(defvar gdscript-debug--inspector-stack nil
-  "A stack of inspected objects for breadcrumb rendering.")
-
 (defun gdscript-debug--stack-dump-buffer-name ()
   (concat "* Stack dump *"))
 
@@ -2230,17 +2306,17 @@ In that buffer, `gdscript-debug--buffer-type' must be equal to BUFFER-TYPE."
   ;; Don't signal an error when hydra.el is not present
   (defhydra gdscript-debug--hydra (:hint none)
     "
-_n_ next  _c_ continue  _m_ step _b_ breakpoints _d_ stack _v_ vars _i_ inspector _t_ scene-tree _s_ source _q_ quit
+_n_ next _c_ continue _m_ step _b_ breakpoints _s_ stack _v_ vars _i_ inspector _t_ scene-tree _d_ details _q_ quit
 "
     ("n" (gdscript-debug-next))
     ("c" (gdscript-debug-continue))
     ("m" (gdscript-debug-step))
-    ("d" (gdscript-debug-display-stack-dump-buffer))
+    ("s" (gdscript-debug-display-stack-dump-buffer))
     ("b" (gdscript-debug-display-breakpoint-buffer))
     ("v" (gdscript-debug-display-stack-frame-vars-buffer))
     ("i" (gdscript-debug-display-inspector-buffer))
     ("t" (gdscript-debug-request-scene-tree))
-    ("s" (gdscript-debug-display-source-buffer))
+    ("d" (gdscript-debug-fetch-object-ids-detail))
     ("q" nil)))
 
 (defun gdscript-debug-hydra ()
