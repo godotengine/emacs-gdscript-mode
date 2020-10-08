@@ -217,7 +217,8 @@ The following shortcuts are available by default:
   - <kbd>C-c C-b a</kbd> `gdscript-docs-browse-api`
   - <kbd>C-c C-b o</kbd> `gdscript-docs-browse-symbol-at-point`
 - Open hydra:
-  - <kbd>C-c r</kbd> `gdscript-hydra-show` (require hydra package to be installed
+  - <kbd>C-c r</kbd> `gdscript-hydra-show` (require hydra package to be installed)
+  - <kbd>C-c n</kbd> `gdscript-debug-hydra` (require hydra package to be installed)
 
 ## Customization
 
@@ -234,53 +235,93 @@ Code example:
 
 ## Debugger
 
-When any breakpoint exists, running Project will automatically start debugger server (if one isn't already running) and connect to it.
+Use <kbd>C-c C-d b</kbd> to add breakpoint to your GDScript file. Red dot will appear in the left fringe to indicate position where breakpoint is placed.
+Use <kbd>C-c C-d r</kbd> to remove breakpoint.
+
+Once first breakpoint is added to the project, buffer named `* Breakpoints *` is created. This buffer displays all existing breakpoints in a project. Pressing <kbd>D</kbd> on breakpoint line deletes the breakpoint. Pressing <kbd>RET</kbd> on breakpoint line shows GDScript file with that breakpoint in other buffer.
+
+When any breakpoint exists, running project will automatically start debugger server (if one isn't already running) and connect to it.
 Debugger server runs on `localhost` with port specified by `gdscript-debug-port` customizable variable (`9010` by default).
 
-### Special buffers
-There are four special purpose buffers containing various information.
+Once breakpoint is hit in your code, Emacs will show two special buffers with information related to a position of the breakpoint:
 
-#### * Breakpoints *
-Contains list of existing breakpoints.
+- `* Stack frame vars *` - Display locals/members/globals variables for current stack point. It show variable name, its type and its value.
+- `* Inspector *` - Display detailed information about selected `ObjectId`. By default it show `self` reference.
 
-- Key bindings:
-  - <kbd>SPC</kbd> `gdscript-debug-toggle-breakpoint`
-  - <kbd>RET</kbd> `gdscript-debug-goto-breakpoint`
-  - <kbd>TAB</kbd> `gdscript-debug-display-stack-dump-buffer`
-  - <kbd>D</kbd> `gdscript-debug-delete-breakpoint`
+Any `ObjectId` in those two buffers can be inspected by pressing <kbd>RET</kbd> when point is on corresponding line.
 
-`gdscript-debug-toggle-breakpoint` command will enable/disable all breakpoints.
+### Oneline/multiline display
 
-#### * Stack dump *
+Variable values of types `Dictionary`, `PoolRealArray`, `PoolStringArray`, `PoolVector2Array`, `PoolVector3Array` and `PoolColorArray` could be toggled from one line display to multiline display by pressing `TAB` on corresponding line.
+
+### Fetching `ObjectId` details
+
+Pressing <kbd>d</kbd> in `* Stack frame vars *` or `* Inspector *` buffers (or on Debug Hydra) will fetch on the background data for all `ObjectId`s present in those two buffers and once all `ObjectId`s data are fetched, these two buffer are redisplayed. This redisplay will contain two additional informations about given `ObjectId`:
+ - real type (for example `KinematicBody2D` instead of `ObjectId`)
+ - node path
+
+Also fetched data are cached and not fetched again when said `ObjectId` is inspected later on (until new breakpoint is hit).
+
+On breakpoint hit Debug Hydra will be displayed below `* Stack frame vars *` and `* Inspector *` buffers.
+
+### Debug Hydra
+
+```
+n next  c continue  m step  b breakpoints  s stack  v vars  i inspector  t scene-tree  d details  q quit
+```
+
+ - <kbd>n</kbd> - Jump to next line and stops there
+ - <kbd>c</kbd> - Continue program execution until another breakpoint is hit
+ - <kbd>m</kbd> - Step into
+ - <kbd>s</kbd> - Show `* Stack dump *` buffer
+ - <kbd>v</kbd> - Show `* Stack frame vars *` buffer
+ - <kbd>i</kbd> - Show `* Inspector *` buffer
+ - <kbd>t</kbd> - Show `* Scene tree *` buffer
+ - <kbd>d</kbd> - Fetch details for all `ObjectId`s present in `* Stack frame vars *` and `* Inspector *` buffers and redisplay them.
+ - <kbd>q</kbd> - Close Debug Hydra
+
+### `* Stack frame vars *` buffer
+
+Main source of information about running program. Contains information about locals/members/globals variables.
+
+- Press <kbd>TAB</kbd> to toggling oneline/multiline display for selected types
+- Press <kbd>RET</kbd> on `ObjectId` line to display its details
+- Press <kbd>l</kbd> to display `* Stack dump *` buffer
+- Press <kbd>d</kbd> to display additional details for `ObjectId` variables
+- Press <kbd>p</kbd> to go to previous line
+- Press <kbd>n</kbd> to go to next line
+- Press <kbd>q</kbd> to close the buffer
+
+### `* Inspector *` buffer
+
+Contains information about inspected object. By default `self` variable from `* Stack frame vars *` is displayed. Inspected object is kept to be focused until other object is inspected or until inspected object cease to exists, in which case current `self` is displayed instead.
+
+- Press <kbd>TAB</kbd> to toggling oneline/multiline display for selected types
+- Press <kbd>RET</kbd> on `ObjectId` line to display its details
+- Press <kbd>RET</kbd> on `Node/path` line (second line from the top) to show given `ObjectId` in `* Scene Tree *` buffer
+- Press <kbd>l</kbd> deep in nested `ObjectId` to navigate one level up in the structure (ie. back). Pressing `l` while on top level object displays `* Stack frame vars *` buffer
+- Press <kbd>d</kbd> to display additional details for `ObjectId` variables
+- Press <kbd>p</kbd> to go to previous line
+- Press <kbd>n</kbd> to go to next line
+- Press <kbd>q</kbd> to close the buffer
+
+### `* Stack dump *` buffer
+
 Contains stack dump information.
 
-- Key bindings:
-  - <kbd>SPC</kbd> `gdscript-debug-jump-to-stack-point`
-  - <kbd>RET</kbd> `gdscript-debug-show-stack-frame-vars`
-  - <kbd>TAB</kbd> `gdscript-debug-display-stack-frame-vars-buffer`
-  - <kbd>n</kbd> `next-line`
-  - <kbd>p</kbd> `previous-line`
+- Press <kbd>SPC</kbd> to jump to gdscript file where stack frame points to
+- Press <kbd>RET</kbd> to jump to gdscript file and to show `* Stack frame vars *`, `* Inspector *` buffers and a Debug Hydra
+- Press <kbd>l</kbd> to display `* Stack frame vars *` buffer
+- Press <kbd>p</kbd> to go to previous line
+- Press <kbd>n</kbd> to go to next line
+- Press <kbd>q</kbd> to close the buffer
 
-#### * Stack frame vars *
-Display locals/members/globals variables for current stack point.
-Variables of type `ObjectId` can be furher inspected by pressing <kbd>RET</kbd> when point is at `Object ID: xxxx` text.
+### `* Breakpoints *` buffer
 
-- Key bindings:
-  - <kbd>RET</kbd> `gdscript-debug-inspect-object-id`
-  - <kbd>TAB</kbd> `gdscript-debug-display-inspector-buffer`
+Contains list of all existing breakpoints.
 
-#### * Inspector *
-Display detailed information about selected `ObjectId`.
-
-- Key bindings:
-  - <kbd>RET</kbd> `gdscript-debug-display-breakpoint-buffer`
-
-### GDScript file keybinding
-
-- Placing breakpoints:
-  - <kbd>C-c C-d b</kbd> `gdscript-debug-add-breakpoint`
-  - <kbd>C-c C-d r</kbd> `gdscript-debug-remove-breakpoint`
-- When break at breakpoint:
-  - <kbd>C-c C-d n</kbd> `gdscript-debug-next`
-  - <kbd>C-c C-d c</kbd> `gdscript-debug-continue`
-  - <kbd>C-c C-d s</kbd> `gdscript-debug-step`
+- Press <kbd>SPC</kbd> to enable/disable all breakpoints
+- Press <kbd>RET</kbd> to open gdscript file where on give breakpoint position
+- Press <kbd>TAB</kbd> to display `* Stack dump *` buffer
+- Press <kbd>D</kbd> to delete the breakpoint
+- Press <kbd>q</kbd> to close the buffer
