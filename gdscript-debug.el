@@ -403,7 +403,7 @@ when breakpoint is encountered in Godot."
         (absolute (bindat-get-field struct :absolute)))
     (node-path-create :names names :subnames subnames :absolute (prim-bool-create :value absolute))))
 
-(defsubst to-rid (struct-data)
+(defsubst to-rid (_struct-data)
   (rid-create))
 
 (defsubst to-vector2 (struct-data)
@@ -438,7 +438,7 @@ when breakpoint is encountered in Godot."
      :y (vector2-create :x yx :y yy)
      :origin (vector2-create :x x-origin :y y-origin))))
 
-(defsubst to-null (struct-data)
+(defsubst to-null (_struct-data)
   (prim-null-create))
 
 (defsubst to-boolean (struct-data)
@@ -544,7 +544,7 @@ when breakpoint is encountered in Godot."
 
 (defun to-stack-dump (stack-data level)
   (pcase stack-data
-    (`(,file-key, file-value, line-key, line-value, function-key, function-value, id-key, id-value)
+    (`(,_file-key, file-value, _line-key, line-value, _function-key, function-value, _id-key, _id-value)
      (stack-dump-create
       :file (get-string file-value)
       :line (get-integer line-value)
@@ -575,13 +575,13 @@ when breakpoint is encountered in Godot."
     `(command "error" callstack-size ,callstack-size error-data ,(error-data-to-plist error-data) error-callstack-size, error-callstack-size)))
 
 (defun mk-performance (iter)
-  (let ((skip-this (iter-next iter))
+  (let ((_skip-this (iter-next iter))
         (performance-data (bindat-get-field (iter-next iter) :items)))
     `(command "performace" performance-data ,performance-data)))
 
 (defun read-var-names (iter count)
   (let ((variables))
-    (dotimes (i count)
+    (dotimes (_i count)
       (let* ((var-name (bindat-get-field (iter-next iter) :string-data))
              (var-value (iter-next iter))
              (var-val (from-variant var-value)))
@@ -589,7 +589,7 @@ when breakpoint is encountered in Godot."
     (reverse variables)))
 
 (defun mk-stack-frame-vars (iter)
-  (let* ((total-size (get-integer (iter-next iter)))
+  (let* ((_total-size (get-integer (iter-next iter)))
          (locals-size (get-integer (iter-next iter)))
          (locals (read-var-names iter locals-size))
          (members-size (get-integer (iter-next iter)))
@@ -626,7 +626,7 @@ when breakpoint is encountered in Godot."
         (node-class (get-string (iter-next iter)))
         (instance-id (get-integer (iter-next iter))))
     (let ((children))
-      (dotimes (i child-count)
+      (dotimes (_i child-count)
         (push (get-children iter) children))
       (scene-tree-level-edge-create :item (scene-tree-node-create
                                            :node-name node-name
@@ -645,11 +645,11 @@ when breakpoint is encountered in Godot."
   node-name node-class instance-id)
 
 (defun mk-scene-tree (iter)
-  (let ((array-size (get-integer (iter-next iter))))
+  (let ((_array-size (get-integer (iter-next iter))))
     (get-children iter)))
 
 (defun mk-inspect-object (iter)
-  (let ((three (get-integer (iter-next iter)))
+  (let ((_three (get-integer (iter-next iter)))
         (object-id (get-integer (iter-next iter)))
         (class (get-string (iter-next iter)))
         (properties (get-array (iter-next iter))))
@@ -666,20 +666,20 @@ when breakpoint is encountered in Godot."
 (defun mk-output (iter)
   (let ((output-count (bindat-get-field (iter-next iter) :integer-data))
         (outputs))
-    (dotimes (i output-count)
+    (dotimes (_i output-count)
       (let* ((data (iter-next iter))
              (output (bindat-get-field data :items 0 :string-data)))
         (setq outputs (cons output outputs))))
     `(command "output" outputs, outputs)))
 
 (defun mk-debug-enter (iter)
-  (let ((skip-this (iter-next iter))
+  (let ((_skip-this (iter-next iter))
         (can-continue (bindat-get-field (iter-next iter) :boolean-data))
         (reason (bindat-get-field (iter-next iter) :string-data)))
     (debug-enter-create :can-continue can-continue :reason reason)))
 
 (defun mk-debug-exit (iter)
-  (let ((skip-this (iter-next iter)))
+  (let ((_skip-this (iter-next iter)))
     '(command "debug_exit")))
 
 (defun line-posns (line)
@@ -720,7 +720,7 @@ when breakpoint is encountered in Godot."
   (setq gdscript-debug--previous-packet-data (concat gdscript-debug--previous-packet-data content))
   (when (or (null gdscript-debug--data-needed)
             (<= gdscript-debug--data-needed (length gdscript-debug--previous-packet-data)))
-    (condition-case x
+    (condition-case _x
         (let ((iter (gdscript-debug--command-iter)))
           (while t
             (let* ((next-data (iter-next iter))
@@ -735,19 +735,19 @@ when breakpoint is encountered in Godot."
                 ("debug_exit"
                  (gdscript-debug--command-handler
                   ;;(message "Received 'debug_exit' command")
-                  (let ((cmd (mk-debug-exit iter))))))
+                  (let ((_cmd (mk-debug-exit iter))))))
                 ("output"
                  (gdscript-debug--command-handler
                   ;;(message "Received 'output' command")
-                  (let ((cmd (mk-output iter))))))
+                  (let ((_cmd (mk-output iter))))))
                 ("error"
                  (gdscript-debug--command-handler
                   ;;(message "Received 'error' command")
-                  (let ((cmd (mk-error iter))))))
+                  (let ((_cmd (mk-error iter))))))
                 ("performance"
                  (gdscript-debug--command-handler
                   ;;(message "Received 'performance' command")
-                  (let ((cmd (mk-performance iter))))))
+                  (let ((_cmd (mk-performance iter))))))
                 ("stack_dump"
                  (gdscript-debug--command-handler
                   ;;(message "Received 'stack_dump' command")
@@ -897,16 +897,13 @@ in buffer `buffer' should be rendered multiline.")
         (unless (gethash (object-id->value variant) gdscript-debug--inspected-objects)
           (push variant gdscript-debug--object-ids-to-fetch))))))
 
-(let ((res)) (maphash (lambda (key value) (push key res)) gdscript-debug--inspected-objects) res)
-
-
 (defun gdscript-debug--refresh-inspector-buffer ()
   (when-let* ((inspect-object (gethash gdscript-debug--inspector-focused-object-id gdscript-debug--inspected-objects))
               (table (gdscript-debug-table-create)))
     (dolist (property (inspect-object->properties inspect-object))
       (let* ((variant (property-info->variant property))
              (usage (property-info->usage property))
-             (hint (property-info->hint property))
+             (_hint (property-info->hint property))
              (name (property-info->name property))
              (print-data (gdscript-debug--pure-stringify variant name 'inspector-buffer)))
         (when-let ((variant (property-info->variant property))
@@ -1603,7 +1600,6 @@ BUFFER nil or omitted means use the current buffer."
                 (dolist (overlay (overlays-in start end))
                   (when (overlay-get overlay 'put-break)
                     (let* ((string (overlay-get overlay 'before-string))
-                           (display-property (get-text-property 0 'display string))
                            (prop `(left-fringe breakpoint ,(if (not enabled) 'breakpoint-enabled 'breakpoint-disabled))))
                       (put-text-property 0 1 'display prop string))))))))))))
 
@@ -2047,7 +2043,7 @@ In that buffer, `gdscript-debug--buffer-type' must be equal to BUFFER-TYPE."
 (defun gdscript-debug--get-scene-tree-buffer ()
   (gdscript-debug--get-buffer-create 'scene-tree-buffer))
 
-(defun gdscript-debug--many-windows (buffer-to-display action-alist)
+(defun gdscript-debug--many-windows (buffer-to-display _action-alist)
   (let ((mode-to-display (with-current-buffer buffer-to-display major-mode))
         (window-to-switch))
     (when
@@ -2135,7 +2131,7 @@ In that buffer, `gdscript-debug--buffer-type' must be equal to BUFFER-TYPE."
   "Using stack dump jump to the source"
   (interactive)
   (with-current-buffer (gdscript-debug--get-stack-dump-buffer)
-    (beginning-of-buffer)
+    (goto-char (point-min))
     (gdscript-debug-jump-to-stack-point)))
 
 (defun gdscript-debug--remove-breakpoint-from-buffer (breakpoint)
