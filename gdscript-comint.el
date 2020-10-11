@@ -37,6 +37,7 @@
 (require 'comint)
 (require 'compile)
 (require 'gdscript-customization)
+(require 'gdscript-debug)
 (require 'gdscript-format)
 (require 'gdscript-utils)
 
@@ -47,6 +48,7 @@
                                              comint-mode-map))
     (define-key map (kbd "C-a") 'comint-bol)
     (define-key map (kbd "C-c r") 'gdscript-hydra-show)
+    (define-key map (kbd "C-c n") 'gdscript-debug-hydra)
     map)
   "Basic mode map for `godot-mode'.")
 

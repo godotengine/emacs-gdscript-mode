@@ -241,7 +241,7 @@ Use <kbd>C-c C-d r</kbd> to remove breakpoint.
 Once first breakpoint is added to the project, buffer named `* Breakpoints *` is created. This buffer displays all existing breakpoints in a project. Pressing <kbd>D</kbd> on breakpoint line deletes the breakpoint. Pressing <kbd>RET</kbd> on breakpoint line shows GDScript file with that breakpoint in other buffer.
 
 When any breakpoint exists, running project will automatically start debugger server (if one isn't already running) and connect to it.
-Debugger server runs on `localhost` with port specified by `gdscript-debug-port` customizable variable (`9010` by default).
+Debugger server runs on `localhost` with port specified by `gdscript-debug-port` customizable variable (`6010` by default).
 
 Once breakpoint is hit in your code, Emacs will show two special buffers with information related to a position of the breakpoint:
 
@@ -267,7 +267,8 @@ On breakpoint hit Debug Hydra will be displayed below `* Stack frame vars *` and
 ### Debug Hydra
 
 ```
-n next  c continue  m step  b breakpoints  s stack  v vars  i inspector  t scene-tree  d details  q quit
+n next  c continue  m step  b breakpoints  s stack  v vars  i inspector  t scene-tree  d details
+o pin   u unpin     q quit
 ```
 
  - <kbd>n</kbd> - Jump to next line and stops there
@@ -277,7 +278,9 @@ n next  c continue  m step  b breakpoints  s stack  v vars  i inspector  t scene
  - <kbd>v</kbd> - Show `* Stack frame vars *` buffer
  - <kbd>i</kbd> - Show `* Inspector *` buffer
  - <kbd>t</kbd> - Show `* Scene tree *` buffer
- - <kbd>d</kbd> - Fetch details for all `ObjectId`s present in `* Stack frame vars *` and `* Inspector *` buffers and redisplay them.
+ - <kbd>d</kbd> - Fetch details for all `ObjectId`s present in `* Stack frame vars *` and `* Inspector *` buffers and redisplay them
+ - <kbd>o</kbd> - Pin current `self` `ObjectId` in `* Inspector *` buffer. It stays displayed until it cease to exists or until it get unpinned
+ - <kbd>u</kbd> - Unpin currently pinned `ObjectId`
  - <kbd>q</kbd> - Close Debug Hydra
 
 ### `* Stack frame vars *` buffer
@@ -285,11 +288,13 @@ n next  c continue  m step  b breakpoints  s stack  v vars  i inspector  t scene
 Main source of information about running program. Contains information about locals/members/globals variables.
 
 - Press <kbd>TAB</kbd> to toggling oneline/multiline display for selected types
-- Press <kbd>RET</kbd> on `ObjectId` line to display its details
+- Press <kbd>RET</kbd> on `ObjectId` line to display its details in `* Inspector *`buffer
 - Press <kbd>l</kbd> to display `* Stack dump *` buffer
 - Press <kbd>d</kbd> to display additional details for `ObjectId` variables
 - Press <kbd>p</kbd> to go to previous line
 - Press <kbd>n</kbd> to go to next line
+- Press <kbd>o</kbd> to pin current `ObjectId` in `* Inspector *` buffer
+- Press <kbd>u</kbd> to unpin currently pinned `ObjectId`
 - Press <kbd>q</kbd> to close the buffer
 
 ### `* Inspector *` buffer
@@ -303,6 +308,8 @@ Contains information about inspected object. By default `self` variable from `* 
 - Press <kbd>d</kbd> to display additional details for `ObjectId` variables
 - Press <kbd>p</kbd> to go to previous line
 - Press <kbd>n</kbd> to go to next line
+- Press <kbd>o</kbd> to pin current `ObjectId` in `* Inspector *` buffer
+- Press <kbd>u</kbd> to unpin currently pinned `ObjectId`
 - Press <kbd>q</kbd> to close the buffer
 
 ### `* Stack dump *` buffer
@@ -324,4 +331,13 @@ Contains list of all existing breakpoints.
 - Press <kbd>RET</kbd> to open gdscript file where on give breakpoint position
 - Press <kbd>TAB</kbd> to display `* Stack dump *` buffer
 - Press <kbd>D</kbd> to delete the breakpoint
+- Press <kbd>q</kbd> to close the buffer
+
+### `* Scene tree *` buffer
+
+Contains tree visualisation of all `ObjectId`s in the running program.
+
+- Press <kbd>RET</kbd> to open corresponding `ObjectId` in `* Inspector *` buffer
+- Press <kbd>p</kbd> to go to previous line
+- Press <kbd>n</kbd> to go to next line
 - Press <kbd>q</kbd> to close the buffer
