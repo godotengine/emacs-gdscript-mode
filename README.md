@@ -7,12 +7,41 @@ This package adds support for the GDScript programming language from the Godot
 game engine in Emacs. It gives syntax highlighting and indentations.
 [Contributors](#contributing) are welcome!
 
+<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
+**Table of Contents**
+
+- [Features](#features)
+- [Contributing](#contributing)
+- [How to install](#how-to-install)
+- [How to use](#how-to-use)
+    - [Opening the project in the editor](#opening-the-project-in-the-editor)
+    - [Running Godot with visual debug options](#running-godot-with-visual-debug-options)
+    - [Using Hydra](#using-hydra)
+    - [Formatting code with gdformat](#formatting-code-with-gdformat)
+    - [Browsing the Godot API with eww](#browsing-the-godot-api-with-eww)
+- [Keyboard shortcuts](#keyboard-shortcuts)
+- [Customization](#customization)
+- [Using the debugger](#using-the-debugger)
+    - [Adding and removing breakpoints](#adding-and-removing-breakpoints)
+    - [Running the project with the debugger active](#running-the-project-with-the-debugger-active)
+    - [Fetching an object's details](#fetching-an-objects-details)
+    - [Debug Hydra](#debug-hydra)
+    - [The `* Stack frame vars *` buffer](#the--stack-frame-vars--buffer)
+    - [`* Inspector *` buffer](#-inspector--buffer)
+    - [`* Stack dump *` buffer](#-stack-dump--buffer)
+    - [`* Breakpoints *` buffer](#-breakpoints--buffer)
+    - [`* Scene tree *` buffer](#-scene-tree--buffer)
+
+<!-- markdown-toc end -->
+
+
 ## Features
 
-This mode already features all the essentials:
+This mode features all the essentials:
 
 - Syntax highlighting.
 - Code folding.
+- Debugger support.
 - [Imenu](https://www.gnu.org/software/emacs/manual/html_node/emacs/Imenu.html).
 - Support for scenes (`.tscn`) and script (`.gd`) files.
 - Comment wrapping when using `fill-paragraph`.
@@ -233,111 +262,120 @@ Code example:
 (setq gdscript-gdformat-save-and-format t) ;; Save all buffers and format them with gdformat anytime Godot executable is run.
 ```
 
-## Debugger
+## Using the debugger
 
-Use <kbd>C-c C-d b</kbd> to add breakpoint to your GDScript file. Red dot will appear in the left fringe to indicate position where breakpoint is placed.
-Use <kbd>C-c C-d r</kbd> to remove breakpoint.
+Emacs GDScript mode includes support for the GDScript debugger. You can use breakpoints, use code stepping functions, see your nodes' state at runtime, and more.
 
-Once first breakpoint is added to the project, buffer named `* Breakpoints *` is created. This buffer displays all existing breakpoints in a project. Pressing <kbd>D</kbd> on breakpoint line deletes the breakpoint. Pressing <kbd>RET</kbd> on breakpoint line shows GDScript file with that breakpoint in other buffer.
+To get started with this feature, you need to add a least one breakpoint.
 
-When any breakpoint exists, running project will automatically start debugger server (if one isn't already running) and connect to it.
-Debugger server runs on `localhost` with port specified by `gdscript-debug-port` customizable variable (`6010` by default).
+### Adding and removing breakpoints
 
-Once breakpoint is hit in your code, Emacs will show two special buffers with information related to a position of the breakpoint:
+You can add a breakpoint on the current line with `gdscript-debug-add-breakpoint` (<kbd>C-c C-d b</kbd>). A red dot should appear in the left fringe. Use `gdscript-debug-remove-breakpoint` (<kbd>C-c C-d r</kbd>) to remove a breakpoint on the current line.
 
-- `* Stack frame vars *` - Display locals/members/globals variables for current stack point. It show variable name, its type and its value.
-- `* Inspector *` - Display detailed information about selected `ObjectId`. By default it show `self` reference.
+After adding at least one breakpoint to the project, a buffer named `* Breakpoints *` is created. This buffer displays all existing breakpoints in a project. In that buffer, pressing <kbd>D</kbd> on a breakpoint line deletes the breakpoint. Pressing <kbd>RET</kbd> opens the corresponding GDScript file in another buffer.
 
-Any `ObjectId` in those two buffers can be inspected by pressing <kbd>RET</kbd> when point is on corresponding line.
+### Running the project with the debugger active
 
-### Oneline/multiline display
+When any breakpoint exists, running the project with `gdscript-godot-run-project` will automatically start the debugger's server if one isn't already running and connect to it.
 
-Variable values of types `Dictionary`, `PoolRealArray`, `PoolStringArray`, `PoolVector2Array`, `PoolVector3Array` and `PoolColorArray` could be toggled from one line display to multiline display by pressing `TAB` on corresponding line.
+The debugger's server runs on `localhost` through port `6010` by default. You can customize the port with the `gdscript-debug-port` variable.
 
-### Fetching `ObjectId` details
+Once Godot hits a breakpoint, Emacs displays two new buffers:
 
-Pressing <kbd>d</kbd> in `* Stack frame vars *` or `* Inspector *` buffers (or on Debug Hydra) will fetch on the background data for all `ObjectId`s present in those two buffers and once all `ObjectId`s data are fetched, these two buffer are redisplayed. This redisplay will contain two additional informations about given `ObjectId`:
- - real type (for example `KinematicBody2D` instead of `ObjectId`)
- - node path
+- `* Stack frame vars *` displays the locals, members, and globals variables for the current stack point. It show variable name, its type and its value.
+- `* Inspector *` displays detailed information about the selected object. By default, it shows the properties of `self`.
 
-Also fetched data are cached and not fetched again when said `ObjectId` is inspected later on (until new breakpoint is hit).
+You can inspect any object in those two buffers by pressing <kbd>RET</kbd> on the corresponding line.
 
-On breakpoint hit Debug Hydra will be displayed below `* Stack frame vars *` and `* Inspector *` buffers.
+#### Multi-line display
+
+You can toggle between one-line and multi-line display for values of type `Dictionary`, `PoolRealArray`, `PoolStringArray`, `PoolVector2Array`, `PoolVector3Array` and `PoolColorArray`. To do so, press `TAB` on the corresponding line.
+
+### Fetching an object's details
+
+Pressing <kbd>d</kbd> in `* Stack frame vars *` or `* Inspector *` buffers (or in the debug hydra) will fetch on the background data for all objects present in those two buffers and redisplay once done. Doing that adds two extra bits of information about the objects:
+
+- Their real type, for example, `KinematicBody2D` instead of `ObjectId`.
+- Their node path.
 
 ### Debug Hydra
+
+If `hydra` is available, the debug hydra displays below `* Stack frame vars *` and `* Inspector *` buffers upon hitting a breakpoint.
+
+You can also call it by pressing <kbd>C-c n</kbd>.
 
 ```
 n next  c continue  m step  b breakpoints  s stack  v vars  i inspector  t scene-tree  d details
 o pin   u unpin     q quit
 ```
 
- - <kbd>n</kbd> - Jump to next line and stops there
- - <kbd>c</kbd> - Continue program execution until another breakpoint is hit
- - <kbd>m</kbd> - Step into
- - <kbd>s</kbd> - Show `* Stack dump *` buffer
- - <kbd>v</kbd> - Show `* Stack frame vars *` buffer
- - <kbd>i</kbd> - Show `* Inspector *` buffer
- - <kbd>t</kbd> - Show `* Scene tree *` buffer
- - <kbd>d</kbd> - Fetch details for all `ObjectId`s present in `* Stack frame vars *` and `* Inspector *` buffers and redisplay them
- - <kbd>o</kbd> - Pin current `self` `ObjectId` in `* Inspector *` buffer. It stays displayed until it cease to exists or until it get unpinned
- - <kbd>u</kbd> - Unpin currently pinned `ObjectId`
- - <kbd>q</kbd> - Close Debug Hydra
+- <kbd>n</kbd> - Steps to the next line of code.
+- <kbd>c</kbd> - Continue program execution until the next breakpoint.
+- <kbd>m</kbd> - Steps into the code.
+- <kbd>s</kbd> - Shows the `* Stack dump *` buffer.
+- <kbd>v</kbd> - Shows the `* Stack frame vars *` buffer.
+- <kbd>i</kbd> - Shows the `* Inspector *` buffer.
+- <kbd>t</kbd> - Shows the `* Scene tree *` buffer.
+- <kbd>d</kbd> - Fetches details for all object present in the `* Stack frame vars *` and `* Inspector *` buffers and redisplay the buffers.
+- <kbd>o</kbd> - Pins `self` in the `* Inspector *` buffer. It stays displayed until Godot frees the instance or you unpin it.
+- <kbd>u</kbd> - Unpins the currently pinned object.
+- <kbd>q</kbd> - Closes the debug hydra.
 
-### `* Stack frame vars *` buffer
+### The `* Stack frame vars *` buffer
 
-Main source of information about running program. Contains information about locals/members/globals variables.
+The stack frame buffer displays the locals, members, and globals variables for the current stack point. Here are available keyboard shortcuts:
 
-- Press <kbd>TAB</kbd> to toggling oneline/multiline display for selected types
-- Press <kbd>RET</kbd> on `ObjectId` line to display its details in `* Inspector *`buffer
-- Press <kbd>l</kbd> to display `* Stack dump *` buffer
-- Press <kbd>d</kbd> to display additional details for `ObjectId` variables
-- Press <kbd>p</kbd> to go to previous line
-- Press <kbd>n</kbd> to go to next line
-- Press <kbd>o</kbd> to pin current `ObjectId` in `* Inspector *` buffer
-- Press <kbd>u</kbd> to unpin currently pinned `ObjectId`
-- Press <kbd>q</kbd> to close the buffer
+- <kbd>TAB</kbd> toggles multi-line display for selected types.
+- <kbd>RET</kbd> on an object line to display its details in the `* Inspector *`buffer.
+- <kbd>l</kbd> displays the `* Stack dump *` buffer.
+- <kbd>d</kbd> displays additional details for `ObjectId` variables.
+- <kbd>p</kbd> goes to the previous line.
+- <kbd>n</kbd> goes to the next line.
+- <kbd>o</kbd> pins the current object in the `* Inspector *` buffer.
+- <kbd>u</kbd> unpins the currently pinned object.
+- <kbd>q</kbd> closes the buffer.
 
 ### `* Inspector *` buffer
 
 Contains information about inspected object. By default `self` variable from `* Stack frame vars *` is displayed. Inspected object is kept to be focused until other object is inspected or until inspected object cease to exists, in which case current `self` is displayed instead.
 
-- Press <kbd>TAB</kbd> to toggling oneline/multiline display for selected types
-- Press <kbd>RET</kbd> on `ObjectId` line to display its details
-- Press <kbd>RET</kbd> on `Node/path` line (second line from the top) to show given `ObjectId` in `* Scene Tree *` buffer
-- Press <kbd>l</kbd> deep in nested `ObjectId` to navigate one level up in the structure (ie. back). Pressing `l` while on top level object displays `* Stack frame vars *` buffer
-- Press <kbd>d</kbd> to display additional details for `ObjectId` variables
-- Press <kbd>p</kbd> to go to previous line
-- Press <kbd>n</kbd> to go to next line
-- Press <kbd>o</kbd> to pin current `ObjectId` in `* Inspector *` buffer
-- Press <kbd>u</kbd> to unpin currently pinned `ObjectId`
-- Press <kbd>q</kbd> to close the buffer
+- Press <kbd>TAB</kbd> to toggle multi-line display for selected typess.
+- Press <kbd>RET</kbd> on object line to display its detailss.
+- Press <kbd>RET</kbd> on `Node/path` line (second line from the top) to show given object in `* Scene Tree *` buffers.
+- Press <kbd>l</kbd> deep in nested object to navigate one level up in the structure (ie. back). Pressing `l` while on top level object displays `* Stack frame vars *` buffers.
+- Press <kbd>d</kbd> to display additional details for object variabless.
+- Press <kbd>p</kbd> to go to the previous lines.
+- Press <kbd>n</kbd> to go to the next lines.
+- Press <kbd>o</kbd> to pin current object in `* Inspector *` buffers.
+- Press <kbd>u</kbd> to unpin currently pinned objects.
+- Press <kbd>q</kbd> to close the buffers.
 
 ### `* Stack dump *` buffer
 
 Contains stack dump information.
 
-- Press <kbd>SPC</kbd> to jump to gdscript file where stack frame points to
-- Press <kbd>RET</kbd> to jump to gdscript file and to show `* Stack frame vars *`, `* Inspector *` buffers and a Debug Hydra
-- Press <kbd>l</kbd> to display `* Stack frame vars *` buffer
-- Press <kbd>p</kbd> to go to previous line
-- Press <kbd>n</kbd> to go to next line
-- Press <kbd>q</kbd> to close the buffer
+- Press <kbd>SPC</kbd> to jump to gdscript file where stack frame points to.
+- Press <kbd>RET</kbd> to jump to gdscript file and to show `* Stack frame vars *`, `* Inspector *` buffers and a debug hydra.
+- Press <kbd>l</kbd> to display the `* Stack frame vars *` buffer.
+- Press <kbd>p</kbd> to go to the previous line.
+- Press <kbd>n</kbd> to go to the next line.
+- Press <kbd>q</kbd> to close the buffer.
 
 ### `* Breakpoints *` buffer
 
-Contains list of all existing breakpoints.
+Lists all existing breakpoints in the project.
 
-- Press <kbd>SPC</kbd> to enable/disable all breakpoints
-- Press <kbd>RET</kbd> to open gdscript file where on give breakpoint position
-- Press <kbd>TAB</kbd> to display `* Stack dump *` buffer
-- Press <kbd>D</kbd> to delete the breakpoint
-- Press <kbd>q</kbd> to close the buffer
+- Press <kbd>SPC</kbd> to enable or disable all breakpoints.
+- Press <kbd>RET</kbd> to jump to the file and line corresponding to the breakpoint..
+- Press <kbd>TAB</kbd> to display the `* Stack dump *` buffer.
+- Press <kbd>D</kbd> to delete the breakpoint.
+- Press <kbd>q</kbd> to close the buffer.
 
 ### `* Scene tree *` buffer
 
-Contains tree visualisation of all `ObjectId`s in the running program.
+Contains a tree visualisation of all objects in the running program.
 
-- Press <kbd>RET</kbd> to open corresponding `ObjectId` in `* Inspector *` buffer
-- Press <kbd>p</kbd> to go to previous line
-- Press <kbd>n</kbd> to go to next line
-- Press <kbd>q</kbd> to close the buffer
+- Press <kbd>RET</kbd> to open the corresponding object in the `* Inspector *` buffer.
+- Press <kbd>p</kbd> to go to the previous line.
+- Press <kbd>n</kbd> to go to the next line.
+- Press <kbd>q</kbd> to close the buffer.
