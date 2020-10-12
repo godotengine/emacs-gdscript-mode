@@ -139,6 +139,11 @@ directory path containing the file `index.html'."
   :type 'string
   :group 'gdscript)
 
+(defcustom gdscript-debug-port 6010
+  "Debugger server port."
+  :type 'integer
+  :group 'gdscript)
+
 
 (provide 'gdscript-customization)
 ;;; gdscript-customization.el ends here

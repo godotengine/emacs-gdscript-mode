@@ -41,6 +41,7 @@
 (require 'gdscript-rx)
 (require 'gdscript-godot)
 (require 'gdscript-hydra)
+(require 'gdscript-debug)
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.gd\\'" . gdscript-mode))
@@ -79,6 +80,19 @@
                             (define-key map (kbd "C-c C-b s") 'gdscript-docs-online-search-api)
                             ;; Hydra
                             (define-key map (kbd "C-c r") 'gdscript-hydra-show)
+                            ;; Debugger
+                            (define-key map (kbd "C-c C-d C-d s") 'gdscript-debug-display-stack-frame-vars-buffer)
+                            (define-key map (kbd "C-c C-d C-d d") 'gdscript-debug-display-stack-dump-buffer)
+                            (define-key map (kbd "C-c C-d C-d b") 'gdscript-debug-display-breakpoint-buffer)
+                            (define-key map (kbd "C-c C-d C-d i") 'gdscript-debug-display-inspector-buffer)
+                            (define-key map (kbd "C-c C-d b") 'gdscript-debug-add-breakpoint)
+                            (define-key map (kbd "C-c C-d r") 'gdscript-debug-remove-breakpoint)
+                            (define-key map (kbd "C-c C-d q") 'gdscript-debug-make-server)
+                            (define-key map (kbd "C-c C-d n") 'gdscript-debug-next)
+                            (define-key map (kbd "C-c C-d c") 'gdscript-debug-continue)
+                            (define-key map (kbd "C-c C-d s") 'gdscript-debug-step)
+                            ;; Debugger Hydra
+                            (define-key map (kbd "C-c n") 'gdscript-debug-hydra)
                             map)
   "Keymap for `gdscript-mode'.")
 

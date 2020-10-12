@@ -51,9 +51,7 @@
 (defun gdscript-hydra-show ()
   "Show gdcript hydra."
   (interactive)
-  (when (not (featurep 'hydra))
-    (error "No `hydra.el' available.  To execute `gdscript-hydra-show' command you need to install hydra.el"))
-  (gdscript-hydra--menu/body))
+  (gdscript-util--with-available-hydra (gdscript-hydra--menu/body)))
 
 (defun gdscript-hydra--selected (selected)
   "Visual representation for (non)SELECTED checkboxes."
