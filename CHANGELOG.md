@@ -2,6 +2,18 @@
 
 This document lists new features, improvements, changes, and bug fixes in each release of the package.
 
+## GDScript mode 1.4.0
+
+Big thanks to @VlachJosef and @rileyrg for their work on this release.
+
+### New features
+
+- Debugger support with breakpoints, code stepping, stack frames, remote scene tree, and more. See the [README](https://github.com/godotengine/emacs-gdscript-mode/blob/master/README.md) for more information.
+
+### Bug fixes
+
+- Fix scene and script selection not aborting when pressing <kbd>C-g</kbd>.
+
 ## GDScript mode 1.3.0
 
 This release brings many quality-of-life improvements to work more productively with Godot and Emacs.
