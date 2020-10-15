@@ -13,6 +13,11 @@ game engine in Emacs. It gives syntax highlighting and indentations.
 - [Features](#features)
 - [Contributing](#contributing)
 - [How to install](#how-to-install)
+    - [Installing in Spacemacs](#installing-in-spacemacs)
+    - [Installing in Doom Emacs](#installing-in-doom-emacs)
+    - [Installing with `use-package` + `straight.el`](#installing-with-use-package--straightel)
+    - [Installing manually](#installing-manually)
+- [Auto-completion with the Language Server Protocol (LSP)](#auto-completion-with-the-language-server-protocol-lsp)
 - [How to use](#how-to-use)
     - [Opening the project in the editor](#opening-the-project-in-the-editor)
     - [Running Godot with visual debug options](#running-godot-with-visual-debug-options)
@@ -151,6 +156,31 @@ Add the call to use-package to your Emacs configuration:
 (require 'gdscript-mode)
 ```
 
+
+## Auto-completion with the Language Server Protocol (LSP)
+
+For auto-completion, we rely on the [lsp-mode](https://emacs-lsp.github.io/lsp-mode/) package and the GDScript language server, which is built into Godot.
+
+The GDScript LSP support is part of the LSP mode. To use it, you need to install `lsp-mode` on top of `gdscript-mode` and configure it. To install and configure `lsp-mode`, see the [lsp-mode documentation](https://emacs-lsp.github.io/lsp-mode/page/installation/). 
+
+### Known issues
+
+There are some known issues with the GDScript language server in Godot 3.2 due to the server being a bit young and not following the specification strictly. This mainly causes some `unknown notification` errors in lsp-mode at the moment. You can suppress them by adding the following code to your Emacs configuration (thanks to Franco Garcia for sharing this workaround):
+
+```lisp
+(defun lsp--gdscript-ignore-errors (original-function &rest args)
+  "Ignore the error message resulting from Godot not replying to the `JSONRPC' request."
+  (if (string-equal major-mode "gdscript-mode")
+      (let ((json-data (nth 0 args)))
+        (if (and (string= (gethash "jsonrpc" json-data "") "2.0")
+                 (not (gethash "id" json-data nil))
+                 (not (gethash "method" json-data nil)))
+            nil ; (message "Method not found")
+          (apply original-function args)))
+    (apply original-function args)))
+;; Runs the function `lsp--gdscript-ignore-errors` around `lsp--get-message-type` to suppress unknown notification errors.
+(advice-add #'lsp--get-message-type :around #'lsp--gdscript-ignore-errors)
+```
 ## How to use
 
 ### Opening the project in the editor
