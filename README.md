@@ -8,37 +8,37 @@ game engine in Emacs. It gives syntax highlighting and indentations.
 [Contributors](#contributing) are welcome!
 
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
+
 **Table of Contents**
 
 - [Features](#features)
 - [Contributing](#contributing)
 - [How to install](#how-to-install)
-    - [Installing in Spacemacs](#installing-in-spacemacs)
-    - [Installing in Doom Emacs](#installing-in-doom-emacs)
-    - [Installing with `use-package` + `straight.el`](#installing-with-use-package--straightel)
-    - [Installing manually](#installing-manually)
+  - [Installing in Spacemacs](#installing-in-spacemacs)
+  - [Installing in Doom Emacs](#installing-in-doom-emacs)
+  - [Installing with `use-package` + `straight.el`](#installing-with-use-package--straightel)
+  - [Installing manually](#installing-manually)
 - [Auto-completion with the Language Server Protocol (LSP)](#auto-completion-with-the-language-server-protocol-lsp)
 - [How to use](#how-to-use)
-    - [Opening the project in the editor](#opening-the-project-in-the-editor)
-    - [Running Godot with visual debug options](#running-godot-with-visual-debug-options)
-    - [Using Hydra](#using-hydra)
-    - [Formatting code with gdformat](#formatting-code-with-gdformat)
-    - [Browsing the Godot API with eww](#browsing-the-godot-api-with-eww)
+  - [Opening the project in the editor](#opening-the-project-in-the-editor)
+  - [Running Godot with visual debug options](#running-godot-with-visual-debug-options)
+  - [Using Hydra](#using-hydra)
+  - [Formatting code with gdformat](#formatting-code-with-gdformat)
+  - [Browsing the Godot API with eww](#browsing-the-godot-api-with-eww)
 - [Keyboard shortcuts](#keyboard-shortcuts)
 - [Customization](#customization)
 - [Using the debugger](#using-the-debugger)
-    - [Adding and removing breakpoints](#adding-and-removing-breakpoints)
-    - [Running the project with the debugger active](#running-the-project-with-the-debugger-active)
-    - [Fetching an object's details](#fetching-an-objects-details)
-    - [Debug Hydra](#debug-hydra)
-    - [The `* Stack frame vars *` buffer](#the--stack-frame-vars--buffer)
-    - [`* Inspector *` buffer](#-inspector--buffer)
-    - [`* Stack dump *` buffer](#-stack-dump--buffer)
-    - [`* Breakpoints *` buffer](#-breakpoints--buffer)
-    - [`* Scene tree *` buffer](#-scene-tree--buffer)
+  - [Adding and removing breakpoints](#adding-and-removing-breakpoints)
+  - [Running the project with the debugger active](#running-the-project-with-the-debugger-active)
+  - [Fetching an object's details](#fetching-an-objects-details)
+  - [Debug Hydra](#debug-hydra)
+  - [The `* Stack frame vars *` buffer](#the--stack-frame-vars--buffer)
+  - [`* Inspector *` buffer](#-inspector--buffer)
+  - [`* Stack dump *` buffer](#-stack-dump--buffer)
+  - [`* Breakpoints *` buffer](#-breakpoints--buffer)
+  - [`* Scene tree *` buffer](#-scene-tree--buffer)
 
 <!-- markdown-toc end -->
-
 
 ## Features
 
@@ -120,19 +120,18 @@ Then, in your init.el file, you can require the package:
 
 ### Installing in Doom Emacs
 
-Add the following package definition to your `.doom.d/packages.el` file:
+Doom Emacs comes with a Godot GDScript module.
+
+You just need to add the "lang: gdscript" keyword to your `.doom.d/init.el` file.
 
 ```lisp
-(package! gdscript-mode
-          :recipe (:host github
-                   :repo "GDQuest/emacs-gdscript-mode"))
+:lang
+(gdscript +lsp)          ; the language you waited for
 ```
 
-Require the package in your `.doom.d/config.el` file:
+The `+lsp` flag adds language server support for game development with Godot.
 
-```lisp
-(require 'gdscript-mode)
-```
+To see the module's documentation in Emacs, place your cursor over the word `gdscript` and press <kbd>k</kbd>.
 
 ### Installing with `use-package` + `straight.el`
 
@@ -156,12 +155,11 @@ Add the call to use-package to your Emacs configuration:
 (require 'gdscript-mode)
 ```
 
-
 ## Auto-completion with the Language Server Protocol (LSP)
 
 For auto-completion, we rely on the [lsp-mode](https://emacs-lsp.github.io/lsp-mode/) package and the GDScript language server, which is built into Godot.
 
-The GDScript LSP support is part of the LSP mode. To use it, you need to install `lsp-mode` on top of `gdscript-mode` and configure it. To install and configure `lsp-mode`, see the [lsp-mode documentation](https://emacs-lsp.github.io/lsp-mode/page/installation/). 
+The GDScript LSP support is part of the LSP mode. To use it, you need to install `lsp-mode` on top of `gdscript-mode` and configure it. To install and configure `lsp-mode`, see the [lsp-mode documentation](https://emacs-lsp.github.io/lsp-mode/page/installation/).
 
 ### Known issues
 
@@ -181,6 +179,7 @@ There are some known issues with the GDScript language server in Godot 3.2 due t
 ;; Runs the function `lsp--gdscript-ignore-errors` around `lsp--get-message-type` to suppress unknown notification errors.
 (advice-add #'lsp--get-message-type :around #'lsp--gdscript-ignore-errors)
 ```
+
 ## How to use
 
 ### Opening the project in the editor
