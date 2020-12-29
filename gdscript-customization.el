@@ -92,7 +92,7 @@ fill parens."
   :safe 'natnump
   :group 'gdscript)
 
-(defcustom gdscript-indent-line-continuation-scale 2
+(defcustom gdscript-indent-line-continuation-scale 1
   "Multiplier applied to indentation of line continuation in
 general (inside parentheses and after backslash)."
   :type 'integer
