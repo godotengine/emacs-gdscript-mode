@@ -2,6 +2,12 @@
 
 This document lists new features, improvements, changes, and bug fixes in each release of the package.
 
+## GDScript mode 1.4.1
+
+Thanks to @clangdo for the contribution!
+
+- Fixed indent functions preventing double hanging indent in parentheses or after a `\`.
+
 ## GDScript mode 1.4.0
 
 Big thanks to @VlachJosef and @rileyrg for their work on this release.
