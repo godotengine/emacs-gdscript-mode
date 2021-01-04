@@ -41,8 +41,8 @@
 
 (defcustom gdscript-use-type-hints t
   "If t, inserted snippets contain type hints."
-  :group 'gdscript
-  :type 'boolean)
+  :type 'boolean
+    :group 'gdscript)
 
 ;; gdscript-indent
 (defcustom gdscript-use-tab-indents t "Use tabs (t) or spaces (nil)."
@@ -54,30 +54,31 @@
   :group 'gdscript)
 
 (defcustom gdscript-indent-offset 4 "Default indentation offset for Gdscript."
-  :group 'gdscript
   :type 'integer
-  :safe 'integerp)
+  :safe 'integerp
+  :group 'gdscript)
 
 (defcustom gdscript-indent-trigger-commands '(indent-for-tab-command yas-expand yas/expand)
   "Commands that might trigger a `gdscript-indent-line' call."
-  :type '(repeat symbol):group'gdscript)
+  :type '(repeat symbol)
+  :group'gdscript)
 
 ;; gdscript-fill-paragraph.el
-(defcustom gdscript-fill-comment-function 'gdscript-fill-paragraph-fill-comment
+(defcustom gdscript-fill-comment-function 'gdscript-fill-paragraph-fill-comment
   "Function to fill comments.
 This is the function used by `gdscript-fill-paragraph' to
 fill comments."
   :type 'symbol
   :group 'gdscript)
 
-(defcustom gdscript-fill-string-function 'gdscript-fill-paragraph-fill-string
+(defcustom gdscript-fill-string-function 'gdscript-fill-paragraph-fill-string
   "Function to fill strings.
 This is the function used by `gdscript-fill-paragraph' to
 fill strings."
   :type 'symbol
   :group 'gdscript)
 
-(defcustom gdscript-fill-paren-function 'gdscript-fill-paragraph-fill-paren
+(defcustom gdscript-fill-paren-function 'gdscript-fill-paragraph-fill-paren
   "Function to fill parens.
 This is the function used by `gdscript-fill-paragraph' to
 fill parens."
@@ -88,7 +89,15 @@ fill parens."
   "Multiplier applied to indentation inside multi-line def blocks."
   :version "26.1"
   :type 'integer
-  :safe 'natnump)
+  :safe 'natnump
+  :group 'gdscript)
+
+(defcustom gdscript-indent-line-continuation-scale 1
+  "Multiplier applied to indentation of line continuation in
+general (inside parentheses and after backslash)."
+  :type 'integer
+  :options '(1 2)
+  :group 'gdscript)
 
 (defcustom gdscript-godot-executable "godot"
   "The godot executable which is either a full path such as '~/bin/godot2.2'
@@ -116,12 +125,17 @@ so it is not slowing down Godot execution."
   :group 'gdscript)
 
 (defcustom gdscript-docs-force-online-lookup nil
-  "If true, calling commands like gdscript-docs-browse-api browses the online API reference, even if a local copy is available."
+  "If true, calling commands like gdscript-docs-browse-api
+browses the online API reference, even if a local copy is
+available."
   :type 'boolean
   :group 'gdscript)
 
 (defcustom gdscript-docs-use-eww t
-  "If set to false use the emacs configurable `browse-url' function rather than `eww' directly. `browse-url' can be configured to open the desktop default GUI browser, for example, via the variable `browse-url-browser-function'"
+  "If set to false use the emacs configurable `browse-url'
+function rather than `eww' directly. `browse-url' can be
+configured to open the desktop default GUI browser, for example,
+via the variable `browse-url-browser-function'"
   :type 'boolean
   :group 'gdscript)
 

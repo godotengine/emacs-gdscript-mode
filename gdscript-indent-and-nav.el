@@ -273,17 +273,19 @@ possibilities can be narrowed to specific indentation points."
          (current-column)))
       (`(,(or :after-block-start
               :after-backslash-first-line
-              :after-backslash-assignment-continuation
               :inside-paren-newline-start) . ,start)
        ;; Add one indentation level.
        (goto-char start)
        (+ (current-indentation) gdscript-indent-offset))
       (`(,(or :inside-paren
               :after-backslash-block-continuation
-              :after-backslash-dotted-continuation) . ,start)
-       ;; Use the column given by the context.
+              :after-backslash-dotted-continuation
+	      :after-backslash-assignment-continuation) . ,start)
+       ;; Use (possibly extra) indentation given by the configuration
        (goto-char start)
-       (current-column))
+       (+ (current-indentation)
+	  (* gdscript-indent-offset
+	     gdscript-indent-line-continuation-scale)))
       (`(:after-block-end . ,start)
        ;; Subtract one indentation level.
        (goto-char start)
