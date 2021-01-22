@@ -7,6 +7,8 @@ This package adds support for the GDScript programming language from the Godot
 game engine in Emacs. It gives syntax highlighting and indentations.
 [Contributors](#contributing) are welcome!
 
+![](assets/emacs-gdscript-imenu.png)
+
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
 
 **Table of Contents**
@@ -57,6 +59,10 @@ This mode features all the essentials:
 - Auto-completion for all the keywords in the `gdscript-keywords.el` file.
 - Run or open the project and files with Godot.
 - Browsing the API reference in Emacs.
+
+![](assets/emacs-gdscript-code-folding.png)
+
+_Code folding in action._
 
 ## Contributing
 
@@ -213,13 +219,9 @@ The last selected option is saved for the next time you call `gdscript-godot-run
 
 Running `gdscript-hydra-show` (<kbd>C-c r</kbd>) opens a [hydra](https://github.com/abo-abo/hydra) popup with options to open the editor or run the project, a scene, or a script, including with visual debug options.
 
-```
-d ( ) Debug   p run project  t run script  h run from history   a format all    q quit
-e ( ) Editor  s run scene    r run last    g switch to *godot*  b format buffer
+![](assets/emacs-gdscript-hydra.png)
 
-c [ ] Visible collisions shapes
-n [ ] Visible navigation
-```
+_Hydra interactive menu to run the project and set debug options on the fly._
 
 ### Formatting code with gdformat
 
