@@ -68,7 +68,7 @@ _Code folding in action._
 
 Contributors are welcome! Check the [issues tab](issues) for tasks to work on and open a PR anytime.
 
-If you find a bug, or would like to suggest an improvement, [open a new
+If you find a bug or would like to suggest an improvement, [open a new
 issue](issues/new).
 
 For code style, we follow the [Emacs lisp style
@@ -77,7 +77,7 @@ and the [tips and
 conventions](https://www.gnu.org/software/emacs/manual/html_node/elisp/Tips.html)
 from the Emacs manual.
 
-You should also check for errors and linter warnings in your code. You can do so in Emacs with flymake or flycheck but we recommend running the tool `makem.sh` provided with the repository:
+You should also check for errors and linter warnings in your code. You can do so in Emacs with flymake or flycheck, but we recommend running the tool `makem.sh` provided with the repository:
 
 ```sh
 ./makem.sh lint-compile
@@ -190,7 +190,7 @@ There are some known issues with the GDScript language server in Godot 3.2 due t
 
 ### Opening the project in the editor
 
-You can open the project in the Godot editor with `M-x gdscript-godot-open-project-in-editor`, or open files and more in Godot with the `M-x gdscript-godot-*` commands.
+You can open the Godot editor with `M-x gdscript-godot-open-project-in-editor`, or open files and more in Godot with the `M-x gdscript-godot-*` commands.
 
 By default, these commands try to use an executable named `godot` on the system [PATH environment variable](<https://en.wikipedia.org/wiki/PATH_(variable)>).
 
@@ -213,7 +213,7 @@ Here are the available options:
 3. `--debug-navigation`
 4. `--debug-collisions --debug-navigation`
 
-The last selected option is saved for the next time you call `gdscript-godot-run-project-debug`. To remove debug options, you need to call the command with the universal argument again.
+The last selected option is saved for the next time you call `gdscript-godot-run-project-debug`. To turn off debug options, you need to call the command with the universal argument again.
 
 ### Using Hydra
 
@@ -226,7 +226,7 @@ _Hydra interactive menu to run the project and set debug options on the fly._
 ### Formatting code with gdformat
 
 You can call the `gdscript-format` function to format the current buffer with
-`gdformat`. Alternatively `gdscript-format-all` will reformat all gdscripts in
+`gdformat`. Alternatively, `gdscript-format-all` will reformat all GDScript files in
 the project. This feature requires the python package `gdtoolkit` to be installed
 and available on the system's PATH variable.
 
@@ -239,7 +239,7 @@ pip3 install gdtoolkit
 
 ### Browsing the Godot API with eww
 
-With the point on a built-in class you can press `C-c C-b o` to open the code reference for that class in the text browser [eww](https://www.gnu.org/software/emacs/manual/html_node/emacs/EWW.html).
+With the point on a built-in class, you can press `C-c C-b o` to open the code reference for that class in the text browser [eww](https://www.gnu.org/software/emacs/manual/html_node/emacs/EWW.html).
 
 To open the main API reference page and browse it, press `C-c C-b a`.
 
@@ -313,7 +313,7 @@ The debugger's server runs on `localhost` through port `6010` by default. You ca
 
 Once Godot hits a breakpoint, Emacs displays two new buffers:
 
-- `* Stack frame vars *` displays the locals, members, and globals variables for the current stack point. It show variable name, its type and its value.
+- `* Stack frame vars *` displays the locals, members, and globals variables for the current stack point. It shows the variable name, its type, and its value.
 - `* Inspector *` displays detailed information about the selected object. By default, it shows the properties of `self`.
 
 You can inspect any object in those two buffers by pressing <kbd>RET</kbd> on the corresponding line.
@@ -354,7 +354,7 @@ o pin   u unpin     q quit
 
 ### The `* Stack frame vars *` buffer
 
-The stack frame buffer displays the locals, members, and globals variables for the current stack point. Here are available keyboard shortcuts:
+The stack frame buffer displays the locals, members, and global variables for the current stack point. Here are available keyboard shortcuts:
 
 - <kbd>TAB</kbd> toggles multi-line display for selected types.
 - <kbd>RET</kbd> on an object line to display its details in the `* Inspector *`buffer.
@@ -368,12 +368,12 @@ The stack frame buffer displays the locals, members, and globals variables for t
 
 ### `* Inspector *` buffer
 
-Contains information about inspected object. By default `self` variable from `* Stack frame vars *` is displayed. Inspected object is kept to be focused until other object is inspected or until inspected object cease to exists, in which case current `self` is displayed instead.
+Contains information about inspected object. By default `self` variable from `* Stack frame vars *` is displayed. The inspected object is kept in focus until you inspect another object or until the active object ceases to exists, in which case the current `self` is displayed instead.
 
 - Press <kbd>TAB</kbd> to toggle multi-line display for selected typess.
 - Press <kbd>RET</kbd> on object line to display its detailss.
 - Press <kbd>RET</kbd> on `Node/path` line (second line from the top) to show given object in `* Scene Tree *` buffers.
-- Press <kbd>l</kbd> deep in nested object to navigate one level up in the structure (ie. back). Pressing `l` while on top level object displays `* Stack frame vars *` buffers.
+- Press <kbd>l</kbd> deep in nested object to navigate one level up in the structure (ie. back). Pressing `l` while on top-level object displays `* Stack frame vars *` buffers.
 - Press <kbd>d</kbd> to display additional details for object variabless.
 - Press <kbd>p</kbd> to go to the previous lines.
 - Press <kbd>n</kbd> to go to the next lines.
@@ -386,7 +386,7 @@ Contains information about inspected object. By default `self` variable from `* 
 Contains stack dump information.
 
 - Press <kbd>SPC</kbd> to jump to gdscript file where stack frame points to.
-- Press <kbd>RET</kbd> to jump to gdscript file and to show `* Stack frame vars *`, `* Inspector *` buffers and a debug hydra.
+- Press <kbd>RET</kbd> to jump to the gdscript file and show `* Stack frame vars *`, `* Inspector *` buffers, and a debug hydra.
 - Press <kbd>l</kbd> to display the `* Stack frame vars *` buffer.
 - Press <kbd>p</kbd> to go to the previous line.
 - Press <kbd>n</kbd> to go to the next line.
