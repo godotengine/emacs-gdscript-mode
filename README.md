@@ -93,13 +93,13 @@ This program will tell you if there is any problem with your code. If there's no
 
 The package is available in the [MELPA](https://melpa.org/#/) package archive. Once you [set up MELPA](https://melpa.org/#/getting-started) you can install the package from Emacs:
 
-```lisp
+```elisp
 M-x package-install gdscript-mode
 ```
 
 Then, in your init.el file, you can require the package:
 
-```lisp
+```elisp
 (require 'gdscript-mode)
 ```
 
@@ -107,7 +107,7 @@ Then, in your init.el file, you can require the package:
 
 1. Add the package to the `dotspacemacs-additional-packages`. You can find it under the dotspacemacs/layers function:
 
-```lisp
+```elisp
 (defun dotspacemacs/layers ()
   "Configuration Layers declaration..."
   (setq-default
@@ -119,7 +119,7 @@ Then, in your init.el file, you can require the package:
 
 2. In your `dotspacemacs/user-config` function, require the package.
 
-```lisp
+```elisp
 (defun dotspacemacs/user-config ()
   (require 'gdscript-mode))
 ```
@@ -130,7 +130,7 @@ Doom Emacs comes with a Godot GDScript module.
 
 You just need to add the "lang: gdscript" keyword to your `.doom.d/init.el` file.
 
-```lisp
+```elisp
 :lang
 (gdscript +lsp)          ; the language you waited for
 ```
@@ -143,7 +143,7 @@ To see the module's documentation in Emacs, place your cursor over the word `gds
 
 Add the call to use-package to your Emacs configuration:
 
-```lisp
+```elisp
 (use-package gdscript-mode
     :straight (gdscript-mode
                :type git
@@ -156,7 +156,7 @@ Add the call to use-package to your Emacs configuration:
 1. Clone the repository or download a [stable release](https://github.com/GDQuest/emacs-gdscript-mode/releases) to your computer.
 1. In your init.el file, add a call to load and require the package.
 
-```lisp
+```elisp
 (add-to-list 'load-path "/path/to/gdscript-mode")
 (require 'gdscript-mode)
 ```
@@ -171,7 +171,7 @@ The GDScript LSP support is part of the LSP mode. To use it, you need to install
 
 There are some known issues with the GDScript language server in Godot 3.2 due to the server being a bit young and not following the specification strictly. This mainly causes some `unknown notification` errors in lsp-mode at the moment. You can suppress them by adding the following code to your Emacs configuration (thanks to Franco Garcia for sharing this workaround):
 
-```lisp
+```elisp
 (defun lsp--gdscript-ignore-errors (original-function &rest args)
   "Ignore the error message resulting from Godot not replying to the `JSONRPC' request."
   (if (string-equal major-mode "gdscript-mode")
@@ -196,7 +196,7 @@ By default, these commands try to use an executable named `godot` on the system 
 
 If you don't have `godot` available there, you can set a custom executable name or path to use instead:
 
-```lisp
+```elisp
 (setq gdscript-godot-executable "/path/to/godot")
 ```
 
@@ -252,7 +252,7 @@ You can browse the API reference offline with `eww`. To do so:
 
 For example:
 
-```lisp
+```elisp
 (setq gdscript-docs-local-path "/home/gdquest/Documents/docs/godot")
 ```
 
@@ -286,7 +286,7 @@ To find all GDScript-mode settings, press `M-x customize` and search for "gdscri
 
 Code example:
 
-```lisp
+```elisp
 (setq gdscript-use-tab-indents t) ;; If true, use tabs for indents. Default: t
 (setq gdscript-indent-offset 4) ;; Controls the width of tab-based indents
 (setq gdscript-godot-executable "/path/to/godot") ;; Use this executable instead of 'godot' to open the Godot editor.
