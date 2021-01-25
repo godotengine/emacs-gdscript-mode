@@ -1868,13 +1868,35 @@ calling `gdscript-debug--table-string'."
   (setq buffer-read-only t)
   (buffer-disable-undo))
 
-(defun gdscript-debug-add-breakpoint ()
+(defun gdscript-debug-toggle-breakpoint ()
+  "Add or remove a breakpoint on the line at POINT."
   (interactive)
+  (let* ((breakpoint (gdscript-debug--construct-breakpoint-at-point)))
+    (if (gdscript-debug--is-existing-breakpoint-p breakpoint)
+      (gdscript-debug--remove-breakpoint breakpoint)
+      (gdscript-debug--add-breakpoint-to-line breakpoint))))
+
+(defun gdscript-debug--construct-breakpoint-at-point ()
+  "Construct a breakpoint object for the line at POINT and return it.
+May match an existing breakpoint."
   (gdscript-debug--with-gdscript-file file-info
-    (let* ((line (line-number-at-pos))
+    (let* ((start (line-beginning-position))
+           (end (line-end-position))
+           (line (line-number-at-pos))
            (file (car file-info))
            (file-absolute (cdr file-info))
            (breakpoint (gdscript-breakpoint-create :file file :file-absolute file-absolute :line line)))
+      breakpoint)))
+
+(defun gdscript-debug--is-existing-breakpoint-p (breakpoint)
+  "Return t if `BREAKPOINT' is an existing breakpoint in the project."
+  (member breakpoint gdscript-debug--breakpoints))
+
+(defun gdscript-debug--add-breakpoint-to-line (breakpoint)
+  "Register `BREAKPOINT' to the current line in a GDScript buffer."
+  (gdscript-debug--with-gdscript-file file-info
+    (let* ((line (line-number-at-pos))
+           (file (car file-info)))
       (if (member breakpoint gdscript-debug--breakpoints)
           (message "Breakpoint already present at %s:%s" file line)
         (gdscript-debug--add-fringe (line-beginning-position) (not gdscript-debug--skip-breakpoints) 'gdb-bptno 1)
@@ -1884,15 +1906,13 @@ calling `gdscript-debug--table-string'."
           (gdscript-debug--send-command
             (gdscript-debug--breakpoint-command file line t)))))))
 
-(defun gdscript-debug-remove-breakpoint ()
-  (interactive)
+(defun gdscript-debug--remove-breakpoint (breakpoint)
+  "Remove `BREAKPOINT' to the current line in a GDScript buffer."
   (gdscript-debug--with-gdscript-file file-info
     (let* ((start (line-beginning-position))
            (end (line-end-position))
            (line (line-number-at-pos))
-           (file (car file-info))
-           (file-absolute (cdr file-info))
-           (breakpoint (gdscript-breakpoint-create :file file :file-absolute file-absolute :line line)))
+           (file (car file-info)))
       (if (not (member breakpoint gdscript-debug--breakpoints))
           (message "No breakpoint at %s:%s" file line)
         (gdscript-debug--remove-strings start end)
@@ -1920,7 +1940,9 @@ calling `gdscript-debug--table-string'."
                            (prop `(left-fringe breakpoint ,(if (not enabled) 'breakpoint-enabled 'breakpoint-disabled))))
                       (put-text-property 0 1 'display prop string))))))))))))
 
-(defun gdscript-debug-toggle-breakpoint ()
+(defun gdscript-debug-toggle-skip-breakpoints ()
+  "Toggle the execution of all breakpoints without removing them.
+Like Godot's Skip Breakpoints button."
   (interactive)
   (setq gdscript-debug--skip-breakpoints (not gdscript-debug--skip-breakpoints))
   (gdscript-debug--set-left-fringe-breakpoints gdscript-debug--skip-breakpoints)
@@ -1937,7 +1959,7 @@ calling `gdscript-debug--table-string'."
             (with-current-buffer buffer
               (goto-char (point-min))
               (forward-line (1- line))
-              (gdscript-debug-remove-breakpoint)))))
+              (gdscript-debug--remove-breakpoint breakpoint)))))
     (message "Not recognized as breakpoint line")))
 
 (defun gdscript-debug-goto-breakpoint ()
@@ -2048,7 +2070,7 @@ calling `gdscript-debug--table-string'."
 (defvar gdscript-debug--breakpoints-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
-    (define-key map " " 'gdscript-debug-toggle-breakpoint)
+    (define-key map " " 'gdscript-debug-toggle-skip-breakpoints)
     (define-key map "q" 'kill-current-buffer)
     (define-key map "D" 'gdscript-debug-delete-breakpoint)
     (define-key map "\r" 'gdscript-debug-goto-breakpoint)

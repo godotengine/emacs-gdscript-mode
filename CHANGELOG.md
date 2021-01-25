@@ -2,9 +2,10 @@
 
 This document lists new features, improvements, changes, and bug fixes in each release of the package.
 
-## GDScript mode 1.4.2
+## GDScript mode 1.5.0
 
-- Added keybindings matching Godot to run the project (<kbd>f5</kbd>), current scene (<kbd>f6</kbd>), continue execution (<kbd>f7</kbd>), and add breakpoints <kbd>F9</kbd>.
+- Added the ability to toggle breakpoint on the current line instead of either adding or removing them.
+- Added keybindings matching Godot to run the project (<kbd>f5</kbd>), current scene (<kbd>f6</kbd>), continue execution (<kbd>f7</kbd>), and toggle breakpoints <kbd>F9</kbd>.
 
 ## GDScript mode 1.4.1
 
