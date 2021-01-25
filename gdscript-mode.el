@@ -69,8 +69,10 @@
                             ;; Run in Godot.
                             (define-key map (kbd "C-c C-r p") 'gdscript-godot-open-project-in-editor)
                             (define-key map (kbd "C-c C-r r") 'gdscript-godot-run-project)
+                            (define-key map (kbd "<f5>") 'gdscript-godot-run-project)
                             (define-key map (kbd "C-c C-r d") 'gdscript-godot-run-project-debug)
                             (define-key map (kbd "C-c C-r s") 'gdscript-godot-run-current-scene)
+                            (define-key map (kbd "<f6>") 'gdscript-godot-run-current-scene)
                             (define-key map (kbd "C-c C-r q") 'gdscript-godot-run-current-scene-debug)
                             (define-key map (kbd "C-c C-r e") 'gdscript-godot-edit-current-scene)
                             (define-key map (kbd "C-c C-r x") 'gdscript-godot-run-current-script)
@@ -86,10 +88,12 @@
                             (define-key map (kbd "C-c C-d C-d b") 'gdscript-debug-display-breakpoint-buffer)
                             (define-key map (kbd "C-c C-d C-d i") 'gdscript-debug-display-inspector-buffer)
                             (define-key map (kbd "C-c C-d b") 'gdscript-debug-add-breakpoint)
+                            (define-key map (kbd "<f9>") 'gdscript-debug-add-breakpoint)
                             (define-key map (kbd "C-c C-d r") 'gdscript-debug-remove-breakpoint)
                             (define-key map (kbd "C-c C-d q") 'gdscript-debug-make-server)
                             (define-key map (kbd "C-c C-d n") 'gdscript-debug-next)
                             (define-key map (kbd "C-c C-d c") 'gdscript-debug-continue)
+                            (define-key map (kbd "<f7>") 'gdscript-debug-continue)
                             (define-key map (kbd "C-c C-d s") 'gdscript-debug-step)
                             ;; Debugger Hydra
                             (define-key map (kbd "C-c n") 'gdscript-debug-hydra)

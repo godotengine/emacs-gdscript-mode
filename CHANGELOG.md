@@ -2,6 +2,10 @@
 
 This document lists new features, improvements, changes, and bug fixes in each release of the package.
 
+## GDScript mode 1.4.2
+
+- Added keybindings matching Godot to run the project (<kbd>f5</kbd>), current scene (<kbd>f6</kbd>), continue execution (<kbd>f7</kbd>), and add breakpoints <kbd>F9</kbd>.
+
 ## GDScript mode 1.4.1
 
 Thanks to @clangdo for the contribution!
