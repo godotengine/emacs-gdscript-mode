@@ -47,11 +47,15 @@
 (defvar gdscript-hydra--editor nil)
 (defvar gdscript-hydra--debug-collisions nil)
 (defvar gdscript-hydra--debug-navigation nil)
+(defvar gdscript-hydra--hydra nil)
 
 (defun gdscript-hydra-show ()
   "Show gdcript hydra."
   (interactive)
-  (gdscript-util--with-available-hydra (gdscript-hydra--menu/body)))
+  (gdscript-util--with-available-hydra
+   (unless gdscript-hydra--hydra
+     (setq gdscript-hydra--hydra (gdscript-hydra--create)))
+   (funcall gdscript-hydra--hydra)))
 
 (defun gdscript-hydra--selected (selected)
   "Visual representation for (non)SELECTED checkboxes."
@@ -110,11 +114,10 @@ on hydra checkboxes."
   "Choose command to run from history of commands."
   (gdscript-godot--run-command (gdscript-history--select-from-history)))
 
-(ignore-errors
-  ;; Don't signal an error when hydra.el is not present
+(defun gdscript-hydra--create ()
   (defhydra gdscript-hydra--menu (:hint none
-                                  :body-pre (setq gdscript-hydra--open t)
-                                  :before-exit (setq gdscript-hydra--open nil))
+                                        :body-pre (setq gdscript-hydra--open t)
+                                        :before-exit (setq gdscript-hydra--open nil))
     "
 _d_ (?d?) Debug   _p_ run project  _t_ run script  _h_ run from history   _a_ format all     _q_ quit
 _e_ (?e?) Editor  _s_ run scene    _r_ run last    _g_ switch to *godot*  _b_ format buffer
