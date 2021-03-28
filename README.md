@@ -148,12 +148,12 @@ Add the call to use-package to your Emacs configuration:
     :straight (gdscript-mode
                :type git
                :host github
-               :repo "GDQuest/emacs-gdscript-mode"))
+               :repo "godotengine/emacs-gdscript-mode"))
 ```
 
 ### Installing manually
 
-1. Clone the repository or download a [stable release](https://github.com/GDQuest/emacs-gdscript-mode/releases) to your computer.
+1. Clone the repository or download a [stable release](https://github.com/godotengine/emacs-gdscript-mode/releases) to your computer.
 1. In your init.el file, add a call to load and require the package.
 
 ```elisp
