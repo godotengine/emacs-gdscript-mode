@@ -3,7 +3,7 @@
 ;; Copyright (C) 2020 GDQuest
 
 ;; Author: Josef Vlach <vlach.josef@gmail.com>
-;; URL: https://github.com/GDQuest/emacs-gdscript-mode/
+;; URL: https://github.com/godotengine/emacs-gdscript-mode/
 ;; Version: 0.0.1
 ;; Package-Requires: ((emacs "26.3"))
 ;; Maintainer: vlach.josef@gmail.com
