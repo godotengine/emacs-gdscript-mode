@@ -301,7 +301,7 @@ To get started with this feature, you need to add a least one breakpoint.
 
 ### Adding and removing breakpoints
 
-You can add a breakpoint on the current line with `gdscript-debug-add-breakpoint` (<kbd>C-c C-d b</kbd>). A red dot should appear in the left fringe. Use `gdscript-debug-remove-breakpoint` (<kbd>C-c C-d r</kbd>) to remove a breakpoint on the current line.
+Like in Godot's editor, you can toggle a breakpoint on the current line with `gdscript-debug-toggle-breakpoint` (<kbd>F9</kbd>).
 
 After adding at least one breakpoint to the project, a buffer named `* Breakpoints *` is created. This buffer displays all existing breakpoints in a project. In that buffer, pressing <kbd>D</kbd> on a breakpoint line deletes the breakpoint. Pressing <kbd>RET</kbd> opens the corresponding GDScript file in another buffer.
 
