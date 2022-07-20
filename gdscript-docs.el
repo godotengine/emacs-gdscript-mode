@@ -34,7 +34,7 @@
 (require 'eww)
 (require 'gdscript-customization)
 
-(defun gdscript-docs-open (url &args _)
+(defun gdscript-docs-open (url &rest _)
   "when `gdscript-docs-use-eww' is true use `eww' else use `browse-url'"
   (if gdscript-docs-use-eww
       (if (file-exists-p url) (eww-open-file url) (eww-browse-url url t))
