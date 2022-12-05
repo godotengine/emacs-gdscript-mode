@@ -2,8 +2,10 @@
          "0.1.0"
          "Major mode for Godot's GDScript language")
 
-(package-file "gdscript-mode.el")
+(website-url "https://github.com/godotengine/emacs-gdscript-mode/")
+(keywords "languages")
 
+(package-file "gdscript-mode.el")
 (files "*.el")
 
 (source "gnu")
