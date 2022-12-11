@@ -2,9 +2,14 @@
          "0.1.0"
          "Major mode for Godot's GDScript language")
 
+(website-url "https://github.com/godotengine/emacs-gdscript-mode/")
+(keywords "languages")
+
 (package-file "gdscript-mode.el")
 
 (files "*.el")
+
+(script "test" "echo \"Error: no test specified\" && exit 1")
 
 (source "gnu")
 
