@@ -153,6 +153,15 @@ directory path containing the file `index.html'."
   :type 'string
   :group 'gdscript)
 
+(defcustom gdscript-xml-docs-local-path ""
+  "Optional path to a local xml Godot documentation that comes along
+with the engine source code. If not set to an empty string, the
+command `gdscript-xml-docs-open' allow you to browse the local
+xml documentation in an org-mode buffer. Must be the directory
+which contains the *.xml documentation files."
+  :type 'string
+  :group 'gdscript)
+
 (defcustom gdscript-debug-port 6010
   "Debugger server port."
   :type 'integer
