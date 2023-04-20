@@ -7,6 +7,7 @@
 
 (package-file "gdscript-mode.el")
 
+(package-file "gdscript-mode.el")
 (files "*.el")
 
 (script "test" "echo \"Error: no test specified\" && exit 1")
