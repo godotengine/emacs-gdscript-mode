@@ -26,7 +26,7 @@
 ;;; Commentary:
 
 ;; Adds support for the GDScript programming language from the Godot game
-;; engine. This is a domain-specific language dedicated to game programming.
+;; engine.  This is a domain-specific language dedicated to game programming.
 
 ;;; Code:
 
@@ -42,6 +42,7 @@
 (require 'gdscript-godot)
 (require 'gdscript-hydra)
 (require 'gdscript-debug)
+(require 'gdscript-eglot)
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.gd\\'" . gdscript-mode))
@@ -49,6 +50,11 @@
 (add-to-list 'auto-mode-alist '("\\.tscn\\'" . conf-toml-mode))
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.tres\\'" . conf-toml-mode))
+;;;###autoload
+(with-eval-after-load 'eglot
+  (defvar eglot-server-programs)
+  (push (cons 'gdscript-mode #'gdscript-eglot-contact)
+        eglot-server-programs))
 
 (defvar gdscript-mode-map (let ((map (make-sparse-keymap)))
                             ;; Movement
