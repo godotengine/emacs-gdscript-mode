@@ -299,9 +299,9 @@ Code example:
 
 Emacs GDScript mode includes support for the GDScript debugger. 
 
-*The debugger provided in this package is mainly for Godot 3. Godot 4 has DAP support , and [dap-mode](https://github.com/emacs-lsp/dap-mode) is already support GDScript.*
+*The debugger in this package is only for Godot 3. Godot 4 supports the Debugger Adapter Procol (DAP), which you can use with the [dap-mode](https://github.com/emacs-lsp/dap-mode) package.*
 
-You can use breakpoints, use code stepping functions, see your nodes' state at runtime, and more.
+You can use the debugger tools to manage breakpoints, step through code, and more.
 
 To get started with this feature, you need to add a least one breakpoint.
 
