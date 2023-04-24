@@ -58,8 +58,17 @@
 ARGUMENTS are command line arguments for godot executable.
 When run it will kill existing process if one exists."
   (let ((buffer-name (gdscript-util--get-godot-buffer-name (member "-e" arguments)))
-        (inhibit-read-only t))
-    (if (not (or (file-executable-p gdscript-godot-executable) (executable-find gdscript-godot-executable)))
+        (inhibit-read-only t)
+        (godot-command gdscript-godot-executable))
+
+    ;; support flatpak
+    (if (string-match-p (rx "run" (* space) "org.godotengine.Godot") godot-command)
+        (let ((exec-split (split-string godot-command)))
+          (setq godot-command (car exec-split))
+          (setq arguments (append (cdr exec-split) arguments ))))
+
+    (if (not (or (file-executable-p godot-command)
+                 (executable-find godot-command)))
         (error "Error: Could not execute '%s'.  Please customize the `gdscript-godot-executable variable'" gdscript-godot-executable)
       (with-current-buffer (get-buffer-create buffer-name)
         (when gdscript-gdformat-save-and-format
@@ -68,7 +77,7 @@ When run it will kill existing process if one exists."
           (godot-mode)
           (buffer-disable-undo))
         (erase-buffer)
-        (comint-exec (current-buffer) buffer-name gdscript-godot-executable nil arguments)
+        (comint-exec (current-buffer) buffer-name godot-command nil arguments)
         (set-process-sentinel (get-buffer-process (current-buffer)) 'gdscript-comint--sentinel)
         (pop-to-buffer (current-buffer))))))
 
