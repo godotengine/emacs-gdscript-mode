@@ -62,10 +62,10 @@ When run it will kill existing process if one exists."
         (godot-command gdscript-godot-executable))
 
     ;; support flatpak
-    (if (string-match-p (rx "run" (* space) "org.godotengine.Godot") godot-command)
-        (let ((exec-split (split-string godot-command)))
-          (setq godot-command (car exec-split))
-          (setq arguments (append (cdr exec-split) arguments ))))
+    (when (string-match-p (rx "run" (* space) "org.godotengine.Godot") godot-command)
+      (let ((exec-split (split-string godot-command)))
+        (setq godot-command (car exec-split))
+        (setq arguments (append (cdr exec-split) arguments))))
 
     (if (not (or (file-executable-p godot-command)
                  (executable-find godot-command)))
