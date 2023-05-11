@@ -165,9 +165,22 @@ Add the call to use-package to your Emacs configuration:
 
 ## Auto-completion with the Language Server Protocol (LSP)
 
-For auto-completion, we rely on the [lsp-mode](https://emacs-lsp.github.io/lsp-mode/) package and the GDScript language server, which is built into Godot.
+For auto-completion, we rely on either the [eglot](https://github.com/joaotavora/eglot) or [lsp-mode](https://emacs-lsp.github.io/lsp-mode/) packages, and the GDScript language server which is built into Godot.
 
-The GDScript LSP support is part of the LSP mode. To use it, you need to install `lsp-mode` on top of `gdscript-mode` and configure it. To install and configure `lsp-mode`, see the [lsp-mode documentation](https://emacs-lsp.github.io/lsp-mode/page/installation/).
+To use the LSP with `eglot`, you need to install `eglot` on top of `gdscript-mode`, if using an Emacs version earlier than 29.
+After installation, `eglot` can be connected on startup by adding `eglot-ensure` as a hook on `gdscript-mode-hook`.
+
+Note that, due to language server changes made in Godot 4, usage with Godot 3 requires `gdscript-eglot-version` to be customized to 3.
+
+An example configuration for Godot 3 usage with `use-package`:
+
+```elisp
+(use-package gdscript-mode
+  :hook (gdscript-mode . eglot-ensure)
+  :custom (gdscript-eglot-version 3))
+```
+
+To use the LSP with `lsp-mode`, you need to install `lsp-mode` on top of `gdscript-mode` and configure it. To install and configure `lsp-mode`, see the [lsp-mode documentation](https://emacs-lsp.github.io/lsp-mode/page/installation/).
 
 ### Known issues
 
