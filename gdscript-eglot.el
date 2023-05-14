@@ -61,6 +61,7 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2023-04/msg01070.html."
               cfg-dir)))
            (port
             (with-current-buffer cfg-buffer
+              (goto-char 0)
               (and
                (re-search-forward
                 (rx "network/language_server/remote_port"
@@ -68,6 +69,7 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2023-04/msg01070.html."
                     (group (+ digit)))
                 nil t)
                (string-to-number (match-string 1))))))
+      (kill-buffer cfg-buffer)
       ;; then return the host-port list when found
       (and port (list "localhost" port)))))
 
