@@ -44,6 +44,9 @@
 (require 'gdscript-debug)
 (require 'gdscript-eglot)
 
+(when (version< "29" emacs-version)
+  (require 'gdscript-ts-mode))
+
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.gd\\'" . gdscript-mode))
 ;;;###autoload
