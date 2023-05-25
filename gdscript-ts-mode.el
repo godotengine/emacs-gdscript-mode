@@ -27,17 +27,52 @@
 
 ;;; Commentary:
 ;;
-;; Tree-sitter mode for Gdscript.
+;; Tree-sitter mode for Gdscript. (Refer to python-ts-mode)
+;; That supports the use tree-sitter for font-lock, imenu, indentation,
+;; and navigation of Gdscript files.
+
 ;;
 ;;; Code:
 
 (require 'treesit)
+
+
+
+;;; Imenu
+
+(defvar gdscript-ts-imenu-format-item-label-function
+  'gdscript-ts-imenu-format-item-label
+  "Imenu function used to format an item label.
+It must be a function with two arguments: TYPE and NAME.")
+
+(defvar gdscript-ts-imenu-format-parent-item-label-function
+  'gdscript-ts-imenu-format-parent-item-label
+  "Imenu function used to format a parent item label.
+It must be a function with two arguments: TYPE and NAME.")
+
+(defvar gdscript-ts-imenu-format-parent-item-jump-label-function
+  'gdscript-ts-imenu-format-parent-item-jump-label
+  "Imenu function used to format a parent jump item label.
+It must be a function with two arguments: TYPE and NAME.")
+
+(defun gdscript-ts-imenu-format-item-label (type name)
+  "Return Imenu label for single node using TYPE and NAME."
+  (format "%s (%s)" name type))
+
+(defun gdscript-ts-imenu-format-parent-item-label (type name)
+  "Return Imenu label for parent node using TYPE and NAME."
+  (format "%s..." (gdscript-ts-imenu-format-item-label type name)))
+
+
+;;; Keywords
 
 (defvar gdscript-ts--treesit-keywords '("and" "as" "break" "class" "class_name"
                                         "const" "continue" "elif" "else" "enum" "export" "extends" "for" "func" "if" "in" "is"
                                         "master" "match" "not" "onready" "or" "pass"  "puppet" "remote" "remotesync" "return" "setget" "signal"
                                         "var" "while"))
 
+
+;;; Setting
 
 (defvar gdscript-ts--treesit-settings
   (treesit-font-lock-rules
@@ -83,14 +118,94 @@
    :language 'gdscript
    '((attribute (identifier) (identifier) @font-lock-property-use-face))
 
-
    :feature 'operator
    :language 'gdscript
    `(["+" "-" "*" "/" "^" ">" "<" "="] @font-lock-operator-face)))
 
+
+;;; Funtion
+
 (defun gdscript-ts--treesit-defun-name (node)
   "Return the defun name of NODE."
   (treesit-node-text (treesit-search-subtree node "^name$" nil t) t))
+
+(defun gdscript-ts--imenu-treesit-create-index-1 (node)
+  "Given a sparse tree, create an imenu alist.
+
+NODE is the root node of the tree returned by
+`treesit-induce-sparse-tree' (not a tree-sitter node, its car is
+a tree-sitter node).  Walk that tree and return an imenu alist.
+
+Return a list of ENTRY where
+
+ENTRY := (NAME . MARKER)
+       | (NAME . ((JUMP-LABEL . MARKER)
+                  ENTRY
+                  ...)
+
+NAME is the function/class's name, JUMP-LABEL is like \"*function
+definition*\"."
+  (let* ((ts-node (car node))
+         (children (cdr node))
+         (subtrees (mapcan #'gdscript-ts--imenu-treesit-create-index-1
+                           children))
+         (type (pcase (treesit-node-type ts-node)
+                 ("function_definition" 'def)
+                 ("export_variable_statement" 'e-var)
+                 ("onready_variable_statement" 'o-var)
+                 ("variable_statement" 'var)
+                 ("class_definition" 'class)))
+         ;; The root of the tree could have a nil ts-node.
+         (name (when ts-node
+                 (or (treesit-defun-name ts-node)
+                     "Anonymous")))
+         (marker (when ts-node
+                   (set-marker (make-marker)
+                               (treesit-node-start ts-node)))))
+    (cond
+     ((null ts-node)
+      subtrees)
+     (subtrees
+      (let ((parent-label
+             (funcall gdscript-ts-imenu-format-parent-item-label-function
+                      type name))
+            (jump-label
+             (funcall
+              gdscript-ts-imenu-format-parent-item-jump-label-function
+              type name)))
+        `((,parent-label
+           ,(cons jump-label marker)
+           ,@subtrees))))
+     (t (let ((label
+               (funcall gdscript-ts-imenu-format-item-label-function
+                        type name)))
+          (list (cons label marker)))))))
+
+(defun gdscript-ts-imenu-treesit-create-index (&optional node)
+  "Return tree Imenu alist for the current Gdscript buffer.
+
+Change `gdscript-ts-imenu-format-item-label-function',
+`gdscript-ts-imenu-format-parent-item-label-function',
+`gdscript-ts-imenu-format-parent-item-jump-label-function' to
+customize how labels are formatted.
+
+NODE is the root node of the subtree you want to build an index
+of.  If nil, use the root node of the whole parse tree.
+
+Similar to `gdscript-imenu-create-index' but use tree-sitter."
+  (let* ((node (or node (treesit-buffer-root-node 'gdscript)))
+         (tree (treesit-induce-sparse-tree
+                node
+                (rx (or (seq bol
+                             (or "onready" "export" "")
+                             "_variable_statement"
+                             eol)
+                        (seq bol
+                             (or "function" "class")
+                             "_definition"
+                             eol)))
+                nil 1000)))
+    (gdscript-ts--imenu-treesit-create-index-1 tree)))
 
 ;;;###autoload
 (define-derived-mode gdscript-ts-mode gdscript-mode "Gdscript"
@@ -106,9 +221,12 @@
                   ( function variable number property operator)))
     (setq-local treesit-font-lock-settings gdscript-ts--treesit-settings)
     ;;; TODO: create-imenu
-    ;; (setq-local imenu-create-index-function
-    ;;             #'gdscript-ts-imenu-treesit-create-index)
-    (setq-local treesit-defun-type-regexp (rx (or "func" "class_name")))
+    (setq-local imenu-create-index-function
+                #'gdscript-ts-imenu-treesit-create-index)
+    (setq-local treesit-defun-type-regexp (rx (seq bol
+                                                   (or "function" "class")
+                                                   "_definition"
+                                                   eol)))
     (setq-local treesit-defun-name-function
                 #'gdscript-ts--treesit-defun-name)
     (treesit-major-mode-setup)
