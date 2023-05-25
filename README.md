@@ -10,35 +10,41 @@ game engine in Emacs. It gives syntax highlighting and indentations.
 ![](assets/emacs-gdscript-imenu.png)
 
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
-
 **Table of Contents**
 
-- [Features](#features)
-- [Contributing](#contributing)
-- [How to install](#how-to-install)
-  - [Installing in Spacemacs](#installing-in-spacemacs)
-  - [Installing in Doom Emacs](#installing-in-doom-emacs)
-  - [Installing with `use-package` + `straight.el`](#installing-with-use-package--straightel)
-  - [Installing manually](#installing-manually)
-- [Auto-completion with the Language Server Protocol (LSP)](#auto-completion-with-the-language-server-protocol-lsp)
-- [How to use](#how-to-use)
-  - [Opening the project in the editor](#opening-the-project-in-the-editor)
-  - [Running Godot with visual debug options](#running-godot-with-visual-debug-options)
-  - [Using Hydra](#using-hydra)
-  - [Formatting code with gdformat](#formatting-code-with-gdformat)
-  - [Browsing the Godot API with eww](#browsing-the-godot-api-with-eww)
-- [Keyboard shortcuts](#keyboard-shortcuts)
-- [Customization](#customization)
-- [Using the debugger](#using-the-debugger)
-  - [Adding and removing breakpoints](#adding-and-removing-breakpoints)
-  - [Running the project with the debugger active](#running-the-project-with-the-debugger-active)
-  - [Fetching an object's details](#fetching-an-objects-details)
-  - [Debug Hydra](#debug-hydra)
-  - [The `* Stack frame vars *` buffer](#the--stack-frame-vars--buffer)
-  - [`* Inspector *` buffer](#-inspector--buffer)
-  - [`* Stack dump *` buffer](#-stack-dump--buffer)
-  - [`* Breakpoints *` buffer](#-breakpoints--buffer)
-  - [`* Scene tree *` buffer](#-scene-tree--buffer)
+- [GDScript mode for Emacs](#gdscript-mode-for-emacs)
+    - [Features](#features)
+    - [Contributing](#contributing)
+    - [How to install](#how-to-install)
+        - [Installing in Spacemacs](#installing-in-spacemacs)
+        - [Installing in Doom Emacs](#installing-in-doom-emacs)
+        - [Installing with `use-package` + `straight.el`](#installing-with-use-package--straightel)
+        - [Installing manually](#installing-manually)
+    - [Auto-completion with the Language Server Protocol (LSP)](#auto-completion-with-the-language-server-protocol-lsp)
+        - [Known issues](#known-issues)
+    - [Major mode with Treesit](#major-mode-with-treesit)
+        - [Install treesit](#install-treesit)
+        - [Install grammar](#install-grammar)
+    - [How to use](#how-to-use)
+        - [Opening the project in the editor](#opening-the-project-in-the-editor)
+        - [Running Godot with visual debug options](#running-godot-with-visual-debug-options)
+        - [Using Hydra](#using-hydra)
+        - [Formatting code with gdformat](#formatting-code-with-gdformat)
+        - [Browsing the Godot API with eww](#browsing-the-godot-api-with-eww)
+            - [Using a local copy of the Godot docs](#using-a-local-copy-of-the-godot-docs)
+    - [Keyboard shortcuts](#keyboard-shortcuts)
+    - [Customization](#customization)
+    - [Using the debugger](#using-the-debugger)
+        - [Adding and removing breakpoints](#adding-and-removing-breakpoints)
+        - [Running the project with the debugger active](#running-the-project-with-the-debugger-active)
+            - [Multi-line display](#multi-line-display)
+        - [Fetching an object's details](#fetching-an-objects-details)
+        - [Debug Hydra](#debug-hydra)
+        - [The `* Stack frame vars *` buffer](#the--stack-frame-vars--buffer)
+        - [`* Inspector *` buffer](#-inspector--buffer)
+        - [`* Stack dump *` buffer](#-stack-dump--buffer)
+        - [`* Breakpoints *` buffer](#-breakpoints--buffer)
+        - [`* Scene tree *` buffer](#-scene-tree--buffer)
 
 <!-- markdown-toc end -->
 
@@ -59,6 +65,7 @@ This mode features all the essentials:
 - Auto-completion for all the keywords in the `gdscript-keywords.el` file.
 - Run or open the project and files with Godot.
 - Browsing the API reference in Emacs.
+- Add treesit major mode support `gdscript-ts-mode` .
 
 ![](assets/emacs-gdscript-code-folding.png)
 
@@ -200,6 +207,41 @@ There are some known issues with the GDScript language server in Godot 3.2 due t
 ;; Runs the function `lsp--gdscript-ignore-errors` around `lsp--get-message-type` to suppress unknown notification errors.
 (advice-add #'lsp--get-message-type :around #'lsp--gdscript-ignore-errors)
 ```
+
+## Major mode with Treesit
+
+[Treesit](https://github.com/tree-sitter/tree-sitter) is an incremental parsing system for programming tools.
+
+This package has a major mode (gdscript-ts-mode). That supports the use tree-sitter for font-lock, imenu, indentation, and navigation of `gdscript` files.
+
+Emacs version 29 or higher is required to use this mode.
+
+### Install treesit
+
+We need to install tree-sitter library, When under Arch Linux :
+
+```sh
+sudo pacman -S tree-sitter
+```
+
+### Install grammar
+
+To support Gdscript, we must install [gdscript-grammar](https://github.com/PrestonKnopp/tree-sitter-gdscript.git):
+
+```sh
+git clone https://github.com/PrestonKnopp/tree-sitter-gdscript.git
+cd tree-sitter-gdscript/src
+cc -std=c99 -c parser.c
+cc -c scanner.cc
+cc -shared parser.o scanner.o -o libtree-sitter-gdscript.so
+```
+
+Additional directories to look for tree-sitter language definitions. ( DIR is your working path )
+
+```emacs-lisp
+(setq treesit-extra-load-path '("DIR/tree-sitter-gdscript/src/"))
+```
+enjoy.
 
 ## How to use
 
