@@ -12,7 +12,6 @@ game engine in Emacs. It gives syntax highlighting and indentations.
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
 **Table of Contents**
 
-- [GDScript mode for Emacs](#gdscript-mode-for-emacs)
     - [Features](#features)
     - [Contributing](#contributing)
     - [How to install](#how-to-install)
