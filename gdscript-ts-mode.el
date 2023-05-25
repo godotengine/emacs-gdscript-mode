@@ -27,7 +27,7 @@
 
 ;;; Commentary:
 ;;
-;; Tree-sitter mode for Gdscript. (Refer to python-ts-mode)
+;; Tree-sitter mode for Gdscript.(Refer to python-ts-mode)
 ;; That supports the use tree-sitter for font-lock, imenu, indentation,
 ;; and navigation of Gdscript files.
 
