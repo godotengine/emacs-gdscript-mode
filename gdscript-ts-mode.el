@@ -37,8 +37,6 @@
 (when (version< "29" emacs-version)
   (require 'treesit))
 
-
-
 
 ;;; Imenu
 
