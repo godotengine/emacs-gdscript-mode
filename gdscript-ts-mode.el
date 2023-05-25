@@ -65,6 +65,11 @@ It must be a function with two arguments: TYPE and NAME.")
   "Return Imenu label for parent node using TYPE and NAME."
   (format "%s..." (gdscript-ts-imenu-format-item-label type name)))
 
+(defun gdscript-ts-imenu-format-parent-item-jump-label (type _name)
+  "Return Imenu label for parent node jump using TYPE and NAME."
+  (if (string= type "class")
+      "*class definition*"
+    "*function definition*"))
 
 ;;; Keywords
 
@@ -199,8 +204,8 @@ Similar to `gdscript-imenu-create-index' but use tree-sitter."
          (tree (treesit-induce-sparse-tree
                 node
                 (rx (or (seq bol
-                             (or "onready" "export" "")
-                             "_variable_statement"
+                             (or "onready_" "export_" "")
+                             "variable_statement"
                              eol)
                         (seq bol
                              (or "function" "class")
