@@ -5,7 +5,7 @@
 ;; Author: Josef Vlach <vlach.josef@gmail.com>
 ;; URL: https://github.com/godotengine/emacs-gdscript-mode/
 ;; Version: 1.0.0
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "26.3") (hydra "0.15.0"))
 ;; Maintainer: nathan@gdquest.com
 ;; Created: May 2020
 ;; Keywords: languages
