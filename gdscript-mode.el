@@ -56,6 +56,8 @@
 ;;;###autoload
 (with-eval-after-load 'eglot
   (defvar eglot-server-programs)
+  (setq eglot-server-programs
+        (assq-delete-all 'gdscript-mode eglot-server-programs))
   (push (cons 'gdscript-mode #'gdscript-eglot-contact)
         eglot-server-programs))
 
