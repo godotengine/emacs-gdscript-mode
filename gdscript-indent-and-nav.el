@@ -347,11 +347,7 @@ to the maximum available level.  When indentation is the minimum
 possible and PREVIOUS is non-nil, cycle back to the maximum
 level."
   (let ((follow-indentation-p
-         ;; Check if point is within indentation.
-         (and (<= (line-beginning-position) (point))
-              (>= (+ (line-beginning-position)
-                     (current-indentation))
-                  (point)))))
+         (<= (current-column) (current-indentation))))
     (save-excursion
       (indent-line-to
        (gdscript-indent-calculate-indentation previous))
