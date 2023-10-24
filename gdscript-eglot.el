@@ -52,7 +52,11 @@ definitions of HOST, PORT, and INTERACTIVE.
 For more context, see
 https://lists.gnu.org/archive/html/bug-gnu-emacs/2023-04/msg01070.html."
   (save-excursion
-    (let* ((cfg-dir (or (getenv "XDG_CONFIG_HOME") "~/.config"))
+    (let* ((cfg-dir (or (getenv "XDG_CONFIG_HOME")
+                        (pcase system-type
+                          ('darwin "~/Library/Application Support/Godot/")
+                          ('windows-nt "%APPDATA%\\Godot\\")
+                          ('gnu/linux "~/.config/"))))
            (cfg-buffer
             (find-file-noselect
              (expand-file-name
