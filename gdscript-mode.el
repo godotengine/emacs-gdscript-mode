@@ -43,6 +43,7 @@
 (require 'gdscript-hydra)
 (require 'gdscript-debug)
 (require 'gdscript-eglot)
+(require 'gdscript-xml-docs)
 
 (when (version< "29" emacs-version)
   (require 'gdscript-ts-mode))
