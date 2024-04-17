@@ -74,11 +74,13 @@ first."
                       (projectile-project-files project-root))
                    (read-file-name
                     "Find file: "
-                    project-root))))
-      (insert
-       (concat "\"res://"
-               (gdscript-util--get-godot-project-file-path-relative file)
-               "." (file-name-extension file) "\"")))))
+                    project-root)))
+                (resource-path
+                 (if has-projectile
+                     file
+                   (concat (gdscript-util--get-godot-project-file-path-relative file)
+                           "." (file-name-extension file)))))
+      (insert (concat "\"res://" resource-path "\"")))))
 
 
 (provide 'gdscript-completion)
