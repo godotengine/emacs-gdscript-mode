@@ -130,6 +130,22 @@ the last command event was a string delimiter."
     (save-excursion
       (insert (make-string 2 last-command-event)))))
 
+(defun gdscript-mark-defun ()
+  "GDScript-specific version of `mark-defun'.
+
+Put mark at end of this defun, point at beginning.
+The defun marked is the one that contains point or follows point.
+
+If the mark is active, it marks the next defun after the one
+already marked."
+  (interactive)
+  (if (use-region-p)
+      (gdscript-nav-forward-defun)
+    (save-excursion
+      (gdscript-nav-backward-defun)
+      (set-mark (point))))
+  (gdscript-nav-end-of-defun))
+
 ;;;###autoload
 (define-derived-mode gdscript-mode prog-mode "gdscript"
   "Major mode for editing Godot GDScript files."
