@@ -63,23 +63,24 @@ first."
   (let ((has-projectile (featurep 'projectile)))
     (when has-projectile
       (projectile-maybe-invalidate-cache arg))
-    (let* ((project-root
-            (if has-projectile
-                (projectile-ensure-project (projectile-project-root))
-              (gdscript-util--find-project-configuration-file)))
-           (file
-            (if has-projectile
-                (projectile-completing-read
-                 "Find file: "
-                 (projectile-project-files project-root))
-              (read-file-name
-               "Find file: "
-               project-root))))
-      (when file
-        (insert
-         (concat "\"res://"
-                 (gdscript-util--get-godot-project-file-path-relative file)
-                 "." (file-name-extension file) "\""))))))
+    (when-let* ((project-root
+                 (if has-projectile
+                     (projectile-ensure-project (projectile-project-root))
+                   (gdscript-util--find-project-configuration-file)))
+                (file
+                 (if has-projectile
+                     (projectile-completing-read
+                      "Find file: "
+                      (projectile-project-files project-root))
+                   (read-file-name
+                    "Find file: "
+                    project-root)))
+                (resource-path
+                 (if has-projectile
+                     file
+                   (concat (gdscript-util--get-godot-project-file-path-relative file)
+                           "." (file-name-extension file)))))
+      (insert (concat "\"res://" resource-path "\"")))))
 
 
 (provide 'gdscript-completion)
