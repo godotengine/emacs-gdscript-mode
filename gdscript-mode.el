@@ -56,8 +56,10 @@
 ;;;###autoload
 (with-eval-after-load 'eglot
   (defvar eglot-server-programs)
-  (push (cons 'gdscript-mode #'gdscript-eglot-contact)
-        eglot-server-programs))
+  (unless (equal (alist-get 'gdscript-mode eglot-server-programs)
+                 #'gdscript-eglot-contact)
+    (push (cons 'gdscript-mode #'gdscript-eglot-contact)
+          eglot-server-programs)))
 
 (defvar gdscript-mode-map (let ((map (make-sparse-keymap)))
                             ;; Movement
