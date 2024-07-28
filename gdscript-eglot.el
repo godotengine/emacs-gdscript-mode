@@ -56,11 +56,11 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2023-04/msg01070.html."
                         (pcase system-type
                           ('darwin "~/Library/Application Support/Godot/")
                           ('windows-nt "%APPDATA%\\Godot\\")
-                          ('gnu/linux "~/.config/"))))
+                          ('gnu/linux "~/.config/godot"))))
            (cfg-buffer
             (find-file-noselect
              (expand-file-name
-              (format "godot/editor_settings-%d.tres"
+              (format "editor_settings-%d.tres"
                       gdscript-eglot-version)
               cfg-dir)))
            (port
