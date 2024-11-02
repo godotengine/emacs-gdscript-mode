@@ -38,9 +38,9 @@
   :group 'gdscript)
 
 ;;;###autoload
-(defcustom gdscript-eglot-version 4
+(defcustom gdscript-eglot-version "4.3"
   "The version of godot in use."
-  :type 'integer)
+  :type 'string)
 
 ;;;###autoload
 (defun gdscript-eglot-contact (_interactive)
@@ -60,7 +60,7 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2023-04/msg01070.html."
            (cfg-buffer
             (find-file-noselect
              (expand-file-name
-              (format "godot/editor_settings-%d.tres"
+              (format "godot/editor_settings-%s.tres"
                       gdscript-eglot-version)
               cfg-dir)))
            (port
