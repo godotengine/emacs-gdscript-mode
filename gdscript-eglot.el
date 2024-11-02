@@ -38,7 +38,7 @@
   :group 'gdscript)
 
 ;;;###autoload
-(defcustom gdscript-eglot-version "4"
+(defcustom gdscript-eglot-version "4.3"
   "The version of godot in use."
   :type 'string)
 
