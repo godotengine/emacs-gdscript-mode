@@ -52,17 +52,17 @@ definitions of HOST, PORT, and INTERACTIVE.
 For more context, see
 https://lists.gnu.org/archive/html/bug-gnu-emacs/2023-04/msg01070.html."
   (save-excursion
-    (let* ((cfg-dir (or (getenv "XDG_CONFIG_HOME")
-                        (pcase system-type
-                          ('darwin "~/Library/Application Support/Godot/")
-                          ('windows-nt "%APPDATA%\\Godot\\")
-                          ('gnu/linux "~/.config/"))))
-           (cfg-buffer
-            (find-file-noselect
-             (expand-file-name
-              (format "godot/editor_settings-%s.tres"
-                      gdscript-eglot-version)
-              cfg-dir)))
+    (let* ((cfg-dir (pcase system-type
+                      ('darwin "~/Library/Application Support/Godot/")
+                      ('windows-nt (substitute-in-file-name "$APPDATA/Godot/"))
+                      ('gnu/linux (file-name-concat
+                                   (or (getenv "XDG_CONFIG_HOME") "~/.config/")
+                                   "godot"))))
+           (cfg-buffer (find-file-noselect
+                        (file-name-concat
+                         cfg-dir
+                         (format "editor_settings-%s.tres"
+                                 gdscript-eglot-version))))
            (port
             (with-current-buffer cfg-buffer
               (goto-char 0)
