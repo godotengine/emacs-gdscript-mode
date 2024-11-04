@@ -55,11 +55,8 @@
 (add-to-list 'auto-mode-alist '("\\.tres\\'" . conf-toml-mode))
 ;;;###autoload
 (with-eval-after-load 'eglot
-  (defvar eglot-server-programs)
-  (unless (equal (alist-get 'gdscript-mode eglot-server-programs)
-                 #'gdscript-eglot-contact)
-    (push (cons 'gdscript-mode #'gdscript-eglot-contact)
-          eglot-server-programs)))
+  (add-to-list 'eglot-server-programs
+               '(gdscript-mode . gdscript-eglot-contact)))
 
 (defvar gdscript-mode-map (let ((map (make-sparse-keymap)))
                             ;; Movement
