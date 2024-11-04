@@ -52,30 +52,25 @@ definitions of HOST, PORT, and INTERACTIVE.
 For more context, see
 https://lists.gnu.org/archive/html/bug-gnu-emacs/2023-04/msg01070.html."
   (save-excursion
-    (let* ((cfg-dir (pcase system-type
-                      ('darwin "~/Library/Application Support/Godot/")
-                      ('windows-nt (substitute-in-file-name "$APPDATA/Godot/"))
-                      ('gnu/linux (file-name-concat
-                                   (or (getenv "XDG_CONFIG_HOME") "~/.config/")
-                                   "godot"))))
-           (cfg-buffer (find-file-noselect
-                        (file-name-concat
-                         cfg-dir
-                         (format "editor_settings-%s.tres"
-                                 gdscript-eglot-version))))
-           (port
-            (with-current-buffer cfg-buffer
-              (goto-char 0)
-              (and
-               (re-search-forward
-                (rx "network/language_server/remote_port"
-                    (* space) ?= (* space)
-                    (group (+ digit)))
-                nil t)
-               (string-to-number (match-string 1))))))
-      (kill-buffer cfg-buffer)
-      ;; then return the host-port list when found
-      (and port (list "localhost" port)))))
+    (let* ((config-dir (pcase system-type
+                         ('darwin "~/Library/Application Support/Godot/")
+                         ('windows-nt (substitute-in-file-name "$APPDATA/Godot/"))
+                         ('gnu/linux (file-name-concat
+                                      (or (getenv "XDG_CONFIG_HOME") "~/.config/")
+                                      "godot"))))
+           (settings-file (file-name-concat
+                           config-dir
+                           (format "editor_settings-%s.tres" gdscript-eglot-version))))
+      (when (file-exists-p settings-file)
+        (when-let ((port (with-temp-buffer
+                           (insert-file-contents settings-file)
+                           (when  (re-search-forward
+                                   (rx "network/language_server/remote_port"
+                                       (* space) ?= (* space)
+                                       (group (+ digit)))
+                                   nil t)
+                             (string-to-number (match-string 1))))))
+          (list "localhost" port))))))
 
 (provide 'gdscript-eglot)
 ;;; gdscript-eglot.el ends here.
