@@ -50,6 +50,17 @@
                  (or (getenv "XDG_CONFIG_HOME") "~/.config/")
                  "godot"))))
 
+(defun gdscript-eglot--extract-port (editor-settings-file)
+  (when (file-exists-p editor-settings-file)
+    (with-temp-buffer
+      (insert-file-contents editor-settings-file)
+      (when (re-search-forward
+             (rx "network/language_server/remote_port"
+                 (* space) ?= (* space)
+                 (group (+ digit)))
+             nil t)
+        (string-to-number (match-string 1))))))
+
 ;;;###autoload
 (defun gdscript-eglot-contact (_interactive)
   "Attempt to help `eglot' contact the running gdscript LSP.
@@ -64,16 +75,8 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2023-04/msg01070.html."
            (settings-file (file-name-concat
                            config-dir
                            (format "editor_settings-%s.tres" gdscript-eglot-version))))
-      (when (file-exists-p settings-file)
-        (when-let ((port (with-temp-buffer
-                           (insert-file-contents settings-file)
-                           (when  (re-search-forward
-                                   (rx "network/language_server/remote_port"
-                                       (* space) ?= (* space)
-                                       (group (+ digit)))
-                                   nil t)
-                             (string-to-number (match-string 1))))))
-          (list "localhost" port))))))
+      (when-let ((port (gdscript-eglot--extract-port settings-file)))
+        (list "localhost" port)))))
 
 (provide 'gdscript-eglot)
 ;;; gdscript-eglot.el ends here.
