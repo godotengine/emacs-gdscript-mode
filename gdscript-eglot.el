@@ -42,6 +42,14 @@
   "The version of godot in use."
   :type 'string)
 
+(defun gdscript-eglot--get-config-dir ()
+  (pcase system-type
+    ('darwin "~/Library/Application Support/Godot/")
+    ('windows-nt (substitute-in-file-name "$APPDATA/Godot/"))
+    ('gnu/linux (file-name-concat
+                 (or (getenv "XDG_CONFIG_HOME") "~/.config/")
+                 "godot"))))
+
 ;;;###autoload
 (defun gdscript-eglot-contact (_interactive)
   "Attempt to help `eglot' contact the running gdscript LSP.
@@ -52,12 +60,7 @@ definitions of HOST, PORT, and INTERACTIVE.
 For more context, see
 https://lists.gnu.org/archive/html/bug-gnu-emacs/2023-04/msg01070.html."
   (save-excursion
-    (let* ((config-dir (pcase system-type
-                         ('darwin "~/Library/Application Support/Godot/")
-                         ('windows-nt (substitute-in-file-name "$APPDATA/Godot/"))
-                         ('gnu/linux (file-name-concat
-                                      (or (getenv "XDG_CONFIG_HOME") "~/.config/")
-                                      "godot"))))
+    (let* ((config-dir (gdscript-eglot--get-config-dir))
            (settings-file (file-name-concat
                            config-dir
                            (format "editor_settings-%s.tres" gdscript-eglot-version))))
