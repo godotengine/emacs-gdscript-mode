@@ -52,6 +52,7 @@
                  "godot"))))
 
 (defun gdscript-eglot--extract-port (editor-settings-file)
+  "Extract LSP port from Godot editor settings file."
   (when (file-exists-p editor-settings-file)
     (with-temp-buffer
       (insert-file-contents editor-settings-file)
