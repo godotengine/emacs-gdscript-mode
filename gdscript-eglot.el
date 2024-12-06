@@ -43,6 +43,7 @@
   :type 'string)
 
 (defun gdscript-eglot--get-config-dir ()
+  "Get system-specific directory with Godot configuration files."
   (pcase system-type
     ('darwin "~/Library/Application Support/Godot/")
     ('windows-nt (substitute-in-file-name "$APPDATA/Godot/"))
