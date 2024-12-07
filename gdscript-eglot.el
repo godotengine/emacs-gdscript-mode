@@ -42,6 +42,27 @@
   "The version of godot in use."
   :type 'string)
 
+(defun gdscript-eglot--get-config-dir ()
+  "Get system-specific directory with Godot configuration files."
+  (pcase system-type
+    ('darwin "~/Library/Application Support/Godot/")
+    ('windows-nt (substitute-in-file-name "$APPDATA/Godot/"))
+    ('gnu/linux (file-name-concat
+                 (or (getenv "XDG_CONFIG_HOME") "~/.config/")
+                 "godot"))))
+
+(defun gdscript-eglot--extract-port (editor-settings-file)
+  "Extract LSP port from Godot editor settings file."
+  (when (file-exists-p editor-settings-file)
+    (with-temp-buffer
+      (insert-file-contents editor-settings-file)
+      (when (re-search-forward
+             (rx "network/language_server/remote_port"
+                 (* space) ?= (* space)
+                 (group (+ digit)))
+             nil t)
+        (string-to-number (match-string 1))))))
+
 ;;;###autoload
 (defun gdscript-eglot-contact (_interactive)
   "Attempt to help `eglot' contact the running gdscript LSP.
@@ -52,30 +73,12 @@ definitions of HOST, PORT, and INTERACTIVE.
 For more context, see
 https://lists.gnu.org/archive/html/bug-gnu-emacs/2023-04/msg01070.html."
   (save-excursion
-    (let* ((cfg-dir (pcase system-type
-                      ('darwin "~/Library/Application Support/Godot/")
-                      ('windows-nt (substitute-in-file-name "$APPDATA/Godot/"))
-                      ('gnu/linux (file-name-concat
-                                   (or (getenv "XDG_CONFIG_HOME") "~/.config/")
-                                   "godot"))))
-           (cfg-buffer (find-file-noselect
-                        (file-name-concat
-                         cfg-dir
-                         (format "editor_settings-%s.tres"
-                                 gdscript-eglot-version))))
-           (port
-            (with-current-buffer cfg-buffer
-              (goto-char 0)
-              (and
-               (re-search-forward
-                (rx "network/language_server/remote_port"
-                    (* space) ?= (* space)
-                    (group (+ digit)))
-                nil t)
-               (string-to-number (match-string 1))))))
-      (kill-buffer cfg-buffer)
-      ;; then return the host-port list when found
-      (and port (list "localhost" port)))))
+    (let* ((config-dir (gdscript-eglot--get-config-dir))
+           (settings-file (file-name-concat
+                           config-dir
+                           (format "editor_settings-%s.tres" gdscript-eglot-version))))
+      (when-let ((port (gdscript-eglot--extract-port settings-file)))
+        (list "localhost" port)))))
 
 (provide 'gdscript-eglot)
 ;;; gdscript-eglot.el ends here.
