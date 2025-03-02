@@ -74,7 +74,7 @@ It must be a function with two arguments: TYPE and NAME.")
 (defvar gdscript-ts--treesit-keywords '("and" "as" "break" "class" "class_name"
                                         "const" "continue" "elif" "else" "enum" "export" "extends" "for" "func" "if" "in" "is"
                                         "master" "match" "not" "onready" "or" "pass"  "puppet" "remote" "remotesync" "return" "setget" "signal"
-                                        "var" "while"))
+                                        "var" "while" "yield"))
 
 
 ;;; Setting
