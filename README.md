@@ -231,7 +231,7 @@ To support Gdscript, we must install [gdscript-grammar](https://github.com/Prest
 git clone https://github.com/PrestonKnopp/tree-sitter-gdscript.git
 cd tree-sitter-gdscript/src
 cc -std=c99 -c parser.c
-cc -c scanner.cc
+cc -c scanner.c -I./
 cc -shared parser.o scanner.o -o libtree-sitter-gdscript.so
 ```
 
