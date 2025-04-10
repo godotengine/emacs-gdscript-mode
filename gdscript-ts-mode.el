@@ -78,11 +78,15 @@ It must be a function with two arguments: TYPE and NAME.")
                                         "puppet" "remote" "remotesync" "return" "setget" "signal"
                                         "var" "while"))
 
-;;; Setting
+;;; Types
 
-(defvar gdscript-ts--type-regex "\\`[A-Z][a-zA-Z0-9_]*[a-z][a-zA-Z0-9_]*\\'")
+(defvar gdscript-ts--type-regex "\\`\\(int\\|bool\\|float\\|void\\|[A-Z][a-zA-Z0-9_]*[a-z][a-zA-Z0-9_]*\\)\\'")
+
+;;; Constants
 
 (defvar gdscript-ts--constant-regex "\\`[A-Z_][A-Z0-9_]+\\'")
+
+;;; Setting
 
 (defvar gdscript-ts--feature-list
   '(( comment definition)
@@ -117,10 +121,7 @@ It must be a function with two arguments: TYPE and NAME.")
 
    :language 'gdscript
    :feature 'type
-   `(((identifier) @font-lock-type-face
-      (:match ,(rx (| "int" "bool" "float" "void")) @font-lock-type-face))
-     ((identifier) @font-lock-type-face
-      (:match ,gdscript-ts--type-regex @font-lock-type-face))
+   `(((identifier) @font-lock-type-face (:match ,gdscript-ts--type-regex @font-lock-type-face))
      (enum_definition name: (_) @font-lock-type-face)
      (get_node) @font-lock-type-face)
 
@@ -134,9 +135,9 @@ It must be a function with two arguments: TYPE and NAME.")
    :feature 'keyword
    `(([,@gdscript-ts--treesit-keywords] @font-lock-keyword-face)
      (call (identifier) @font-lock-keyword-face
-           (:match ,(rx (| "yield")) @font-lock-keyword-face))
-     (attribute (identifier) @font-lock-keyword-face
-                (:match ,(rx (| "self")) @font-lock-keyword-face))
+           (:match "yield" @font-lock-keyword-face))
+     ((identifier) @font-lock-keyword-face
+                (:match "self" @font-lock-keyword-face))
      (await_expression "await" @font-lock-keyword-face)
      (static_keyword) @font-lock-keyword-face)
 
