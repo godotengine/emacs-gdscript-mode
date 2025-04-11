@@ -71,16 +71,22 @@ It must be a function with two arguments: TYPE and NAME.")
 
 ;;; Keywords
 
-(defvar gdscript-ts--treesit-keywords '("and" "as" "break" "class" "class_name"
-                                        "const" "continue" "elif" "else" "enum"
-                                        "export" "extends" "for" "func" "if" "in" "is"
-                                        "master" "match" "not" "onready" "or" "pass"
-                                        "puppet" "remote" "remotesync" "return" "setget" "signal"
-                                        "var" "while"))
+(defvar gdscript-ts--keyword-regex
+  (rx bot (| "func" "var" "const" "set" "get" "setget" "signal" "extends"
+             "match" "if" "elif" "else" "while" "break" "continue" "pass"
+             "return" "when" "yield" "await"
+             "class" "class_name" "abstract" "is" "onready" "tool" "static"
+             "export" "as" "void" "enum" "assert" "breakpoint"
+             "sync" "remote" "master" "puppet"
+             "remotesync" "mastersync" "puppetsync"
+             "trait" "namespace" "super"
+             "and" "or" "not"
+             "await" "yield" "self") eot))
 
 ;;; Types
 
-(defvar gdscript-ts--type-regex "\\`\\(int\\|bool\\|float\\|void\\|[A-Z][a-zA-Z0-9_]*[a-z][a-zA-Z0-9_]*\\)\\'")
+(defvar gdscript-ts--type-regex
+  "\\`\\(int\\|bool\\|float\\|void\\|[A-Z][a-zA-Z0-9_]*[a-z][a-zA-Z0-9_]*\\)\\'")
 
 ;;; Constants
 
@@ -121,7 +127,8 @@ It must be a function with two arguments: TYPE and NAME.")
 
    :language 'gdscript
    :feature 'type
-   `(((identifier) @font-lock-type-face (:match ,gdscript-ts--type-regex @font-lock-type-face))
+   `(((identifier) @font-lock-type-face
+      (:match ,gdscript-ts--type-regex @font-lock-type-face))
      (enum_definition name: (_) @font-lock-type-face)
      (class_name_statement (name) @font-lock-type-face)
      (get_node) @font-lock-type-face)
@@ -133,14 +140,13 @@ It must be a function with two arguments: TYPE and NAME.")
      (parameters (identifier) @font-lock-variable-name-face))
 
    :language 'gdscript
+   :feature 'annotation
+   '((annotation "@" @font-lock-preprocessor-face
+                 (identifier) @font-lock-preprocessor-face))
+
+   :language 'gdscript
    :feature 'keyword
-   `(([,@gdscript-ts--treesit-keywords] @font-lock-keyword-face)
-     (call (identifier) @font-lock-keyword-face
-           (:match "yield" @font-lock-keyword-face))
-     ((identifier) @font-lock-keyword-face
-                (:match "self" @font-lock-keyword-face))
-     (await_expression "await" @font-lock-keyword-face)
-     (static_keyword) @font-lock-keyword-face)
+   `((_ _ @font-lock-keyword-face (:match ,gdscript-ts--keyword-regex @font-lock-keyword-face)))
 
    :language 'gdscript
    :feature 'string
@@ -163,15 +169,11 @@ It must be a function with two arguments: TYPE and NAME.")
    :language 'gdscript
    `(["+" "+="   "-" "-=" "*" "*=" "/" "/=" "^"  "^="  ">"  ">="
       "<" "<="   "|" "|=" "%" "%=" "&" "&=" ">>" ">>=" "<<" "<<="
-      "||" "&&" "==" "!=" "->" "~" "="] @font-lock-operator-face)
+      "||" "&&" "==" "!=" "->" "~" "=" ":="] @font-lock-operator-face)
 
    :language 'gdscript
    :feature 'escape-sequence
-   '((escape_sequence) @font-lock-escape-face)
-
-   :language 'gdscript
-   :feature 'annotation
-   '((annotation "@" @font-lock-preprocessor-face (identifier) @font-lock-preprocessor-face))))
+   '((escape_sequence) @font-lock-escape-face)))
 
 
 ;;; Funtion
