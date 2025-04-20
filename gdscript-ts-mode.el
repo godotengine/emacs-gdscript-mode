@@ -176,9 +176,11 @@ It must be a function with two arguments: TYPE and NAME.")
    :language 'gdscript
    `(["+" "+="   "-" "-=" "*" "*=" "/" "/=" "^"  "^="  ">"  ">="
       "<" "<="   "|" "|=" "%" "%=" "&" "&=" ">>" ">>=" "<<" "<<="
-      "||" "&&" "==" "!=" "->" "~" "=" ":="] @font-lock-operator-face)
+      "||" "&&" "==" "!=" "->" "~" "=" ":="]
+     @font-lock-operator-face)
 
    :language 'gdscript
+   :override t
    :feature 'escape-sequence
    '((escape_sequence) @font-lock-escape-face)))
 
