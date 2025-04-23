@@ -1,3 +1,5 @@
+;; -*- mode: eask; lexical-binding: t -*-
+
 (package "gdscript-mode"
          "0.1.0"
          "Major mode for Godot's GDScript language")
