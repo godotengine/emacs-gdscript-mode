@@ -38,30 +38,41 @@
   :group 'gdscript)
 
 ;;;###autoload
-(defcustom gdscript-eglot-version "4.3"
+(defcustom gdscript-eglot-version "4.5"
   "The version of godot in use."
   :type 'string)
+
+;;;###autoload
+(defcustom gdscript-eglot-default-lsp-port 6005
+  "The default port for eglot to connect when extraction fails."
+  :type 'integer
+  :group 'gdscript-eglot)
 
 (defun gdscript-eglot--get-config-dir ()
   "Get system-specific directory with Godot configuration files."
   (pcase system-type
-    ('darwin "~/Library/Application Support/Godot/")
-    ('windows-nt (substitute-in-file-name "$APPDATA/Godot/"))
+    ('darwin (expand-file-name "~/Library/Application Support/Godot/"))
+    ('windows-nt (file-name-concat (getenv "APPDATA") "Godot"))
     ('gnu/linux (file-name-concat
-                 (or (getenv "XDG_CONFIG_HOME") "~/.config/")
+                 (or (getenv "XDG_CONFIG_HOME") (expand-file-name "~/.config"))
                  "godot"))))
 
 (defun gdscript-eglot--extract-port (editor-settings-file)
-  "Extract LSP port from Godot editor settings file."
-  (when (file-exists-p editor-settings-file)
-    (with-temp-buffer
-      (insert-file-contents editor-settings-file)
-      (when (re-search-forward
-             (rx "network/language_server/remote_port"
-                 (* space) ?= (* space)
-                 (group (+ digit)))
-             nil t)
-        (string-to-number (match-string 1))))))
+  "Extract LSP port from Godot EDITOR-SETTINGS-FILE.
+If extraction fails, return `gdscript-eglot-default-port'.
+NOTE: remote_port value only presents if it has been modified from the default value,
+So this extract shall fail by default."
+  (or
+   (when (file-exists-p editor-settings-file)
+	 (with-temp-buffer
+	   (insert-file-contents editor-settings-file)
+	   (when (re-search-forward
+			  (rx "network/language_server/remote_port"
+				  (* space) ?= (* space)
+				  (group (+ digit)))
+			  nil t)
+		 (string-to-number (match-string 1)))))
+   gdscript-eglot-default-lsp-port))
 
 ;;;###autoload
 (defun gdscript-eglot-contact (_interactive)
@@ -77,7 +88,7 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2023-04/msg01070.html."
            (settings-file (file-name-concat
                            config-dir
                            (format "editor_settings-%s.tres" gdscript-eglot-version))))
-      (when-let ((port (gdscript-eglot--extract-port settings-file)))
+      (when-let* ((port (gdscript-eglot--extract-port settings-file)))
         (list "localhost" port)))))
 
 (provide 'gdscript-eglot)
