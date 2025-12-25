@@ -17,7 +17,7 @@ game engine in Emacs. It gives syntax highlighting and indentations.
 - [How to install](#how-to-install)
   - [Installing in Spacemacs](#installing-in-spacemacs)
   - [Installing in Doom Emacs](#installing-in-doom-emacs)
-  - [Installing with `use-package` + `straight.el`](#installing-with-use-package--straightel)
+  - [Installing with `use-package`](#installing-with-use-package)
   - [Installing manually](#installing-manually)
 - [Auto-completion with the Language Server Protocol (LSP)](#auto-completion-with-the-language-server-protocol-lsp)
   - [Known issues](#known-issues)
@@ -147,7 +147,26 @@ The `+lsp` flag adds language server support for game development with Godot.
 
 To see the module's documentation in Emacs, place your cursor over the word `gdscript` and press <kbd>k</kbd>.
 
-### Installing with `use-package` + `straight.el`
+### Installing with `use-package`
+
+#### Using `package-vc` (built-in)
+
+To install the latest tagged release, add the following call to your Emacs configuration:
+
+```elisp
+(use-package gdscript-mode
+  :vc (:url "git@github.com:godotengine/emacs-gdscript-mode.git"))
+```
+
+Alternatively, if you need the latest version, stable or not, add the following:
+
+```elisp
+(use-package gdscript-mode
+  :vc (:url "git@github.com:godotengine/emacs-gdscript-mode.git"
+       :rev :newest))
+```
+
+#### Using `straight`
 
 Add the call to use-package to your Emacs configuration:
 
