@@ -43,7 +43,7 @@
 PROJECT-HISTORY will be history of current project."
   (declare (indent 1) (debug t))
   `(let* ((property (gdscript-util--find-project-configuration-file))
-          (,project-history (lax-plist-get gdscript-history--previous-arguments-plist property)))
+          (,project-history (plist-get gdscript-history--previous-arguments-plist property)))
      ,@body))
 
 (defun gdscript-history--add-to-history (arguments)
@@ -52,7 +52,7 @@ PROJECT-HISTORY will be history of current project."
     (push arguments history)
     (delete-dups history)
     (setq gdscript-history--previous-arguments-plist
-          (lax-plist-put gdscript-history--previous-arguments-plist property history))))
+          (plist-put gdscript-history--previous-arguments-plist property history))))
 
 (defun gdscript-history--last-command ()
   "Return last command from history."

@@ -118,15 +118,16 @@ Argument ARG is ignored."
     (backward-char)))
 
 (defun gdscript-electric-pair-string-delimiter ()
-  "GDScript-specific string delimiter detection for 'electric-pair-mode'.
-Return a doubled string character for 'electric-pair-mode', if
+  "GDScript-specific string delimiter detection for `electric-pair-mode'.
+Return a doubled string character for `electric-pair-mode', if
 the last command event was a string delimiter."
   (when (and electric-pair-mode
              (memq last-command-event
                    '(?\" ?\') )
              (let ((count 0))
                (while (eq (char-before (- (point)
-                                          count)) last-command-event)
+                                          count))
+                          last-command-event)
                  (cl-incf count))
                (= count 3))
              (eq (char-after) last-command-event))

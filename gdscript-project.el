@@ -32,7 +32,12 @@
 
 ;;; Code:
 
+(require 'vc-git)
+
 (require 'gdscript-utils)
+
+(declare-function gdscript-hydra--menu/body nil "gdscript-hydra.el")
+(declare-function gdscript-hydra--menu/nil nil "gdscript-hydra.el")
 
 (defun gdscript-project--current-buffer-scene ()
   "Return the name of current scene.
@@ -46,10 +51,9 @@ If current buffer is not visiting scene file return nil."
 
 (defun gdscript-project--select-scene ()
   "Find all scenes files and let user choose one. Return `nil' if user cancels selection."
-  (message "selecting scene")
   (let* ((rl (gdscript-util--find-project-configuration-file))
          (scene-list (mapcar (lambda (x) (file-relative-name x rl)) (directory-files-recursively rl ".*.tscn" t)))
-         (prompt (format "Select scene to run" (buffer-name)))
+         (prompt (format "Select scene to run (%s): " (buffer-name)))
          (selected-scene (gdscript-util--read scene-list prompt)))
     selected-scene))
 
