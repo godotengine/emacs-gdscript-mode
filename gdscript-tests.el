@@ -1,7 +1,7 @@
 ;;; gdscript-tests.el --- tests for gdscript mode -*- lexical-binding: t; -*-
-;;
-;; Copyright (C) 2020 GDQuest and contributors
-;;
+
+;; Copyright (C) 2020-2026 GDQuest and contributors
+
 ;; Author: Josef Vlach <vlach.josef@gmail.com>
 ;; URL: https://github.com/godotengine/emacs-gdscript-mode/
 ;; Version: 1.0.0
@@ -9,9 +9,9 @@
 ;; Maintainer: nathan@gdquest.com
 ;; Created: June 2020
 ;; Keywords: languages
-;;
+
 ;; This file is not part of GNU Emacs.
-;;
+
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
@@ -24,12 +24,12 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
-;;
+
 ;;; Commentary:
 ;;
 ;; To run the tests in terminal:
 ;; > ./makem.sh test
-;;
+
 ;;; Code:
 
 (require 'ert)
@@ -44,11 +44,11 @@ BODY is code to be executed within the temp buffer.  Point is
 always located at the beginning of buffer."
   (declare (indent 1) (debug t))
   `(with-temp-buffer
-     (let ()
-       (gdscript-mode)
-       (insert ,contents)
-       (goto-char (point-min))
-       ,@body)))
+	 (let ()
+	   (gdscript-mode)
+	   (insert ,contents)
+	   (goto-char (point-min))
+	   ,@body)))
 
 (defun gdscript-tests-look-at (string &optional num restore-point)
   "Move point at beginning of STRING in the current buffer.
@@ -59,48 +59,48 @@ non-nil the point is not moved but the position found is still
 returned.  When searching forward and point is already looking at
 STRING, it is skipped so the next STRING occurrence is selected."
   (let* ((num (or num 1))
-         (starting-point (point))
-         (string (regexp-quote string))
-         (search-fn (if (> num 0) #'re-search-forward #'re-search-backward))
-         (deinc-fn (if (> num 0) #'1- #'1+))
-         (found-point))
-    (prog2
-        (catch 'exit
-          (while (not (= num 0))
-            (when (and (> num 0)
-                       (looking-at string))
-              ;; Moving forward and already looking at STRING, skip it.
-              (forward-char (length (match-string-no-properties 0))))
-            (and (not (funcall search-fn string nil t))
-                 (throw 'exit t))
-            (when (> num 0)
-              ;; `re-search-forward' leaves point at the end of the
-              ;; occurrence, move back so point is at the beginning
-              ;; instead.
-              (forward-char (- (length (match-string-no-properties 0)))))
-            (setq
-             num (funcall deinc-fn num)
-             found-point (point))))
-        found-point
-      (and restore-point (goto-char starting-point)))))
+		 (starting-point (point))
+		 (string (regexp-quote string))
+		 (search-fn (if (> num 0) #'re-search-forward #'re-search-backward))
+		 (deinc-fn (if (> num 0) #'1- #'1+))
+		 (found-point))
+	(prog2
+		(catch 'exit
+		  (while (not (= num 0))
+			(when (and (> num 0)
+					   (looking-at string))
+			  ;; Moving forward and already looking at STRING, skip it.
+			  (forward-char (length (match-string-no-properties 0))))
+			(and (not (funcall search-fn string nil t))
+				 (throw 'exit t))
+			(when (> num 0)
+			  ;; `re-search-forward' leaves point at the end of the
+			  ;; occurrence, move back so point is at the beginning
+			  ;; instead.
+			  (forward-char (- (length (match-string-no-properties 0)))))
+			(setq
+			 num (funcall deinc-fn num)
+			 found-point (point))))
+		found-point
+	  (and restore-point (goto-char starting-point)))))
 
 (defun gdscript-tests-self-insert (char-or-str)
   "Call `self-insert-command' for chars in CHAR-OR-STR."
   (let ((chars
-         (cond
-          ((characterp char-or-str)
-           (list char-or-str))
-          ((stringp char-or-str)
-           (string-to-list char-or-str))
-          ((not
-            (cl-remove-if #'characterp char-or-str))
-           char-or-str)
-          (t (error "CHAR-OR-STR must be a char, string, or list of char")))))
-    (mapc
-     (lambda (char)
-       (let ((last-command-event char))
-         (call-interactively 'self-insert-command)))
-     chars)))
+		 (cond
+		  ((characterp char-or-str)
+		   (list char-or-str))
+		  ((stringp char-or-str)
+		   (string-to-list char-or-str))
+		  ((not
+			(cl-remove-if #'characterp char-or-str))
+		   char-or-str)
+		  (t (error "CHAR-OR-STR must be a char, string, or list of char")))))
+	(mapc
+	 (lambda (char)
+	   (let ((last-command-event char))
+		 (call-interactively 'self-insert-command)))
+	 chars)))
 
 (ert-deftest gdscript-indent--comment-line ()
   "Test if current line is comment."
@@ -169,10 +169,10 @@ func f():
 "
    (gdscript-tests-look-at "else")
    (let ((last-command 'indent-for-tab-command)
-         (this-command 'indent-for-tab-command))
-     (should (= (current-indentation) 8))
-     (indent-for-tab-command)
-     (should (= (current-indentation) 4)))))
+		 (this-command 'indent-for-tab-command))
+	 (should (= (current-indentation) 8))
+	 (indent-for-tab-command)
+	 (should (= (current-indentation) 4)))))
 
 (ert-deftest gdscript-tests--dedent-if-elif ()
   "Test dedentation case where elif is dedented from inner if to outer if."
@@ -186,10 +186,10 @@ func f():
 "
    (gdscript-tests-look-at "elif")
    (let ((last-command 'indent-for-tab-command)
-         (this-command 'indent-for-tab-command))
-     (should (= (current-indentation) 8))
-     (indent-for-tab-command)
-     (should (= (current-indentation) 4)))))
+		 (this-command 'indent-for-tab-command))
+	 (should (= (current-indentation) 8))
+	 (indent-for-tab-command)
+	 (should (= (current-indentation) 4)))))
 
 (ert-deftest gdscript-tests--dedent-elif-else ()
   "Test dedentation case where else is dedented from inner elif to outer if."
@@ -205,10 +205,10 @@ func f():
 "
    (gdscript-tests-look-at "else")
    (let ((last-command 'indent-for-tab-command)
-         (this-command 'indent-for-tab-command))
-     (should (= (current-indentation) 8))
-     (indent-for-tab-command)
-     (should (= (current-indentation) 4)))))
+		 (this-command 'indent-for-tab-command))
+	 (should (= (current-indentation) 8))
+	 (indent-for-tab-command)
+	 (should (= (current-indentation) 4)))))
 
 (ert-deftest gdscript-tests--indent-if-with-parens ()
   "Test indentation where if is followed by expression in parens."
@@ -222,12 +222,12 @@ aaa = 5
 "
    (gdscript-tests-look-at "aaa")
    (let ((last-command 'indent-for-tab-command)
-         (this-command 'indent-for-tab-command))
-     (should (= (current-indentation) 0))
-     (indent-for-tab-command)
-     (should (= (current-indentation) 8))
-     (indent-for-tab-command)
-     (should (= (current-indentation) 4)))))
+		 (this-command 'indent-for-tab-command))
+	 (should (= (current-indentation) 0))
+	 (indent-for-tab-command)
+	 (should (= (current-indentation) 8))
+	 (indent-for-tab-command)
+	 (should (= (current-indentation) 4)))))
 
 (ert-deftest gdscript-tests--indent-elif-with-parens ()
   "Test indentation where elif is followed by expression in parens."
@@ -245,12 +245,12 @@ aaa = 6
 "
    (gdscript-tests-look-at "aaa = 6")
    (let ((last-command 'indent-for-tab-command)
-         (this-command 'indent-for-tab-command))
-     (should (= (current-indentation) 0))
-     (indent-for-tab-command)
-     (should (= (current-indentation) 8))
-     (indent-for-tab-command)
-     (should (= (current-indentation) 4)))))
+		 (this-command 'indent-for-tab-command))
+	 (should (= (current-indentation) 0))
+	 (indent-for-tab-command)
+	 (should (= (current-indentation) 8))
+	 (indent-for-tab-command)
+	 (should (= (current-indentation) 4)))))
 
 (ert-deftest gdscript-tests--indent-while-with-parens ()
   "Test indentation case where while is followed by expression in parens."
@@ -264,12 +264,12 @@ aaa = 5
 "
    (gdscript-tests-look-at "aaa")
    (let ((last-command 'indent-for-tab-command)
-         (this-command 'indent-for-tab-command))
-     (should (= (current-indentation) 0))
-     (indent-for-tab-command)
-     (should (= (current-indentation) 8))
-     (indent-for-tab-command)
-     (should (= (current-indentation) 4)))))
+		 (this-command 'indent-for-tab-command))
+	 (should (= (current-indentation) 0))
+	 (indent-for-tab-command)
+	 (should (= (current-indentation) 8))
+	 (indent-for-tab-command)
+	 (should (= (current-indentation) 4)))))
 
 (ert-deftest gdscript-tests--indent-func-with-parens ()
   "Test indentation case where function params span multiple lines."
@@ -282,10 +282,10 @@ pass
 "
    (gdscript-tests-look-at "pass")
    (let ((last-command 'indent-for-tab-command)
-         (this-command 'indent-for-tab-command))
-     (should (= (current-indentation) 0))
-     (indent-for-tab-command)
-     (should (= (current-indentation) 4)))))
+		 (this-command 'indent-for-tab-command))
+	 (should (= (current-indentation) 0))
+	 (indent-for-tab-command)
+	 (should (= (current-indentation) 4)))))
 
 (ert-deftest gdscript-tests--indent-nested-ifs-with-parens ()
   "Test indentation where if is nested."
@@ -302,18 +302,18 @@ aaa
 "
    (gdscript-tests-look-at "aaa")
    (let ((last-command 'indent-for-tab-command)
-         (this-command 'indent-for-tab-command))
-     (should (= (current-indentation) 0))
-     (indent-for-tab-command)
-     (should (= (current-indentation) 12))
-     (indent-for-tab-command)
-     (should (= (current-indentation) 8))
-     (indent-for-tab-command)
-     (should (= (current-indentation) 4))
-     (indent-for-tab-command)
-     (should (= (current-indentation) 0))
-     (indent-for-tab-command)
-     (should (= (current-indentation) 12)))))
+		 (this-command 'indent-for-tab-command))
+	 (should (= (current-indentation) 0))
+	 (indent-for-tab-command)
+	 (should (= (current-indentation) 12))
+	 (indent-for-tab-command)
+	 (should (= (current-indentation) 8))
+	 (indent-for-tab-command)
+	 (should (= (current-indentation) 4))
+	 (indent-for-tab-command)
+	 (should (= (current-indentation) 0))
+	 (indent-for-tab-command)
+	 (should (= (current-indentation) 12)))))
 
 (ert-deftest gdscript-tests--dedent-nested-ifs-with-parens ()
   "Test dedentation where if is nested."
@@ -331,11 +331,11 @@ else:
 "
    (gdscript-tests-look-at "else")
    (let ((last-command 'indent-for-tab-command)
-         (this-command 'indent-for-tab-command))
-     (should (= (current-indentation) 0))
-     (indent-for-tab-command)
-     (should (= (current-indentation) 8))
-     (indent-for-tab-command)
-     (should (= (current-indentation) 4))
-     (indent-for-tab-command)
-     (should (= (current-indentation) 8)))))
+		 (this-command 'indent-for-tab-command))
+	 (should (= (current-indentation) 0))
+	 (indent-for-tab-command)
+	 (should (= (current-indentation) 8))
+	 (indent-for-tab-command)
+	 (should (= (current-indentation) 4))
+	 (indent-for-tab-command)
+	 (should (= (current-indentation) 8)))))

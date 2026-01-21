@@ -1,7 +1,7 @@
 ;;; gdscript-comint.el --- Support for comint mode -*- lexical-binding: t; -*-
-;;
-;; Copyright (C) 2020 GDQuest and contributors
-;;
+
+;; Copyright (C) 2020-2026 GDQuest and contributors
+
 ;; Author: Josef Vlach <vlach.josef@gmail.com>
 ;; URL: https://github.com/godotengine/emacs-gdscript-mode/
 ;; Version: 1.0.0
@@ -9,9 +9,9 @@
 ;; Maintainer: nathan@gdquest.com
 ;; Created: May 2020
 ;; Keywords: languages
-;;
+
 ;; This file is not part of GNU Emacs.
-;;
+
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
@@ -24,13 +24,14 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
-;;
+
 ;;; Commentary:
 ;;
 ;;  godot-mode for handling stdout and stderr from godot executable.
 ;;
 ;;  It supports quick navigation from errors to file location.
 ;;
+
 ;;; Code:
 
 (require 'ansi-color)

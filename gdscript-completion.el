@@ -1,6 +1,6 @@
 ;;; gdscript-completion.el --- Autocompletion for GDScript -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020 GDQuest
+;; Copyright (C) 2020-2026 GDQuest and contributors
 
 ;; Author: Nathan Lovato <nathan@gdquest.com>, Fabián E. Gallina <fgallina@gnu.org>
 ;; URL: https://github.com/godotengine/emacs-gdscript-mode/
@@ -25,10 +25,10 @@
 ;; For a full copy of the GNU General Public License
 ;; see <https://www.gnu.org/licenses/>.
 
-
 ;;; Commentary:
-
+;;
 ;; Provides keywords for 'completion-at-point'.
+;;
 
 ;;; Code:
 

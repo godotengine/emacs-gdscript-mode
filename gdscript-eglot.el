@@ -1,7 +1,7 @@
 ;;; gdscript-eglot.el --- Integration with eglot -*- lexical-binding: t; -*-
-;;
-;; Copyright (C) 2023 GDQuest and contributors
-;;
+
+;; Copyright (C) 2023-2026 GDQuest and contributors
+
 ;; Author: Ruijie Yu <ruijie@netyu.xyz>
 ;; URL: https://github.com/godotengine/emacs-gdscript-mode/
 ;; Version: 1.0.0
@@ -9,9 +9,9 @@
 ;; Maintainer: nathan@gdquest.com
 ;; Created: June 2020
 ;; Keywords: languages
-;;
+
 ;; This file is not part of GNU Emacs.
-;;
+
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
@@ -24,12 +24,13 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
-;;
+
 ;;; Commentary:
 ;;
 ;; Handles the configuraiton of eglot.
 ;; This supports `gdscript-mode' using `eglot'.
 ;;
+
 ;;; Code:
 
 ;;;###autoload
@@ -51,11 +52,11 @@
 (defun gdscript-eglot--get-config-dir ()
   "Get system-specific directory with Godot configuration files."
   (pcase system-type
-    ('darwin (expand-file-name "~/Library/Application Support/Godot/"))
-    ('windows-nt (file-name-concat (getenv "APPDATA") "Godot"))
-    ('gnu/linux (file-name-concat
-                 (or (getenv "XDG_CONFIG_HOME") (expand-file-name "~/.config"))
-                 "godot"))))
+	('darwin (expand-file-name "~/Library/Application Support/Godot/"))
+	('windows-nt (file-name-concat (getenv "APPDATA") "Godot"))
+	('gnu/linux (file-name-concat
+				 (or (getenv "XDG_CONFIG_HOME") (expand-file-name "~/.config"))
+				 "godot"))))
 
 (defun gdscript-eglot--extract-port (editor-settings-file)
   "Extract LSP port from Godot EDITOR-SETTINGS-FILE.
@@ -84,12 +85,12 @@ definitions of HOST, PORT, and INTERACTIVE.
 For more context, see
 https://lists.gnu.org/archive/html/bug-gnu-emacs/2023-04/msg01070.html."
   (save-excursion
-    (let* ((config-dir (gdscript-eglot--get-config-dir))
-           (settings-file (file-name-concat
-                           config-dir
-                           (format "editor_settings-%s.tres" gdscript-eglot-version))))
-      (when-let* ((port (gdscript-eglot--extract-port settings-file)))
-        (list "localhost" port)))))
+	(let* ((config-dir (gdscript-eglot--get-config-dir))
+		   (settings-file (file-name-concat
+						   config-dir
+						   (format "editor_settings-%s.tres" gdscript-eglot-version))))
+	  (when-let* ((port (gdscript-eglot--extract-port settings-file)))
+		(list "localhost" port)))))
 
 (provide 'gdscript-eglot)
 ;;; gdscript-eglot.el ends here.
