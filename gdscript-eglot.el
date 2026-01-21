@@ -52,11 +52,11 @@
 (defun gdscript-eglot--get-config-dir ()
   "Get system-specific directory with Godot configuration files."
   (pcase system-type
-	('darwin (expand-file-name "~/Library/Application Support/Godot/"))
-	('windows-nt (file-name-concat (getenv "APPDATA") "Godot"))
-	('gnu/linux (file-name-concat
-				 (or (getenv "XDG_CONFIG_HOME") (expand-file-name "~/.config"))
-				 "godot"))))
+    ('darwin (expand-file-name "~/Library/Application Support/Godot/"))
+    ('windows-nt (file-name-concat (getenv "APPDATA") "Godot"))
+    ('gnu/linux (file-name-concat
+                 (or (getenv "XDG_CONFIG_HOME") (expand-file-name "~/.config"))
+                 "godot"))))
 
 (defun gdscript-eglot--extract-port (editor-settings-file)
   "Extract LSP port from Godot EDITOR-SETTINGS-FILE.
@@ -65,14 +65,14 @@ NOTE: remote_port value only presents if it has been modified from the default v
 So this extract shall fail by default."
   (or
    (when (file-exists-p editor-settings-file)
-	 (with-temp-buffer
-	   (insert-file-contents editor-settings-file)
-	   (when (re-search-forward
-			  (rx "network/language_server/remote_port"
-				  (* space) ?= (* space)
-				  (group (+ digit)))
-			  nil t)
-		 (string-to-number (match-string 1)))))
+     (with-temp-buffer
+       (insert-file-contents editor-settings-file)
+       (when (re-search-forward
+              (rx "network/language_server/remote_port"
+                  (* space) ?= (* space)
+                  (group (+ digit)))
+              nil t)
+         (string-to-number (match-string 1)))))
    gdscript-eglot-default-lsp-port))
 
 ;;;###autoload
@@ -85,12 +85,12 @@ definitions of HOST, PORT, and INTERACTIVE.
 For more context, see
 https://lists.gnu.org/archive/html/bug-gnu-emacs/2023-04/msg01070.html."
   (save-excursion
-	(let* ((config-dir (gdscript-eglot--get-config-dir))
-		   (settings-file (file-name-concat
-						   config-dir
-						   (format "editor_settings-%s.tres" gdscript-eglot-version))))
-	  (when-let* ((port (gdscript-eglot--extract-port settings-file)))
-		(list "localhost" port)))))
+    (let* ((config-dir (gdscript-eglot--get-config-dir))
+           (settings-file (file-name-concat
+                           config-dir
+                           (format "editor_settings-%s.tres" gdscript-eglot-version))))
+      (when-let* ((port (gdscript-eglot--extract-port settings-file)))
+        (list "localhost" port)))))
 
 (provide 'gdscript-eglot)
 ;;; gdscript-eglot.el ends here.
