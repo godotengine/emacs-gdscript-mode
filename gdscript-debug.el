@@ -1,8 +1,9 @@
 ;;; gdscript-debug.el --- Debugger for Godot -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020 GDQuest
+;; Copyright (C) 2020-2026 GDQuest and contributors
 
 ;; Author: Josef Vlach <vlach.josef@gmail.com>
+;; Maintainer: Jen-Chieh Shen <jcs090218@gmail.com>
 ;; URL: https://github.com/godotengine/emacs-gdscript-mode/
 ;; Version: 0.0.1
 ;; Package-Requires: ((emacs "26.3"))
