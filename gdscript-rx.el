@@ -321,7 +321,7 @@ Return (REGEXP . PRECEDENCE)."
   "Return t if FORM is like a charset.
 A charset only consists of character intervals and set operations."
   (or (and (consp form)
-           (or (and (memq (car form) '(any 'in 'char))
+           (or (and (memq (car form) '(any in char))
                     (gdscript-rx--every (lambda (x) (not (symbolp x))) (cdr form)))
                (and (memq (car form) '(not or | intersection))
                     (gdscript-rx--every #'gdscript-rx--charset-p (cdr form)))))

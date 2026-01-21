@@ -17,3 +17,9 @@
 (depends-on "emacs" "26.3")
 
 (setq network-security-level 'low)  ; see https://github.com/jcs090218/setup-emacs-windows/issues/156#issuecomment-932956432
+
+(add-hook 'eask-before-compile-hook
+           (lambda ()
+             ;; TODO: Enable this once the code base is stable enough.
+             ;;(setq byte-compile-error-on-warn t)
+             (setq byte-compile-docstring-max-column 1000)))
