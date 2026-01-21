@@ -3,10 +3,10 @@
 ;; Copyright (C) 2023-2026 GDQuest and contributors
 
 ;; Author: xiliuya <xiliuya@aliyun.com>
-;; Maintainer: Jen-Chieh Shen <jcs090218@gmail.com>
+;; Maintainer: xiliuya <xiliuya@aliyun.com>
+;;             Jen-Chieh Shen <jcs090218@gmail.com>
 ;; URL: https://github.com/godotengine/emacs-gdscript-mode/
 ;; Version: 0.1.0
-;; Maintainer:  xiliuya <xiliuya@aliyun.com>
 ;; Created: 2023-05-22 19:14:43
 
 ;; Keywords: languages

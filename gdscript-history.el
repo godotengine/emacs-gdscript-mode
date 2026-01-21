@@ -7,7 +7,6 @@
 ;; URL: https://github.com/godotengine/emacs-gdscript-mode/
 ;; Version: 1.0.0
 ;; Package-Requires: ((emacs "26.3"))
-;; Maintainer: nathan@gdquest.com
 ;; Created: June 2020
 ;; Keywords: languages
 
