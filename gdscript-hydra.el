@@ -36,6 +36,7 @@
 ;;; Code:
 
 (require 'hydra nil t)
+
 (require 'gdscript-format)
 (require 'gdscript-godot)
 (require 'gdscript-history)

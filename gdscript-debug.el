@@ -38,13 +38,14 @@
 (require 'server)
 
 (require 'gdscript-customization)
-;;(require 'gdscript-hydra) -- this causes cyclic dependency
 (require 'gdscript-utils)
 
 (eval-when-compile
   (require 'subr-x))
 
 (declare-function do-applescript "")
+
+(declare-function gdscript-debug--hydra/body nil "ext:gdscript-hydra.el")
 
 (defcustom gdscript-debug-emacs-executable "Emacs"
   "The name of Emacs application. Used for focusing Emacs
