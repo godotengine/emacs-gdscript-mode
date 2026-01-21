@@ -3,11 +3,12 @@
 ;; Copyright (C) 2020 Pawel Lampe
 ;; Copyright (C) 2020-2026 GDQuest and contributors
 
-;; Author: Pawel Lampe <pawel.lampe@gmail.com>, Nathan Lovato <nathan@gdquest.com>
+;; Author: Pawel Lampe <pawel.lampe@gmail.com>
+;;         Nathan Lovato <nathan@gdquest.com>
+;; Maintainer: Jen-Chieh Shen <jcs090218@gmail.com>
 ;; URL: https://github.com/godotengine/emacs-gdscript-mode/
 ;; Version: 1.0.0
 ;; Package-Requires: ((emacs "26.3"))
-;; Maintainer: nathan@gdquest.com
 ;; Created: Feb 2020
 ;; Keywords: languages
 

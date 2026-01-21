@@ -1,17 +1,17 @@
 ;;; gdscript-hydra.el --- Hydra for launching Godot -*- lexical-binding: t; -*-
-;;
+
 ;; Copyright (C) 2020-2026 GDQuest and contributors
-;;
+
 ;; Author: Josef Vlach <vlach.josef@gmail.com>
+;; Maintainer: Jen-Chieh Shen <jcs090218@gmail.com>
 ;; URL: https://github.com/godotengine/emacs-gdscript-mode/
 ;; Version: 1.0.0
 ;; Package-Requires: ((emacs "26.3"))
-;; Maintainer: nathan@gdquest.com
 ;; Created: May 2020
 ;; Keywords: languages
-;;
+
 ;; This file is not part of GNU Emacs.
-;;
+
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
