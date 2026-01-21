@@ -1,6 +1,6 @@
 ;;; gdscript-fill-paragraph.el --- GDScript fill paragraph functions -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020 GDQuest
+;; Copyright (C) 2020-2026 GDQuest and contributors
 
 ;; Author: Nathan Lovato <nathan@gdquest.com>
 ;; URL: https://github.com/godotengine/emacs-gdscript-mode/
@@ -94,7 +94,7 @@ JUSTIFY should be used (if applicable) as in `fill-paragraph'."
                 (goto-char (point-max)))
             (point-marker)))
          (fill-paragraph-function))
-    
+
     (save-restriction
       (narrow-to-region str-start-pos str-end-pos)
       (fill-paragraph justify)

@@ -1,6 +1,6 @@
-;;; gdscript-ts-mode.el --- Summary -*- lexical-binding: t -*-
+;;; gdscript-ts-mode.el --- Summary  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2023 GDQuest and contributors
+;; Copyright (C) 2023-2026 GDQuest and contributors
 
 ;; Author: xiliuya <xiliuya@aliyun.com>
 ;; URL: https://github.com/godotengine/emacs-gdscript-mode/
@@ -10,7 +10,6 @@
 
 ;; Keywords: languages
 ;; Package-Requires: ((emacs "26.3"))
-
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -74,7 +73,7 @@ It must be a function with two arguments: TYPE and NAME.")
 
 (defvar gdscript-ts--keyword-regex
   (rx bot (| "func" "var" "const" "set" "get" "setget" "signal" "extends"
-             "match" "if" "elif" "else" "for" "in" "while" "break" "continue" 
+             "match" "if" "elif" "else" "for" "in" "while" "break" "continue"
              "pass" "return" "when" "yield" "await"
              "class" "class_name" "abstract" "is" "onready" "tool" "static"
              "export" "as" "void" "enum" "assert" "breakpoint"

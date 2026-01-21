@@ -1,7 +1,7 @@
 ;;; gdscript-eglot.el --- Integration with eglot -*- lexical-binding: t; -*-
-;;
-;; Copyright (C) 2023 GDQuest and contributors
-;;
+
+;; Copyright (C) 2023-2026 GDQuest and contributors
+
 ;; Author: Ruijie Yu <ruijie@netyu.xyz>
 ;; URL: https://github.com/godotengine/emacs-gdscript-mode/
 ;; Version: 1.0.0
@@ -9,9 +9,9 @@
 ;; Maintainer: nathan@gdquest.com
 ;; Created: June 2020
 ;; Keywords: languages
-;;
+
 ;; This file is not part of GNU Emacs.
-;;
+
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
@@ -24,12 +24,13 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
-;;
+
 ;;; Commentary:
 ;;
 ;; Handles the configuraiton of eglot.
 ;; This supports `gdscript-mode' using `eglot'.
 ;;
+
 ;;; Code:
 
 ;;;###autoload
@@ -64,14 +65,14 @@ NOTE: remote_port value only presents if it has been modified from the default v
 So this extract shall fail by default."
   (or
    (when (file-exists-p editor-settings-file)
-	 (with-temp-buffer
-	   (insert-file-contents editor-settings-file)
-	   (when (re-search-forward
-			  (rx "network/language_server/remote_port"
-				  (* space) ?= (* space)
-				  (group (+ digit)))
-			  nil t)
-		 (string-to-number (match-string 1)))))
+     (with-temp-buffer
+       (insert-file-contents editor-settings-file)
+       (when (re-search-forward
+              (rx "network/language_server/remote_port"
+                  (* space) ?= (* space)
+                  (group (+ digit)))
+              nil t)
+         (string-to-number (match-string 1)))))
    gdscript-eglot-default-lsp-port))
 
 ;;;###autoload

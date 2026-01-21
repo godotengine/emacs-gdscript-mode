@@ -1,6 +1,6 @@
 ;;; gdscript-syntax.el --- Syntax highlighting for GDScript -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020 GDQuest
+;; Copyright (C) 2020-2026 GDQuest
 
 ;; Author: Nathan Lovato <nathan@gdquest.com>, Fabián E. Gallina <fgallina@gnu.org>
 ;; URL: https://github.com/godotengine/emacs-gdscript-mode/
@@ -23,10 +23,10 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 ;;; Commentary:
-
+;;
 ;; Adds syntax highlighting and builds the syntax table for GDScript.
+;;
 
 ;;; Code:
 

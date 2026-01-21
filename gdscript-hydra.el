@@ -1,6 +1,6 @@
 ;;; gdscript-hydra.el --- Hydra for launching Godot -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2020 GDQuest and contributors
+;; Copyright (C) 2020-2026 GDQuest and contributors
 ;;
 ;; Author: Josef Vlach <vlach.josef@gmail.com>
 ;; URL: https://github.com/godotengine/emacs-gdscript-mode/

@@ -1,7 +1,7 @@
 ;;; gdscript-godot.el --- Open and run projects in Godot -*- lexical-binding: t; -*-
-;;
-;; Copyright (C) 2020 GDQuest and contributors
-;;
+
+;; Copyright (C) 2020-2026 GDQuest and contributors
+
 ;; Author: Franco Eusébio Garcia <francoegarcia@outlook.com>, Nathan Lovato <nathan@gdquest.com>
 ;; URL: https://github.com/godotengine/emacs-gdscript-mode/
 ;; Version: 1.0.0
@@ -9,9 +9,9 @@
 ;; Maintainer: nathan@gdquest.com
 ;; Created: Mar 2020
 ;; Keywords: languages
-;;
+
 ;; This file is not part of GNU Emacs.
-;;
+
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
@@ -24,12 +24,13 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
-;;
+
 ;;; Commentary:
 ;;
 ;;  Open files, projects, and run commands in the Godot engine or editor.
 ;;  This package contains commands that runs Godot processes.
 ;;
+
 ;;; Code:
 
 (require 'gdscript-comint)

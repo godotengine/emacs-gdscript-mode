@@ -1,7 +1,7 @@
 ;;; gdscript-tests.el --- tests for gdscript mode -*- lexical-binding: t; -*-
-;;
-;; Copyright (C) 2020 GDQuest and contributors
-;;
+
+;; Copyright (C) 2020-2026 GDQuest and contributors
+
 ;; Author: Josef Vlach <vlach.josef@gmail.com>
 ;; URL: https://github.com/godotengine/emacs-gdscript-mode/
 ;; Version: 1.0.0
@@ -9,9 +9,9 @@
 ;; Maintainer: nathan@gdquest.com
 ;; Created: June 2020
 ;; Keywords: languages
-;;
+
 ;; This file is not part of GNU Emacs.
-;;
+
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
@@ -24,12 +24,12 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
-;;
+
 ;;; Commentary:
 ;;
 ;; To run the tests in terminal:
 ;; > ./makem.sh test
-;;
+
 ;;; Code:
 
 (require 'ert)
@@ -107,8 +107,8 @@ STRING, it is skipped so the next STRING occurrence is selected."
   (gdscript-tests--with-temp-buffer
    "
 func f():
-	# aaa
-	bbb
+    # aaa
+    bbb
 "
    (gdscript-tests-look-at "aaa")
    (should (gdscript-info-current-line-comment-p))
@@ -120,13 +120,13 @@ func f():
   (gdscript-tests--with-temp-buffer
    "
 func f():
-	if true or true:
-		a = 5
+    if true or true:
+        a = 5
 
-		if true and true:
-			a = 10
+        if true and true:
+            a = 10
 
-		b = 3
+        b = 3
 
 else
 "
@@ -141,13 +141,13 @@ else
   (gdscript-tests--with-temp-buffer
    "
 func f():
-	if true or true:
-		a = 5
+    if true or true:
+        a = 5
 
-		if true and true:
-			a = 10
+        if true and true:
+            a = 10
 
-		# b = 3
+        # b = 3
 
 else
 "
@@ -162,10 +162,10 @@ else
   (gdscript-tests--with-temp-buffer
    "
 func f():
-	if true:
-		if true:
-			a = 5
-		else:
+    if true:
+        if true:
+            a = 5
+        else:
 "
    (gdscript-tests-look-at "else")
    (let ((last-command 'indent-for-tab-command)
@@ -179,10 +179,10 @@ func f():
   (gdscript-tests--with-temp-buffer
    "
 func f():
-	if true:
-		if true:
-			a = 5
-		elif true:
+    if true:
+        if true:
+            a = 5
+        elif true:
 "
    (gdscript-tests-look-at "elif")
    (let ((last-command 'indent-for-tab-command)
@@ -196,12 +196,12 @@ func f():
   (gdscript-tests--with-temp-buffer
    "
 func f():
-	if true:
-		if true:
-			a = 5
-		elif true:
-			a = 6
-		else:
+    if true:
+        if true:
+            a = 5
+        elif true:
+            a = 6
+        else:
 "
    (gdscript-tests-look-at "else")
    (let ((last-command 'indent-for-tab-command)
@@ -215,9 +215,9 @@ func f():
   (gdscript-tests--with-temp-buffer
    "
 func f():
-	if (
-		true
-	):
+    if (
+        true
+    ):
 aaa = 5
 "
    (gdscript-tests-look-at "aaa")
@@ -234,13 +234,13 @@ aaa = 5
   (gdscript-tests--with-temp-buffer
    "
 func f():
-	if (
-		true
-	):
-		aaa = 5
-	elif(
-		true
-	):
+    if (
+        true
+    ):
+        aaa = 5
+    elif(
+        true
+    ):
 aaa = 6
 "
    (gdscript-tests-look-at "aaa = 6")
@@ -257,9 +257,9 @@ aaa = 6
   (gdscript-tests--with-temp-buffer
    "
 func f():
-	while (
-		true
-	):
+    while (
+        true
+    ):
 aaa = 5
 "
    (gdscript-tests-look-at "aaa")
@@ -276,7 +276,7 @@ aaa = 5
   (gdscript-tests--with-temp-buffer
    "
 func f(
-	i: int
+    i: int
 ):
 pass
 "
@@ -292,12 +292,12 @@ pass
   (gdscript-tests--with-temp-buffer
    "
 func f():
-	if (
-		true
-	):
-		if (
-			true
-		):
+    if (
+        true
+    ):
+        if (
+            true
+        ):
 aaa
 "
    (gdscript-tests-look-at "aaa")
@@ -320,13 +320,13 @@ aaa
   (gdscript-tests--with-temp-buffer
    "
 func f():
-	if (
-		true
-	):
-		if (
-			true
-		):
-			aaa
+    if (
+        true
+    ):
+        if (
+            true
+        ):
+            aaa
 else:
 "
    (gdscript-tests-look-at "else")

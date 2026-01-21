@@ -1,6 +1,6 @@
 ;;; gdscript-indent-and-nav.el --- Syntax highlighting for GDScript -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020 GDQuest
+;; Copyright (C) 2020-2026 GDQuest and contributors
 
 ;; Author: Nathan Lovato <nathan@gdquest.com>, Fabián E. Gallina <fgallina@gnu.org>
 ;; URL: https://github.com/godotengine/emacs-gdscript-mode/
@@ -22,7 +22,6 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 
 ;;; Commentary:
 
@@ -280,12 +279,12 @@ possibilities can be narrowed to specific indentation points."
       (`(,(or :inside-paren
               :after-backslash-block-continuation
               :after-backslash-dotted-continuation
-	      :after-backslash-assignment-continuation) . ,start)
+          :after-backslash-assignment-continuation) . ,start)
        ;; Use (possibly extra) indentation given by the configuration
        (goto-char start)
        (+ (current-indentation)
-	  (* gdscript-indent-offset
-	     gdscript-indent-line-continuation-scale)))
+      (* gdscript-indent-offset
+         gdscript-indent-line-continuation-scale)))
       (`(:after-block-end . ,start)
        ;; Subtract one indentation level.
        (goto-char start)

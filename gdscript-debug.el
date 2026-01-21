@@ -1,5 +1,5 @@
 ;;; gdscript-debug.el --- Debugger for Godot -*- lexical-binding: t; -*-
-;;
+
 ;; Copyright (C) 2020 GDQuest
 
 ;; Author: Josef Vlach <vlach.josef@gmail.com>
@@ -24,11 +24,12 @@
 
 ;; For a full copy of the GNU General Public License
 ;; see <https://www.gnu.org/licenses/>.
-;;
+
 ;;; Commentary:
 ;;
 ;; Inspired by gdb-mi.
 ;;
+
 ;;; Code:
 
 (require 'bindat)
@@ -2390,7 +2391,7 @@ In that buffer, `gdscript-debug--buffer-type' must be equal to BUFFER-TYPE."
   (if-let* ((binding (assoc buffer-type gdscript-debug--buffer-rules)))
       (setcdr binding rules)
     (push (cons buffer-type rules)
-	  gdscript-debug--buffer-rules)))
+      gdscript-debug--buffer-rules)))
 
 (gdscript-debug--set-buffer-rules
  'stack-frame-vars-buffer

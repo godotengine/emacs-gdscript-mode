@@ -1,6 +1,6 @@
-;;; gdscript-keywords.el --- Cached keywords for the GDScript language -*- lexical-binding: t; -*-
-;;
-;; Copyright (C) 2020 GDQuest
+;;; gdscript-keywords.el --- Cached keywords for the GDScript language  -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2020-2026 GDQuest and contributors
 
 ;; Author: Nathan Lovato <nathan@gdquest.com>
 ;; URL: https://github.com/godotengine/emacs-gdscript-mode/
