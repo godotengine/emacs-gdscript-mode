@@ -92,7 +92,7 @@ When run it will kill existing process if one exists."
     (setq ansi-color-for-comint-mode t)))
 
 (defun gdscript-comint-gdformat--failed-file-name()
-  "Find corresponding buffer name for error message: 'at line x col y'."
+  "Find corresponding buffer name for error message: `at line x col y'."
   (save-excursion
     (save-match-data
       (re-search-backward "exception during formatting of \\(.*\\)")

@@ -35,12 +35,17 @@
 
 (require 'bindat)
 (require 'generator)
+(require 'server)
+
 (require 'gdscript-customization)
-;;(require 'gdscript-hydra) -- this causes cyclic dependency
 (require 'gdscript-utils)
 
 (eval-when-compile
   (require 'subr-x))
+
+(declare-function do-applescript "")
+
+(declare-function gdscript-debug--hydra/body nil "ext:gdscript-hydra.el")
 
 (defcustom gdscript-debug-emacs-executable "Emacs"
   "The name of Emacs application. Used for focusing Emacs
@@ -56,16 +61,17 @@ when breakpoint is encountered in Godot."
 
 (defvar gdscript-debug--integer-bindat-spec
   `((:data u32r)
-    (:integer-data eval (- (logand last ,(lognot (lsh 1 31))) (logand last ,(lsh 1 31))))))
+    (:integer-data eval (- (logand last ,(lognot (ash 1 31)))
+                           (logand last ,(ash 1 31))))))
 
 (defvar gdscript-debug--integer-64-bindat-spec
   `((:data-a u32r)
     (:data-b u32r)
     (:data eval (let ((a (bindat-get-field struct :data-a))
                       (b (bindat-get-field struct :data-b)))
-                  (logior (lsh b 32) a)))
+                  (logior (ash b 32) a)))
     (:integer-data eval (let ((a (bindat-get-field struct :data)))
-                          (- (logand a ,(lognot (lsh 1 63))) (logand a ,(lsh 1 63)))))))
+                          (- (logand a ,(lognot (ash 1 63))) (logand a ,(ash 1 63)))))))
 
 ;; Credit goes to https://github.com/skeeto/bitpack/blob/master/bitpack.el
 (defsubst gdscript-debug--load-f32 (b0 b1 b2 b3)
@@ -267,10 +273,10 @@ when breakpoint is encountered in Godot."
     (:object-as-id-b u32r)
     (:long eval (let ((a (bindat-get-field struct :object-as-id-a))
                       (b (bindat-get-field struct :object-as-id-b)))
-                  (logior (lsh b 32) a)))))
+                  (logior (ash b 32) a)))))
 
 (defconst gdscript-debug--encode-mask #xff)
-(defconst gdscript-debug--encode-flag-64 (lsh 1 16))
+(defconst gdscript-debug--encode-flag-64 (ash 1 16))
 
 (defvar gdscript-godot-data-bindat-spec
   '((:type-data    u32r)
@@ -781,11 +787,11 @@ when breakpoint is encountered in Godot."
                 ("debug_exit"
                  (gdscript-debug--command-handler
                   ;;(message "Received 'debug_exit' command")
-                  (let ((_cmd (gdscript-debug--mk-debug-exit iter))))))
+                  (gdscript-debug--mk-debug-exit iter)))
                 ("output"
                  (gdscript-debug--command-handler
                   ;;(message "Received 'output' command")
-                  (let ((_cmd (gdscript-debug--mk-output iter))))))
+                  (gdscript-debug--mk-output iter)))
                 ("error"
                  (gdscript-debug--command-handler
                   ;;(message "Received 'error' command")
@@ -794,7 +800,7 @@ when breakpoint is encountered in Godot."
                 ("performance"
                  (gdscript-debug--command-handler
                   ;;(message "Received 'performance' command")
-                  (let ((_cmd (gdscript-debug--mk-performance iter))))))
+                  (gdscript-debug--mk-performance iter)))
                 ("stack_dump"
                  (gdscript-debug--command-handler
                   ;;(message "Received 'stack_dump' command")
@@ -1372,7 +1378,7 @@ in buffer `buffer' should be rendered multiline.")
   (declare (indent 0) (debug t))
   `(pcase gdscript-server-clients
      (`() (message "No game process is running."))
-     (`(,server-process)
+     (`(server-process)
       (let ((command (progn ,@body)))
         (process-send-string server-process command)))
      (_ (message "More than one game process running"))))
@@ -1381,7 +1387,7 @@ in buffer `buffer' should be rendered multiline.")
   "Todo"
   (declare (indent 0) (debug t))
   `(pcase gdscript-server-clients
-     (`(,server-process) (progn ,@body))))
+     (`(server-process) (progn ,@body))))
 
 (defun gdscript-debug-inspect-object (object-id)
   (gdscript-debug--send-command
@@ -1882,9 +1888,7 @@ calling `gdscript-debug--table-string'."
   "Construct a breakpoint object for the line at POINT and return it.
 May match an existing breakpoint."
   (gdscript-debug--with-gdscript-file file-info
-    (let* ((start (line-beginning-position))
-           (end (line-end-position))
-           (line (line-number-at-pos))
+    (let* ((line (line-number-at-pos))
            (file (car file-info))
            (file-absolute (cdr file-info))
            (breakpoint (gdscript-breakpoint-create :file file :file-absolute file-absolute :line line)))

@@ -34,6 +34,8 @@
 (require 'gdscript-syntax)
 (require 'gdscript-customization)
 
+(declare-function projectile-completing-read (prompt collections) "ext:projectile.el")
+
 (defun gdscript--util-goto-line (line-number)
   "Move point to LINE-NUMBER."
   (goto-char (point-min))
@@ -147,14 +149,14 @@ For example:
   "Let's choose single item from ITEMS from mini-buffer.
 PROMPT is prompt for read command. Return `nil' if user aborts."
   (let* ((p (if prompt prompt "Options"))
-    (result (cond ((and (featurep 'projectile) )
-           (projectile-completing-read (format "%s: " p) items))
-          ((fboundp 'ivy-read)
-           (ivy-read (format "%s: " p) items))
-          ((fboundp 'ido-completing-read)
-           (ido-completing-read (format "%s: " p) items))
-          (t
-           (completing-read (format "%s (hit TAB to auto-complete): " p) items nil t)))))
+         (result (cond ((featurep 'projectile)
+                        (projectile-completing-read (format "%s: " p) items))
+                       ((fboundp 'ivy-read)
+                        (ivy-read (format "%s: " p) items))
+                       ((fboundp 'ido-completing-read)
+                        (ido-completing-read (format "%s: " p) items))
+                       (t
+                        (completing-read (format "%s (hit TAB to auto-complete): " p) items nil t)))))
     (if quit-flag nil result)))
 
 (defmacro gdscript-util--with-available-hydra (&rest body)

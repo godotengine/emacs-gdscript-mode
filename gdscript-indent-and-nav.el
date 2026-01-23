@@ -33,11 +33,13 @@
 
 ;;; Code:
 
+(require 'cl-lib)
+(require 'seq)
+
 (require 'gdscript-customization)
 (require 'gdscript-utils)
 (require 'gdscript-rx)
 (require 'gdscript-syntax)
-(require 'cl-lib)
 
 (defvar gdscript-nav-beginning-of-defun-regexp
   (gdscript-rx line-start (* space) defun (+ space) (group symbol-name))
@@ -280,12 +282,12 @@ possibilities can be narrowed to specific indentation points."
       (`(,(or :inside-paren
               :after-backslash-block-continuation
               :after-backslash-dotted-continuation
-          :after-backslash-assignment-continuation) . ,start)
+              :after-backslash-assignment-continuation) . ,start)
        ;; Use (possibly extra) indentation given by the configuration
        (goto-char start)
        (+ (current-indentation)
-      (* gdscript-indent-offset
-         gdscript-indent-line-continuation-scale)))
+          (* gdscript-indent-offset
+             gdscript-indent-line-continuation-scale)))
       (`(:after-block-end . ,start)
        ;; Subtract one indentation level.
        (goto-char start)
@@ -711,9 +713,9 @@ likely an invalid gdscript file."
                   (setq collected-indentations
                         (cons indentation collected-indentations))
                   (when
-                      (seq-contains possible-opening-blocks
-                                    (string-trim (match-string-no-properties 0))
-                                    (lambda (elt e) (string-prefix-p e elt)))
+                      (seq-contains-p possible-opening-blocks
+                                      (string-trim (match-string-no-properties 0))
+                                      (lambda (elt e) (string-prefix-p e elt)))
                     (setq opening-blocks (cons (point) opening-blocks))))
                 (when (zerop indentation)
                   (throw 'exit nil)))))

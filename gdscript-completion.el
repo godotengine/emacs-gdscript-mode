@@ -37,10 +37,16 @@
 (require 'gdscript-utils)
 (require 'projectile nil t)
 
+(declare-function projectile-project-files nil "ext:projectile.el")
+(declare-function projectile-completing-read nil "ext:projectile.el")
+(declare-function projectile-project-root nil "ext:projectile.el")
+(declare-function projectile-ensure-project nil "ext:projectile.el")
+(declare-function projectile-maybe-invalidate-cache nil "ext:projectile.el")
+
 (defvar-local gdscript-completion--all-keywords
-  (eval-when-compile (append gdscript-keywords gdscript-built-in-classes
-                             gdscript-built-in-constants gdscript-built-in-functions
-                             gdscript-built-in-types)))
+    (eval-when-compile (append gdscript-keywords gdscript-built-in-classes
+                               gdscript-built-in-constants gdscript-built-in-functions
+                               gdscript-built-in-types)))
 
 (defun gdscript-completion-at-point ()
   "This is the function to be used for the hook `completion-at-point-functions'."
@@ -83,7 +89,5 @@ first."
                            "." (file-name-extension file)))))
       (insert (concat "\"res://" resource-path "\"")))))
 
-
 (provide 'gdscript-completion)
-
 ;;; gdscript-completion.el ends here
