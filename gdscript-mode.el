@@ -7,7 +7,7 @@
 ;; Maintainer: Jen-Chieh Shen <jcs090218@gmail.com>
 ;; URL: https://github.com/godotengine/emacs-gdscript-mode/
 ;; Version: 1.5.0
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "28.1"))
 ;; Created: Jan 2020
 ;; Keywords: languages
 

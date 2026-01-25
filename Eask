@@ -15,7 +15,7 @@
 (source 'gnu)
 (source 'melpa)
 
-(depends-on "emacs" "26.3")
+(depends-on "emacs" "28.1")
 
 (development
  (depends-on "projectile")
