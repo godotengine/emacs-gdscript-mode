@@ -37,6 +37,23 @@
 (when (version< "29" emacs-version)
   (require 'treesit))
 
+(defvar treesit-font-lock-feature-list)
+(defvar treesit-font-lock-settings)
+(defvar treesit-defun-type-regexp)
+(defvar treesit-defun-name-function)
+
+(declare-function treesit-font-lock-rules nil "ext:treesit.el")
+(declare-function treesit-search-subtree nil "ext:treesit.el")
+(declare-function treesit-node-type nil "ext:treesit.el")
+(declare-function treesit-defun-name nil "ext:treesit.el")
+(declare-function treesit-node-start nil "ext:treesit.el")
+(declare-function treesit-buffer-root-node nil "ext:treesit.el")
+(declare-function treesit-induce-sparse-tree nil "ext:treesit.el")
+(declare-function treesit-ready-p nil "ext:treesit.el")
+(declare-function treesit-parser-create nil "ext:treesit.el")
+(declare-function treesit-major-mode-setup nil "ext:treesit.el")
+(declare-function treesit-node-text nil "ext:treesit.el")
+
 
 ;;; Imenu
 
