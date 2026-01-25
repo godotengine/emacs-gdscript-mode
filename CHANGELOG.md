@@ -6,6 +6,7 @@ This document lists new features, improvements, changes, and bug fixes in each r
 
 - Added the ability to toggle breakpoint on the current line instead of either adding or removing them.
 - Added keybindings matching Godot to run the project (<kbd>f5</kbd>), current scene (<kbd>f6</kbd>), continue execution (<kbd>f7</kbd>), and toggle breakpoints <kbd>F9</kbd>.
+- support project.el on `gdscript-completion-insert-file-path-at-point` ([#180](../../pull/180))
 
 ## GDScript mode 1.4.1
 
