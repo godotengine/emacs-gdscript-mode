@@ -5,9 +5,6 @@
 ;; Author: xiliuya <xiliuya@aliyun.com>
 ;; Maintainer: xiliuya <xiliuya@aliyun.com>
 ;;             Jen-Chieh Shen <jcs090218@gmail.com>
-;; URL: https://github.com/godotengine/emacs-gdscript-mode/
-;; Version: 0.1.0
-;; Created: 2023-05-22 19:14:43
 
 ;; Keywords: languages
 ;; Package-Requires: ((emacs "26.3"))

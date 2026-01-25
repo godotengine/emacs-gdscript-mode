@@ -5,11 +5,6 @@
 ;; Author: Nathan Lovato <nathan@gdquest.com>
 ;;         Fabián E. Gallina <fgallina@gnu.org>
 ;; Maintainer: Jen-Chieh Shen <jcs090218@gmail.com>
-;; URL: https://github.com/godotengine/emacs-gdscript-mode/
-;; Version: 1.0.0
-;; Package-Requires: ((emacs "26.3"))
-;; Created: Feb 2020
-;; Keywords: languages
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -25,11 +20,12 @@
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-
+;;
 ;; Functions copies from Emacs 27's built-in python.el to handle indents,
 ;; querying info about the language's symbols or the context at point, and for
 ;; navigation.
 ;; There are dependencies between the *indent*, *info*, and *nav* functions that prevent us from splitting them into separate .el files at the moment.
+;;
 
 ;;; Code:
 
