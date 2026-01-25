@@ -43,6 +43,10 @@
 (declare-function projectile-ensure-project nil "ext:projectile.el")
 (declare-function projectile-maybe-invalidate-cache nil "ext:projectile.el")
 
+(declare-function project-current nil "project")
+(declare-function project-root nil "project")
+(declare-function project-files nil "project")
+
 (defvar-local gdscript-completion--all-keywords
     (eval-when-compile (append gdscript-keywords gdscript-built-in-classes
                                gdscript-built-in-constants gdscript-built-in-functions
@@ -61,32 +65,44 @@
   "Insert a file path at point using Godot's relative path (\"res:\").
 
 If Projectile is available, list only the files in the current
-project.  Otherwise, fallback to the built-in function
-`read-file-name'.
+project.  If project.el detects a project, use that instead.
+Otherwise, fallback to the built-in function `read-file-name'.
 
 If using Projectile, with a prefix ARG invalidates the cache
 first."
   (interactive "P")
-  (let ((has-projectile (featurep 'projectile)))
-    (when has-projectile
-      (projectile-maybe-invalidate-cache arg))
-    (when-let* ((project-root
-                 (if has-projectile
-                     (projectile-ensure-project (projectile-project-root))
-                   (gdscript-util--find-project-configuration-file)))
-                (file
-                 (if has-projectile
-                     (projectile-completing-read
-                      "Find file: "
-                      (projectile-project-files project-root))
-                   (read-file-name
+  (let* ((has-projectile (featurep 'projectile))
+         (has-project-el (and (featurep 'project) (project-current)))
+         (project-root
+          (cond (has-projectile
+                 (projectile-maybe-invalidate-cache arg)
+                 (projectile-ensure-project (projectile-project-root)))
+                (has-project-el
+                 (project-root (project-current)))
+                (t
+                 (gdscript-util--find-project-configuration-file))))
+         (file
+          (when project-root
+            (cond (has-projectile
+                   (projectile-completing-read
                     "Find file: "
-                    project-root)))
-                (resource-path
-                 (if has-projectile
-                     file
+                    (projectile-project-files project-root)))
+                  (has-project-el
+                   (completing-read
+                    "Find file: "
+                    (mapcar (lambda (f)
+                              (file-relative-name f project-root))
+                            (project-files (project-current)))))
+                  (t
+                   (read-file-name "Find file: " project-root)))))
+         (resource-path
+          (when file
+            (cond ((or has-projectile has-project-el)
+                   file)
+                  (t
                    (concat (gdscript-util--get-godot-project-file-path-relative file)
-                           "." (file-name-extension file)))))
+                           "." (file-name-extension file)))))))
+    (when resource-path
       (insert (concat "\"res://" resource-path "\"")))))
 
 (provide 'gdscript-completion)
