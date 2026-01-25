@@ -5,11 +5,6 @@
 ;; Author: Nathan Lovato <nathan@gdquest.com>
 ;;         Fabián E. Gallina <fgallina@gnu.org>
 ;; Maintainer: Jen-Chieh Shen <jcs090218@gmail.com>
-;; URL: https://github.com/godotengine/emacs-gdscript-mode/
-;; Version: 0.1.0
-;; Package-Requires: ((emacs "26.3"))
-;; Created: Feb 2020
-;; Keywords: languages
 
 ;; This file is not part of GNU Emacs
 

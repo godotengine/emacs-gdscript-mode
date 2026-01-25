@@ -1,7 +1,7 @@
 ;; -*- mode: eask; lexical-binding: t -*-
 
 (package "gdscript-mode"
-         "0.1.0"
+         "1.5.0"
          "Major mode for Godot's GDScript language")
 
 (website-url "https://github.com/godotengine/emacs-gdscript-mode/")
