@@ -72,26 +72,33 @@ _Code folding in action._
 
 ## Contributing
 
-Contributors are welcome! Check the [issues tab](issues) for tasks to work on and open a PR anytime.
+Contributors are welcome! Check the [issues tab](issues) for tasks
+to work on and open a PR anytime.
 
-If you find a bug or would like to suggest an improvement, [open a new
-issue](issues/new).
+If you find a bug or would like to suggest an improvement,
+[open a new issue](issues/new).
 
-For code style, we follow the [Emacs lisp style
-guide](https://github.com/bbatsov/emacs-lisp-style-guide) by Bozhidar Batsov,
-and the [tips and
-conventions](https://www.gnu.org/software/emacs/manual/html_node/elisp/Tips.html)
+For code style, we follow the [Emacs lisp style guide](https://github.com/bbatsov/emacs-lisp-style-guide)
+by Bozhidar Batsov, and the [tips and conventions](https://www.gnu.org/software/emacs/manual/html_node/elisp/Tips.html)
 from the Emacs manual.
 
-You should also check for errors and linter warnings in your code. You can do so in Emacs with flymake or flycheck, but we recommend running the tool `Eask` provided with the repository:
+You should also check for errors and linter warnings in your code.
+You can do so in Emacs with flymake or flycheck, but we recommend
+running the tool `Eask` provided with the repository:
 
-This assumes you have [Eask](https://github.com/emacs-eask/cli) installed.
+This assumes you have [Eask][] installed.
 
 ```sh
+# Install package development dependencies.
+eask install-deps --dev
+
+# Compile all elisp files.
 eask compile
 ```
 
-This program will tell you if there is any problem with your code. If there's no output, everything is fine. You can run all tests like so, but note it might give you spelling errors that aren't relevant in this project:
+This program will tell you if there is any problem with your code.
+If there's no output, everything is fine. You can run all tests like so,
+but note it might give you spelling errors that aren't relevant in this project:
 
 ```sh
 eask lint checkdoc && eask lint package
@@ -99,7 +106,9 @@ eask lint checkdoc && eask lint package
 
 ## How to install
 
-The package is available in the [MELPA](https://melpa.org/#/) package archive. Once you [set up MELPA](https://melpa.org/#/getting-started) you can install the package from Emacs:
+The package is available in the [MELPA][] package archive.
+Once you [set up MELPA](https://melpa.org/#/getting-started)
+you can installthe package from Emacs:
 
 ```elisp
 M-x package-install gdscript-mode
@@ -113,7 +122,8 @@ Then, in your init.el file, you can require the package:
 
 ### Installing in Spacemacs
 
-1. Add the package to the `dotspacemacs-additional-packages`. You can find it under the dotspacemacs/layers function:
+1. Add the package to the `dotspacemacs-additional-packages`.
+You can find it under the dotspacemacs/layers function:
 
 ```elisp
 (defun dotspacemacs/layers ()
@@ -145,13 +155,15 @@ You just need to add the "lang: gdscript" keyword to your `.doom.d/init.el` file
 
 The `+lsp` flag adds language server support for game development with Godot.
 
-To see the module's documentation in Emacs, place your cursor over the word `gdscript` and press <kbd>k</kbd>.
+To see the module's documentation in Emacs, place your cursor
+over the word `gdscript` and press <kbd>k</kbd>.
 
 ### Installing with `use-package`
 
 #### Using `package-vc` (built-in)
 
-To install the latest tagged release, add the following call to your Emacs configuration:
+To install the latest tagged release, add the following call to your
+Emacs configuration:
 
 ```elisp
 (use-package gdscript-mode
@@ -190,12 +202,16 @@ Add the call to use-package to your Emacs configuration:
 
 ## Auto-completion with the Language Server Protocol (LSP)
 
-For auto-completion, we rely on either the [eglot](https://github.com/joaotavora/eglot) or [lsp-mode](https://emacs-lsp.github.io/lsp-mode/) packages, and the GDScript language server which is built into Godot.
+For auto-completion, we rely on either the [eglot][] or [lsp-mode][] packages,
+and the GDScript language server which is built into Godot.
 
-To use the LSP with `eglot`, you need to install `eglot` on top of `gdscript-mode`, if using an Emacs version earlier than 29.
-After installation, `eglot` can be connected on startup by adding `eglot-ensure` as a hook on `gdscript-mode-hook`.
+To use the LSP with `eglot`, you need to install `eglot` on top
+of `gdscript-mode`, if using an Emacs version earlier than 29.
+After installation, `eglot` can be connected on startup by adding
+`eglot-ensure` as a hook on `gdscript-mode-hook`.
 
-Note that, due to language server changes made in Godot 4, usage with Godot 3 requires `gdscript-eglot-version` to be customized to 3.
+Note that, due to language server changes made in Godot 4, usage
+with Godot 3 requires `gdscript-eglot-version` to be customized to 3.
 
 An example configuration for Godot 3 usage with `use-package`:
 
@@ -205,7 +221,10 @@ An example configuration for Godot 3 usage with `use-package`:
   :custom (gdscript-eglot-version 3))
 ```
 
-To use the LSP with `lsp-mode`, you need to install `lsp-mode` on top of `gdscript-mode` and configure it. To install and configure `lsp-mode`, see the [lsp-mode documentation](https://emacs-lsp.github.io/lsp-mode/page/installation/).
+To use the LSP with `lsp-mode`, you need to install `lsp-mode`
+on top of `gdscript-mode` and configure it. To install and
+configure `lsp-mode`, see the
+[lsp-mode documentation](https://emacs-lsp.github.io/lsp-mode/page/installation/).
 
 ### Known issues
 
@@ -228,9 +247,12 @@ There are some known issues with the GDScript language server in Godot 3.2 due t
 
 ## Major mode with Treesit
 
-[Treesit](https://github.com/tree-sitter/tree-sitter) is an incremental parsing system for programming tools.
+[Treesit](https://github.com/tree-sitter/tree-sitter) is an
+incremental parsing system for programming tools.
 
-This package has a major mode (gdscript-ts-mode). That supports the use tree-sitter for font-lock, imenu, indentation, and navigation of `gdscript` files.
+This package has a major mode (gdscript-ts-mode). That supports the
+use tree-sitter for font-lock, imenu, indentation, and navigation
+of `gdscript` files.
 
 Emacs version 29 or higher is required to use this mode.
 
@@ -244,7 +266,7 @@ sudo pacman -S tree-sitter
 
 ### Install grammar
 
-To support Gdscript, we must install [gdscript-grammar](https://github.com/PrestonKnopp/tree-sitter-gdscript.git):
+To support Gdscript, we must install[gdscript-grammar](https://github.com/PrestonKnopp/tree-sitter-gdscript.git):
 
 ```sh
 git clone https://github.com/PrestonKnopp/tree-sitter-gdscript.git
@@ -254,7 +276,8 @@ cc -c scanner.c -I./
 cc -shared parser.o scanner.o -o libtree-sitter-gdscript.so
 ```
 
-Additional directories to look for tree-sitter language definitions. ( DIR is your working path )
+Additional directories to look for tree-sitter language definitions.
+( DIR is your working path )
 
 ```emacs-lisp
 (setq treesit-extra-load-path '("DIR/tree-sitter-gdscript/src/"))
@@ -265,21 +288,27 @@ enjoy.
 
 ### Opening the project in the editor
 
-You can open the Godot editor with `M-x gdscript-godot-open-project-in-editor`, or open files and more in Godot with the `M-x gdscript-godot-*` commands.
+You can open the Godot editor with `M-x gdscript-godot-open-project-in-editor`,
+or open files and more in Godot with the `M-x gdscript-godot-*` commands.
 
-By default, these commands try to use an executable named `godot` on the system [PATH environment variable](<https://en.wikipedia.org/wiki/PATH_(variable)>).
+By default, these commands try to use an executable named `godot` on the
+system [PATH environment variable](<https://en.wikipedia.org/wiki/PATH_(variable)>).
 
-If you don't have `godot` available there, you can set a custom executable name or path to use instead:
+If you don't have `godot` available there, you can set a custom
+executable name or path to use instead:
 
 ```elisp
 (setq gdscript-godot-executable "/path/to/godot")
 ```
 
-You can also use `customize` to change this path: `M-x customize` and search for "godot".
+You can also use `customize` to change this path: `M-x customize` and
+search for "godot".
 
 ### Running Godot with visual debug options
 
-When running `gdscript-godot-run-project-debug`, you can use the universal argument <kbd>C-u</kbd> to invoke a mini-buffer with extra options to pass to godot.
+When running `gdscript-godot-run-project-debug`, you can use the
+universal argument <kbd>C-u</kbd> to invoke a mini-buffer with extra
+options to pass to godot.
 
 Here are the available options:
 
@@ -288,11 +317,16 @@ Here are the available options:
 3. `--debug-navigation`
 4. `--debug-collisions --debug-navigation`
 
-The last selected option is saved for the next time you call `gdscript-godot-run-project-debug`. To turn off debug options, you need to call the command with the universal argument again.
+The last selected option is saved for the next time you call
+`gdscript-godot-run-project-debug`. To turn off debug options,
+you need to call the command with the universal argument again.
 
 ### Using Hydra
 
-Running `gdscript-hydra-show` (<kbd>C-c r</kbd>) opens a [hydra](https://github.com/abo-abo/hydra) popup with options to open the editor or run the project, a scene, or a script, including with visual debug options.
+Running `gdscript-hydra-show` (<kbd>C-c r</kbd>) opens a
+[hydra](https://github.com/abo-abo/hydra) popup with options
+to open the editor or run the project, a scene, or a script,
+including with visual debug options.
 
 ![](assets/emacs-gdscript-hydra.png)
 
@@ -314,7 +348,9 @@ pip3 install gdtoolkit
 
 ### Browsing the Godot API with eww
 
-With the point on a built-in class, you can press `C-c C-b o` to open the code reference for that class in the text browser [eww](https://www.gnu.org/software/emacs/manual/html_node/emacs/EWW.html).
+With the point on a built-in class, you can press `C-c C-b o` to open
+the code reference for that class in the text browser
+[eww](https://www.gnu.org/software/emacs/manual/html_node/emacs/EWW.html).
 
 To open the main API reference page and browse it, press `C-c C-b a`.
 
@@ -370,9 +406,11 @@ Code example:
 
 ## Using the debugger
 
-Emacs GDScript mode includes support for the GDScript debugger. 
+Emacs GDScript mode includes support for the GDScript debugger.
 
-*The debugger in this package is only for Godot 3. Godot 4 supports the Debugger Adapter Procol (DAP), which you can use with the [dap-mode](https://github.com/emacs-lsp/dap-mode) package.*
+*The debugger in this package is only for Godot 3. Godot 4
+supports the Debugger Adapter Procol (DAP), which you can
+use with the [dap-mode][] package.*
 
 You can use the debugger tools to manage breakpoints, step through code, and more.
 
@@ -380,22 +418,31 @@ To get started with this feature, you need to add a least one breakpoint.
 
 ### Adding and removing breakpoints
 
-Like in Godot's editor, you can toggle a breakpoint on the current line with `gdscript-debug-toggle-breakpoint` (<kbd>F9</kbd>).
+Like in Godot's editor, you can toggle a breakpoint on the current
+line with `gdscript-debug-toggle-breakpoint` (<kbd>F9</kbd>).
 
-After adding at least one breakpoint to the project, a buffer named `* Breakpoints *` is created. This buffer displays all existing breakpoints in a project. In that buffer, pressing <kbd>D</kbd> on a breakpoint line deletes the breakpoint. Pressing <kbd>RET</kbd> opens the corresponding GDScript file in another buffer.
+After adding at least one breakpoint to the project, a buffer named
+`* Breakpoints *` is created. This buffer displays all existing
+breakpoints in a project. In that buffer, pressing <kbd>D</kbd> on
+a breakpoint line deletes the breakpoint. Pressing <kbd>RET</kbd>
+opens the corresponding GDScript file in another buffer.
 
 ### Running the project with the debugger active
 
-When any breakpoint exists, running the project with `gdscript-godot-run-project` will automatically start the debugger's server if one isn't already running and connect to it.
+When any breakpoint exists, running the project with `gdscript-godot-run-project`
+will automatically start the debugger's server if one isn't already
+running and connect to it.
 
-The debugger's server runs on `localhost` through port `6010` by default. You can customize the port with the `gdscript-debug-port` variable.
+The debugger's server runs on `localhost` through port `6010` by default.
+You can customize the port with the `gdscript-debug-port` variable.
 
 Once Godot hits a breakpoint, Emacs displays two new buffers:
 
 - `* Stack frame vars *` displays the locals, members, and globals variables for the current stack point. It shows the variable name, its type, and its value.
 - `* Inspector *` displays detailed information about the selected object. By default, it shows the properties of `self`.
 
-You can inspect any object in those two buffers by pressing <kbd>RET</kbd> on the corresponding line.
+You can inspect any object in those two buffers by pressing <kbd>RET</kbd>
+on the corresponding line.
 
 #### Multi-line display
 
@@ -403,14 +450,18 @@ You can toggle between one-line and multi-line display for values of type `Dicti
 
 ### Fetching an object's details
 
-Pressing <kbd>d</kbd> in `* Stack frame vars *` or `* Inspector *` buffers (or in the debug hydra) will fetch on the background data for all objects present in those two buffers and redisplay once done. Doing that adds two extra bits of information about the objects:
+Pressing <kbd>d</kbd> in `* Stack frame vars *` or `* Inspector *` buffers
+(or in the debug hydra) will fetch on the background data for all objects
+present in those two buffers and redisplay once done. Doing that adds two
+extra bits of information about the objects:
 
 - Their real type, for example, `KinematicBody2D` instead of `ObjectId`.
 - Their node path.
 
 ### Debug Hydra
 
-If `hydra` is available, the debug hydra displays below `* Stack frame vars *` and `* Inspector *` buffers upon hitting a breakpoint.
+If `hydra` is available, the debug hydra displays below `* Stack frame vars *`
+and `* Inspector *` buffers upon hitting a breakpoint.
 
 You can also call it by pressing <kbd>C-c n</kbd>.
 
@@ -433,7 +484,8 @@ o pin   u unpin     q quit
 
 ### The `* Stack frame vars *` buffer
 
-The stack frame buffer displays the locals, members, and global variables for the current stack point. Here are available keyboard shortcuts:
+The stack frame buffer displays the locals, members, and global variables
+for the current stack point. Here are available keyboard shortcuts:
 
 - <kbd>TAB</kbd> toggles multi-line display for selected types.
 - <kbd>RET</kbd> on an object line to display its details in the `* Inspector *`buffer.
@@ -447,7 +499,10 @@ The stack frame buffer displays the locals, members, and global variables for th
 
 ### `* Inspector *` buffer
 
-Contains information about inspected object. By default `self` variable from `* Stack frame vars *` is displayed. The inspected object is kept in focus until you inspect another object or until the active object ceases to exists, in which case the current `self` is displayed instead.
+Contains information about inspected object. By default `self` variable from
+`* Stack frame vars *` is displayed. The inspected object is kept in focus
+until you inspect another object or until the active object ceases to exists,
+in which case the current `self` is displayed instead.
 
 - Press <kbd>TAB</kbd> to toggle multi-line display for selected typess.
 - Press <kbd>RET</kbd> on object line to display its detailss.
@@ -489,3 +544,13 @@ Contains a tree visualisation of all objects in the running program.
 - Press <kbd>p</kbd> to go to the previous line.
 - Press <kbd>n</kbd> to go to the next line.
 - Press <kbd>q</kbd> to close the buffer.
+
+
+<!-- Links -->
+
+[MELPA]: https://melpa.org/#/
+[Eask]: https://github.com/emacs-eask/cli
+
+[eglot]: https://github.com/joaotavora/eglot
+[lsp-mode]: https://emacs-lsp.github.io/lsp-mode/
+[dap-mode]: https://github.com/emacs-lsp/dap-mode
