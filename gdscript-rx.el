@@ -1,4 +1,4 @@
-;;; gdscript-rx.el --- Regex for GDScript -*- lexical-binding: t; -*-
+;;; gdscript-rx.el --- Regex for GDScript  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020-2026 GDQuest and contributors
 
@@ -1440,47 +1440,46 @@ following constructs:
 (defmacro gdscript-rx (&rest regexps)
   "Gdscript mode specialized rx macro.
 This variant of `rx' supports common Gdscript named REGEXPS."
-  `(gdscript-rx-let (
-                     (block-start
-                      (or (seq (or "if" "elif" "while" "func") (+? (not ":")) ":")
-                          (seq (zero-or-more nonl)
-                               ":"
-                               (or (seq (zero-or-more " ") eol)
-                                   (seq (zero-or-more " ") "#" (zero-or-more nonl) eol)))))
-                     (dedenter          (seq symbol-start
-                                             (or "elif" "else")
-                                             symbol-end))
-                     (block-ender       (seq symbol-start
-                                             (or "break" "continue" "pass" "return")
-                                             symbol-end))
-                     (defun             (seq symbol-start
-                                             (or "func" "class" "static func")
-                                             symbol-end))
-                     (symbol-name       (seq (any letter ?_) (* (any word ?_))))
-                     (open-paren        (or "{" "[" "("))
-                     (close-paren       (or "}" "]" ")"))
-                     (simple-operator   (any ?+ ?- ?/ ?& ?^ ?~ ?| ?* ?< ?> ?= ?%))
-                     (not-simple-operator (not simple-operator))
-                     ;; TODO: clean up operators that don't exist in GDScript
-                     (operator          (or "==" ">=" "is" "not"
-                                            "**" "//" "<<" ">>" "<=" "!="
-                                            "+" "-" "/" "&" "^" "~" "|" "*" "<" ">"
-                                            "=" "%"))
-                     (assignment-operator (or "+=" "-=" "*=" "/=" "//=" "%=" "**="
-                                              ">>=" "<<=" "&=" "^=" "|="
-                                              "="))
-                     (string-delimiter  (seq
-                                         ;; Match even number of backslashes.
-                                         (or (not (any ?\\ ?\' ?\")) point
-                                             ;; Quotes might be preceded by an
-                                             ;; escaped quote.
-                                             (and (or (not (any ?\\)) point) ?\\
-                                                  (* ?\\ ?\\) (any ?\' ?\")))
-                                         (* ?\\ ?\\)
-                                         ;; Match single or triple quotes of any kind.
-                                         (group (or  "\"\"\"" "\"" "'''" "'")))))
+  `(gdscript-rx-let
+       ((block-start
+         (or (seq (or "if" "elif" "while" "func") (+? (not ":")) ":")
+             (seq (zero-or-more nonl)
+                  ":"
+                  (or (seq (zero-or-more " ") eol)
+                      (seq (zero-or-more " ") "#" (zero-or-more nonl) eol)))))
+        (dedenter          (seq symbol-start
+                                (or "elif" "else")
+                                symbol-end))
+        (block-ender       (seq symbol-start
+                                (or "break" "continue" "pass" "return")
+                                symbol-end))
+        (defun             (seq symbol-start
+                                (or "func" "class" "static func")
+                                symbol-end))
+        (symbol-name       (seq (any letter ?_) (* (any word ?_))))
+        (open-paren        (or "{" "[" "("))
+        (close-paren       (or "}" "]" ")"))
+        (simple-operator   (any ?+ ?- ?/ ?& ?^ ?~ ?| ?* ?< ?> ?= ?%))
+        (not-simple-operator (not simple-operator))
+        ;; TODO: clean up operators that don't exist in GDScript
+        (operator          (or "==" ">=" "is" "not"
+                               "**" "//" "<<" ">>" "<=" "!="
+                               "+" "-" "/" "&" "^" "~" "|" "*" "<" ">"
+                               "=" "%"))
+        (assignment-operator (or "+=" "-=" "*=" "/=" "//=" "%=" "**="
+                                 ">>=" "<<=" "&=" "^=" "|="
+                                 "="))
+        (string-delimiter  (seq
+                            ;; Match even number of backslashes.
+                            (or (not (any ?\\ ?\' ?\")) point
+                                ;; Quotes might be preceded by an
+                                ;; escaped quote.
+                                (and (or (not (any ?\\)) point) ?\\
+                                     (* ?\\ ?\\) (any ?\' ?\")))
+                            (* ?\\ ?\\)
+                            ;; Match single or triple quotes of any kind.
+                            (group (or  "\"\"\"" "\"" "'''" "'")))))
      (gdscript-rx-build-rx ,@regexps)))
 
 (provide 'gdscript-rx)
-
 ;;; gdscript-rx.el ends here

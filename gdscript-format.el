@@ -1,4 +1,4 @@
-;;; gdscript-format.el --- GDScript formatting with gdformat -*- lexical-binding: t; -*-
+;;; gdscript-format.el --- GDScript formatting with gdformat  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020 Pawel Lampe
 ;; Copyright (C) 2020-2026 GDQuest and contributors
@@ -96,5 +96,4 @@ It also activates `auto-revert-mode' and saves the buffer if is it modified."
             (pop-to-buffer (gdscript-comint-gdformat--run all-gdscripts))))))))
 
 (provide 'gdscript-format)
-
 ;;; gdscript-format.el ends here

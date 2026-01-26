@@ -1,4 +1,4 @@
-;;; gdscript-imenu.el --- Imenu support for GDScript -*- lexical-binding: t; -*-
+;;; gdscript-imenu.el --- Imenu support for GDScript  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020-2026 GDQuest and contributors
 
@@ -180,5 +180,4 @@ To this:
           (gdscript-imenu-create-index))))))
 
 (provide 'gdscript-imenu)
-
 ;;; gdscript-imenu.el ends here

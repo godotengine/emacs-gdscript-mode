@@ -1,4 +1,4 @@
-;;; gdscript-history.el --- History -*- lexical-binding: t; -*-
+;;; gdscript-history.el --- History  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020-2026 GDQuest and contributors
 
@@ -86,5 +86,4 @@ PROJECT-HISTORY will be history of current project."
       (nth (1- index) history))))
 
 (provide 'gdscript-history)
-
 ;;; gdscript-history.el ends here

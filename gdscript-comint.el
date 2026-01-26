@@ -1,4 +1,4 @@
-;;; gdscript-comint.el --- Support for comint mode -*- lexical-binding: t; -*-
+;;; gdscript-comint.el --- Support for comint mode  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020-2026 GDQuest and contributors
 

@@ -1,4 +1,4 @@
-;;; gdscript-debug.el --- Debugger for Godot -*- lexical-binding: t; -*-
+;;; gdscript-debug.el --- Debugger for Godot  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020-2026 GDQuest and contributors
 
@@ -2443,3 +2443,4 @@ _n_ next _c_ continue _m_ step _b_ breakpoints _s_ stack _v_ vars _i_ inspector 
   (gdscript-util--with-available-hydra (gdscript-debug--hydra/body)))
 
 (provide 'gdscript-debug)
+;;; gdscript-debug.el ends here
