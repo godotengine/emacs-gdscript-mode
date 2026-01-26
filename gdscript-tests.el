@@ -1,4 +1,4 @@
-;;; gdscript-tests.el --- tests for gdscript mode -*- lexical-binding: t; -*-
+;;; gdscript-tests.el --- tests for gdscript mode  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020-2026 GDQuest and contributors
 
@@ -334,3 +334,5 @@ else:
      (should (= (current-indentation) 4))
      (indent-for-tab-command)
      (should (= (current-indentation) 8)))))
+
+;;; gdscript-tests.el ends here

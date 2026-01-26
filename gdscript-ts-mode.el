@@ -1,4 +1,4 @@
-;;; gdscript-ts-mode.el --- Summary  -*- lexical-binding: t -*-
+;;; gdscript-ts-mode.el --- Major mode for GDScript using Tree-sitter  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2023-2026 GDQuest and contributors
 

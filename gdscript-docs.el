@@ -1,4 +1,4 @@
-;;; gdscript-docs.el --- Open documentation in Godot -*- lexical-binding: t; -*-
+;;; gdscript-docs.el --- Open documentation in Godot  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020-2026 GDQuest and contributors
 
@@ -130,5 +130,4 @@ ORIG-FUN is function we wrap around.  ARGS are argument to ORIG-FUN function."
 (add-hook 'eww-after-render-hook #'gdscript-docs--eww-setup)
 
 (provide 'gdscript-docs)
-
 ;;; gdscript-docs.el ends here

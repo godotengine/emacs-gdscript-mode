@@ -1,4 +1,4 @@
-;;; gdscript-godot.el --- Open and run projects in Godot -*- lexical-binding: t; -*-
+;;; gdscript-godot.el --- Open and run projects in Godot  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020-2026 GDQuest and contributors
 

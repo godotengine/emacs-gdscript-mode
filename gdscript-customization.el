@@ -152,6 +152,5 @@ directory path containing the file `index.html'."
   :type 'integer
   :group 'gdscript)
 
-
 (provide 'gdscript-customization)
 ;;; gdscript-customization.el ends here

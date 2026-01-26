@@ -1,4 +1,4 @@
-;;; gdscript-eglot.el --- Integration with eglot -*- lexical-binding: t; -*-
+;;; gdscript-eglot.el --- Integration with Eglot  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2023-2026 GDQuest and contributors
 
@@ -22,7 +22,7 @@
 
 ;;; Commentary:
 ;;
-;; Handles the configuraiton of eglot.
+;; Handles the configuraiton of Eglot.
 ;; This supports `gdscript-mode' using `eglot'.
 ;;
 

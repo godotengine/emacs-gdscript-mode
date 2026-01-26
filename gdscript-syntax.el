@@ -1,4 +1,4 @@
-;;; gdscript-syntax.el --- Syntax highlighting for GDScript -*- lexical-binding: t; -*-
+;;; gdscript-syntax.el --- Syntax highlighting for GDScript  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020-2026 GDQuest
 
@@ -182,5 +182,4 @@ is used to limit the scan."
 It makes underscores and dots word constituent chars.")
 
 (provide 'gdscript-syntax)
-
 ;;; gdscript-syntax.el ends here

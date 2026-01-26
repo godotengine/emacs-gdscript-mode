@@ -1,4 +1,4 @@
-;;; gdscript-fill-paragraph.el --- GDScript fill paragraph functions -*- lexical-binding: t; -*-
+;;; gdscript-fill-paragraph.el --- GDScript fill paragraph functions  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020-2026 GDQuest and contributors
 
@@ -129,5 +129,4 @@ JUSTIFY should be used (if applicable) as in `fill-paragraph'."
     (do-auto-fill)))
 
 (provide 'gdscript-fill-paragraph)
-
 ;;; gdscript-fill-paragraph.el ends here

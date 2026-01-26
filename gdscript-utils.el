@@ -1,4 +1,4 @@
-;;; gdscript-utils.el --- Utility functions for gdscript-mode -*- lexical-binding: t; -*-
+;;; gdscript-utils.el --- Utility functions for gdscript-mode  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020-2026 GDQuest and contributors
 
@@ -162,5 +162,4 @@ PROMPT is prompt for read command. Return `nil' if user aborts."
      ,@body))
 
 (provide 'gdscript-utils)
-
 ;;; gdscript-utils.el ends here

@@ -1,4 +1,4 @@
-;;; gdscript-project.el --- Project -*- lexical-binding: t; -*-
+;;; gdscript-project.el --- Project  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020-2026 GDQuest and contributors
 
@@ -90,5 +90,4 @@ this use ag for performance."
     (error (format "Buffer %s is no script file. To see all available scripts install 'ag' executable." (buffer-name)))))
 
 (provide 'gdscript-project)
-
 ;;; gdscript-project.el ends here

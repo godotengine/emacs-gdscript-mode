@@ -1,4 +1,4 @@
-;;; gdscript-indent-and-nav.el --- Syntax highlighting for GDScript -*- lexical-binding: t; -*-
+;;; gdscript-indent-and-nav.el --- Syntax highlighting for GDScript  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020-2026 GDQuest and contributors
 
@@ -1419,5 +1419,4 @@ This command assumes point is not in a string or comment."
   (gdscript-nav-up-list (- arg)))
 
 (provide 'gdscript-indent-and-nav)
-
 ;;; gdscript-indent-and-nav.el ends here

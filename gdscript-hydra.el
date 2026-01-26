@@ -1,4 +1,4 @@
-;;; gdscript-hydra.el --- Hydra for launching Godot -*- lexical-binding: t; -*-
+;;; gdscript-hydra.el --- Hydra for launching Godot  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020-2026 GDQuest and contributors
 
@@ -149,5 +149,4 @@ _n_ [?n?] Visible navigation
     ("q" nil)))
 
 (provide 'gdscript-hydra)
-
 ;;; gdscript-hydra.el ends here
