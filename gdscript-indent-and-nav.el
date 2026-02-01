@@ -711,7 +711,7 @@ likely an invalid gdscript file."
                   (when
                       (seq-contains-p possible-opening-blocks
                                       (string-trim (match-string-no-properties 0))
-                                      (lambda (elt e) (string-prefix-p e elt)))
+                                      (lambda (elt e) (string-prefix-p elt e)))
                     (setq opening-blocks (cons (point) opening-blocks))))
                 (when (zerop indentation)
                   (throw 'exit nil)))))
