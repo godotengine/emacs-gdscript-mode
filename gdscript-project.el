@@ -47,7 +47,14 @@ If current buffer is not visiting scene file return nil."
 (defun gdscript-project--select-scene ()
   "Find all scenes files and let user choose one. Return `nil' if user cancels selection."
   (let* ((rl (gdscript-util--find-project-configuration-file))
-         (scene-list (mapcar (lambda (x) (file-relative-name x rl)) (directory-files-recursively rl ".*.tscn" t)))
+         (scene-list (mapcar (lambda (x) (file-relative-name x rl))
+                             (directory-files-recursively
+                              rl
+                              "^.*\\.tscn$"
+                              t
+                              (lambda (dir)
+                                (not (string-match "^\\.\\(godot\\|git\\|hg\\)$"
+                                                   (file-relative-name dir rl)))))))
          (prompt (format "Select scene to run (%s): " (buffer-name)))
          (selected-scene (gdscript-util--read scene-list prompt)))
     selected-scene))
