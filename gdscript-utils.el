@@ -146,8 +146,6 @@ PROMPT is prompt for read command. Return `nil' if user aborts."
   (let* ((p (if prompt prompt "Options"))
          (result (cond ((featurep 'projectile)
                         (projectile-completing-read (format "%s: " p) items))
-                       ((fboundp 'ivy-read)
-                        (ivy-read (format "%s: " p) items))
                        (ido-mode
                         (ido-completing-read (format "%s: " p) items))
                        (t
