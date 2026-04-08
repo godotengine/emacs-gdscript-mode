@@ -112,6 +112,33 @@
     map)
   "Keymap for `gdscript-mode'.")
 
+(easy-menu-define gdscript-mode-menu gdscript-mode-map
+  "Menu for GDScript mode."
+  '("GDScript"
+    ("Script"
+     ["Format all" gdscript-format-buffer
+      :active (executable-find gdscript-gdformat-executable)
+      :help "Format the buffer using GDFormat, if installed"]
+     ["Format region" gdscript-format-region
+      :active (executable-find gdscript-gdformat-executable)
+      :help "Format the selected region using GDFormat, if installed"])
+    ("Scene"
+     ["Open" gdscript-godot-edit-current-scene
+      :help "Open the current scene in the Godot editor"]
+     ["Run current" gdscript-godot-run-current-scene
+      :help "Run the current scene"])
+    ("Project"
+     ["Open" gdscript-godot-open-project-in-editor
+      :help "Open the project in the Godot editor"]
+     ["Run" gdscript-godot-run-project
+      :help "Run the project's main scene"])
+    ("Help"
+     ["Online documentation" (gdscript-docs-browse-api t)
+      :help "Browse Godot Docs, online"]
+     ["Local documentation" gdscript-docs-browse-api
+      :active (not (equal "" gdscript-docs-local-path))
+      :help "Browse local copy of Godot Docs, if it exists"])))
+
 (defun gdscript-hideshow-forward-sexp-function (_arg)
   "Gdscript specific `forward-sexp' function for function `hs-minor-mode'.
 Argument ARG is ignored."
