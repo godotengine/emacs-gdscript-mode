@@ -28,6 +28,7 @@
 
 ;;; Code:
 
+(require 'gdscript-godot)
 (require 'gdscript-utils)
 
 ;;;###autoload
@@ -43,12 +44,13 @@
 
 (defun gdscript-eglot--get-config-dir ()
   "Get system-specific directory with Godot configuration files."
-  (pcase system-type
-    ('darwin (expand-file-name "~/Library/Application Support/Godot/"))
-    ('windows-nt (file-name-concat (getenv "APPDATA") "Godot"))
-    ('gnu/linux (file-name-concat
-                 (or (getenv "XDG_CONFIG_HOME") (expand-file-name "~/.config"))
-                 "godot"))))
+  (if gdscript-godot-config-dir (expand-file-name gdscript-godot-config-dir)
+    (pcase system-type
+      ('darwin (expand-file-name "~/Library/Application Support/Godot/"))
+      ('windows-nt (file-name-concat (getenv "APPDATA") "Godot"))
+      ('gnu/linux (file-name-concat
+                   (or (getenv "XDG_CONFIG_HOME") (expand-file-name "~/.config"))
+                   "godot")))))
 
 (defun gdscript-eglot--extract-port (editor-settings-file)
   "Extract LSP port from Godot EDITOR-SETTINGS-FILE.

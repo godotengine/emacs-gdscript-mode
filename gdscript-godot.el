@@ -37,6 +37,21 @@
 (require 'gdscript-utils)
 
 ;;;###autoload
+(defgroup gdscript-godot nil
+  "Configurations in gdscript related to the Godot editor'."
+  :group 'gdscript)
+
+;;;###autoload
+(defcustom gdscript-godot-config-dir nil
+  "The directory containing the Godot editor's configuration files.
+
+If `gdscript-mode` is unable to find your config directory,
+you may set this variable to an exact path."
+  :type '(choice (const :tag "Detect config automatically" nil)
+                 (string :tag "Filepath"))
+  :group 'gdscript-godot)
+
+;;;###autoload
 (defvar gdscript-godot--debug-options-hydra :not-list)
 
 (defvar gdscript-godot--debug-selected-option 1)
