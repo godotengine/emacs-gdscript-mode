@@ -8,7 +8,7 @@
 (keywords "languages")
 
 (package-file "gdscript-mode.el")
-(files "*.el")
+(files "gdscript-*.el")
 
 (script "test" "echo \"Error: no test specified\" && exit 1")
 
