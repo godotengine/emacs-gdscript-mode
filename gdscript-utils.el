@@ -146,12 +146,10 @@ PROMPT is prompt for read command. Return `nil' if user aborts."
   (let* ((p (if prompt prompt "Options"))
          (result (cond ((featurep 'projectile)
                         (projectile-completing-read (format "%s: " p) items))
-                       ((fboundp 'ivy-read)
-                        (ivy-read (format "%s: " p) items))
-                       ((fboundp 'ido-completing-read)
+                       (ido-mode
                         (ido-completing-read (format "%s: " p) items))
                        (t
-                        (completing-read (format "%s (hit TAB to auto-complete): " p) items nil t)))))
+                        (completing-read (format "%s: " p) items nil t)))))
     (if quit-flag nil result)))
 
 (defmacro gdscript-util--with-available-hydra (&rest body)
