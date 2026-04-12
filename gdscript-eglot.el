@@ -28,15 +28,12 @@
 
 ;;; Code:
 
+(require 'gdscript-utils)
+
 ;;;###autoload
 (defgroup gdscript-eglot nil
   "Configurations in gdscript related to `eglot'."
   :group 'gdscript)
-
-;;;###autoload
-(defcustom gdscript-eglot-version "4.5"
-  "The version of godot in use."
-  :type 'string)
 
 ;;;###autoload
 (defcustom gdscript-eglot-default-lsp-port 6005
@@ -83,7 +80,8 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2023-04/msg01070.html."
     (let* ((config-dir (gdscript-eglot--get-config-dir))
            (settings-file (file-name-concat
                            config-dir
-                           (format "editor_settings-%s.tres" gdscript-eglot-version))))
+                           (format "editor_settings-%s.tres"
+                                   (gdscript-util--get-godot-project-version)))))
       (when-let* ((port (gdscript-eglot--extract-port settings-file)))
         (list "localhost" port)))))
 
