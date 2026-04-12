@@ -42,15 +42,7 @@
   :type 'integer
   :group 'gdscript-eglot)
 
-(defun gdscript-eglot--get-config-dir ()
-  "Get system-specific directory with Godot configuration files."
-  (if gdscript-godot-config-dir (expand-file-name gdscript-godot-config-dir)
-    (pcase system-type
-      ('darwin (expand-file-name "~/Library/Application Support/Godot/"))
-      ('windows-nt (file-name-concat (getenv "APPDATA") "Godot"))
-      ('gnu/linux (file-name-concat
-                   (or (getenv "XDG_CONFIG_HOME") (expand-file-name "~/.config"))
-                   "godot")))))
+
 
 (defun gdscript-eglot--extract-port (editor-settings-file)
   "Extract LSP port from Godot EDITOR-SETTINGS-FILE.
@@ -79,7 +71,7 @@ definitions of HOST, PORT, and INTERACTIVE.
 For more context, see
 https://lists.gnu.org/archive/html/bug-gnu-emacs/2023-04/msg01070.html."
   (save-excursion
-    (let* ((config-dir (gdscript-eglot--get-config-dir))
+    (let* ((config-dir (gdscript-godot--get-config-dir))
            (settings-file (file-name-concat
                            config-dir
                            (format "editor_settings-%s.tres"

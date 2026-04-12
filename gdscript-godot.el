@@ -76,6 +76,16 @@ DEBUG-OPTIONS will be set either by Hydra, or by prefix argument selection."
           (,debug-options (if use-hydra-options gdscript-godot--debug-options-hydra prefix-options)))
      ,@body))
 
+(defun gdscript-godot--get-config-dir ()
+  "Get system-specific directory with Godot configuration files."
+  (if gdscript-godot-config-dir (expand-file-name gdscript-godot-config-dir)
+    (pcase system-type
+      ('darwin (expand-file-name "~/Library/Application Support/Godot/"))
+      ('windows-nt (file-name-concat (getenv "APPDATA") "Godot"))
+      ('gnu/linux (file-name-concat
+                   (or (getenv "XDG_CONFIG_HOME") (expand-file-name "~/.config"))
+                   "godot")))))
+
 (defun gdscript-godot--run-command (&rest arguments)
   "Run a Godot process with ARGUMENTS.
 
