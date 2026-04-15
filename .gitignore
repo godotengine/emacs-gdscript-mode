@@ -13,3 +13,7 @@ dist/
 
 #emacs projectile
 .projectile
+
+# Emacs package-vc files
+*-autoloads.el
+*-pkg.el
