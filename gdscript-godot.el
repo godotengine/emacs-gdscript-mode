@@ -37,6 +37,21 @@
 (require 'gdscript-utils)
 
 ;;;###autoload
+(defgroup gdscript-godot nil
+  "Configurations in gdscript related to the Godot editor'."
+  :group 'gdscript)
+
+;;;###autoload
+(defcustom gdscript-godot-config-dir nil
+  "The directory containing the Godot editor's configuration files.
+
+If `gdscript-mode` is unable to find your config directory,
+you may set this variable to an exact path."
+  :type '(choice (const :tag "Detect config automatically" nil)
+                 (string :tag "Filepath"))
+  :group 'gdscript-godot)
+
+;;;###autoload
 (defvar gdscript-godot--debug-options-hydra :not-list)
 
 (defvar gdscript-godot--debug-selected-option 1)
@@ -60,6 +75,16 @@ DEBUG-OPTIONS will be set either by Hydra, or by prefix argument selection."
           (use-hydra-options (listp gdscript-godot--debug-options-hydra)) ;; gdscript-godot--debug-options-hydra is a list when run from hydra
           (,debug-options (if use-hydra-options gdscript-godot--debug-options-hydra prefix-options)))
      ,@body))
+
+(defun gdscript-godot--get-config-dir ()
+  "Get system-specific directory with Godot configuration files."
+  (if gdscript-godot-config-dir (expand-file-name gdscript-godot-config-dir)
+    (pcase system-type
+      ('darwin (expand-file-name "~/Library/Application Support/Godot/"))
+      ('windows-nt (file-name-concat (getenv "APPDATA") "Godot"))
+      ('gnu/linux (file-name-concat
+                   (or (getenv "XDG_CONFIG_HOME") (expand-file-name "~/.config"))
+                   "godot")))))
 
 (defun gdscript-godot--run-command (&rest arguments)
   "Run a Godot process with ARGUMENTS.
