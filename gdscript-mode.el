@@ -180,7 +180,7 @@ already marked."
   (gdscript-nav-end-of-defun))
 
 ;;;###autoload
-(define-derived-mode gdscript-mode prog-mode "gdscript"
+(define-derived-mode gdscript-mode prog-mode "GDScript"
   "Major mode for editing Godot GDScript files."
   (setq-local tab-width gdscript-tab-width)
   (setq-local indent-tabs-mode gdscript-use-tab-indents)

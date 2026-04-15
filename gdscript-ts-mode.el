@@ -284,7 +284,7 @@ Similar to `gdscript-imenu-create-index' but use tree-sitter."
     (gdscript-ts--imenu-treesit-create-index-1 tree)))
 
 ;;;###autoload
-(define-derived-mode gdscript-ts-mode gdscript-mode "Gdscript"
+(define-derived-mode gdscript-ts-mode gdscript-mode "GDScript"
   "Major mode for editing gdscript files, using tree-sitter library.
 
 \\{gdscript-ts-mode-map}"
