@@ -207,18 +207,18 @@ and the GDScript language server which is built into Godot.
 
 To use the LSP with `eglot`, you need to install `eglot` on top
 of `gdscript-mode`, if using an Emacs version earlier than 29.
-After installation, `eglot` can be connected on startup by adding
-`eglot-ensure` as a hook on `gdscript-mode-hook`.
 
-Note that, due to language server changes made in Godot 4, usage
-with Godot 3 requires `gdscript-eglot-version` to be customized to 3.
+After installation, `eglot` can be connected on startup by adding:
 
-An example configuration for Godot 3 usage with `use-package`:
+```elisp
+(add-hook 'gdscript-mode-hook 'eglot-ensure)
+```
+
+Alternatively, with `use-package`:
 
 ```elisp
 (use-package gdscript-mode
-  :hook (gdscript-mode . eglot-ensure)
-  :custom (gdscript-eglot-version 3))
+  :hook (gdscript-mode . eglot-ensure))
 ```
 
 To use the LSP with `lsp-mode`, you need to install `lsp-mode`

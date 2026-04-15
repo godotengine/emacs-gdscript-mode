@@ -113,6 +113,18 @@ WARNING: the Godot project must exist for this function to work."
         (match-string 1)
       (error "Could not find the name of the project"))))
 
+(defun gdscript-util--get-godot-project-version ()
+  "Retrieve the project name from Godot's configuration file."
+  (with-temp-buffer
+    (insert-file-contents (concat (gdscript-util--find-project-configuration-file) "project.godot"))
+    (goto-char (point-min))
+    (if (re-search-forward "config_version=\\(3\\|4\\)" nil t) ; Godot 3.0 uses 3, Godot 3.6.2 uses 4
+        "3"
+      (if (re-search-forward "config/features=PackedStringArray\(\"\\([^,\)]*\\)\"" nil t)
+          (let ((version (match-string 1)))
+            (if (string-prefix-p "4.0" version) "4" version))
+        (error "Could not find the project version")))))
+
 (defun gdscript-util--get-godot-buffer-name (&optional editor)
   "Return buffer name for godot's stdout/stderr output."
   (format (if editor "*godot - %s - Editor*" "*godot - %s*") (gdscript-util--get-godot-project-name)))
