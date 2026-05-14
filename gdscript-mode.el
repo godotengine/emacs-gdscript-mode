@@ -74,7 +74,6 @@
     ;; Indent specific
     (define-key map (kbd "<backspace>") 'gdscript-indent-dedent-line-backspace)
     (define-key map (kbd "<backtab>") 'gdscript-indent-dedent-line)
-    (define-key map (kbd "\t") 'company-complete)
     ;; Insertion.
     (define-key map (kbd "C-c i") 'gdscript-completion-insert-file-path-at-point)
     ;; Formatting.
