@@ -72,7 +72,7 @@
     (define-key map [remap mark-defun] 'gdscript-mark-defun)
     (define-key map (kbd "C-c C-j") 'imenu)
     ;; Indent specific
-    (define-key map "\177" 'gdscript-indent-dedent-line-backspace)
+    (define-key map (kbd "<backspace>") 'gdscript-indent-dedent-line-backspace)
     (define-key map (kbd "<backtab>") 'gdscript-indent-dedent-line)
     (define-key map (kbd "\t") 'company-complete)
     ;; Insertion.
