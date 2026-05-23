@@ -29,8 +29,11 @@
 ;;; Code:
 
 (defconst gdscript-keywords
-  '("and" "as" "assert" "break" "breakpoint" "case" "class" "class_name"
-    "const" "continue" "do" "elif" "else" "enum"
+  '("and" "as" "assert" "await"
+    "break" "breakpoint"
+    "case" "class" "class_name" "const" "continue"
+    "do"
+    "elif" "else" "enum"
     "export" "export_category" "export_color_no_alpha" "export_custom"
     "export_dir" "export_enum" "export_exp_easing" "export_file"
     "export_flags"
@@ -38,9 +41,19 @@
     "export_flags_3d_navigation" "export_flags_3d_physics" "export_flags_3d_render"
     "export_global_dir" "export_global_file" "export_group" "export_multiline"
     "export_node_path" "export_range" "export_storage" "export_subgroup" "export_tool_button"
-    "extends" "false" "for" "func" "if" "in" "is"
-    "master" "match" "not" "onready" "or" "pass" "preload" "puppet" "remote" "remotesync" "return" "self" "setget" "signal"
-    "slave" "static" "switch" "sync" "tool" "true" "var" "while" "yield"))
+    "extends"
+    "false" "for" "func"
+    "if" "in" "is"
+    "master" "match"
+    "not"
+    "onready" "or"
+    "pass" "preload" "puppet"
+    "remote" "remotesync" "return"
+    "self" "setget" "signal" "super" "slave" "static" "switch" "sync"
+    "tool" "true"
+    "var"
+    "while"
+    "yield"))
 
 (defconst gdscript-built-in-constants '("INF" "NAN" "PI" "TAU"))
 
@@ -49,16 +62,39 @@
 (defconst gdscript-built-in-types '("bool" "float" "int" "null" "void"))
 
 (defconst gdscript-built-in-functions
-  '("Color8" "ColorN" "abs" "acos" "asin" "assert" "atan" "atan2"
-    "bytes2var" "cartesian2polar" "ceil" "char" "clamp" "convert" "cos" "cosh" "db2linear" "decimals"
-    "dectime" "deg2rad" "dict2inst" "ease" "exp" "floor" "fmod" "fposmod" "funcref" "get_stack" "hash"
-    "inst2dict" "instance_from_id" "inverse_lerp" "is_equal_approx" "is_inf" "is_instance_valid" "is_nan"
-    "is_zero_approx" "len" "lerp" "lerp_angle" "linear2db" "load" "log" "max" "min" "move_toward" "nearest_po2"
-    "ord" "parse_json" "polar2cartesian" "posmod" "pow" "preload" "print" "print_debug" "print_stack" "printerr"
-    "printraw" "prints" "printt" "push_error" "push_warning" "rad2deg" "rand_range" "rand_seed" "randf" "randi"
-    "randomize" "range" "range_lerp" "round" "seed" "sign" "sin" "sinh" "smoothstep" "sqrt" "step_decimals" "stepify"
-    "str" "str2var" "tan" "tanh" "to_json" "type_exists" "typeof" "validate_json" "var2bytes" "var2str" "weakref"
-    "wrapf" "wrapi" "yield"))
+  '("Color8" "ColorN" "abs" "absf"
+    "acos" "acosh" "angle_difference" "asin" "asinh" "atan" "atan2" "atanh"
+    "bezier_derivative" "bezier_interpolate" "bytes2var" "bytes_to_var" "bytes_to_var_with_objects"
+    "cartesian2polar" "ceil" "ceilf" "ceili" "char" "clamp" "convert"
+    "cos" "cosh" "cubic_interpolate" "cubic_interpolate_angle"
+    "cubic_interpolate_angle_in_time" "cubic_interpolate_in_time"
+    "db2linear" "db_to_linear" "decimals" "dectime" "deg2rad" "deg_to_rad"
+    "dict2inst" "dict_to_inst"
+    "ease" "error_string" "exp"
+    "floor" "floorf" "floori" "fmod" "fposmod" "funcref"
+    "get_stack"
+    "hash"
+    "inst2dict" "inst_to_dict" "instance_from_id" "inverse_lerp"
+    "is_equal_approx" "is_finite" "is_inf" "is_instance_id_valid" "is_instance_valid"
+    "is_nan" "is_same" "is_zero_approx"
+    "len" "lerp" "lerp_angle" "lerpf" "linear2db" "linear_to_db" "load" "log"
+    "max" "maxf" "maxi" "min" "minf" "mini" "move_toward"
+    "nearest_po2"
+    "ord"
+    "parse_json" "pingpong" "polar2cartesian" "posmod" "pow" "preload"
+    "print" "print_debug" "print_rich" "print_stack" "print_verbose" 
+    "printerr" "printraw" "prints" "printt"
+    "push_error" "push_warning"
+    "rad2deg" "rad_to_deg" "rand_from_seed" "rand_range" "rand_seed"
+    "randf" "randf_range" "randfn" "randi" "randi_range"
+    "randomize" "range" "range_lerp" "remap" "rid_allocate_id" "rid_from_int64"
+    "round" "roundf" "roundi"
+    "seed" "sign" "signf" "signi" "sin" "sinh" "smoothstep" "sqrt" "step_decimals" "stepify"
+    "str" "str2var" "str_to_var"
+    "tan" "tanh" "to_json" "type_convert" "type_exists" "type_string" "typeof"
+    "validate_json" "var2bytes" "var_to_bytes" "var_to_bytes_with_objects"
+    "var2str" "var_to_str"
+    "weakref" "wrap" "wrapf" "wrapi"))
 
 ;; Contains all engine classes and node types, including vectors, transforms, etc.
 (defconst gdscript-built-in-classes
