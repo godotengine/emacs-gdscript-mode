@@ -59,6 +59,9 @@
                              (,(gdscript-syntax-regex-maker gdscript-keywords)
                               1
                               font-lock-keyword-face)
+                             (,(rx (group "@" (0+ (or word ?_))))
+                              1
+                              font-lock-preprocessor-face)
                              (,(gdscript-syntax-regex-maker (append gdscript-built-in-constants
                                                                     gdscript-built-in-types gdscript-built-in-functions))
                               1
