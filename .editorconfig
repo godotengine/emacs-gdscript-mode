@@ -1,46 +1,25 @@
-# debian/.editorconfig
-# EditorConfig settings for Debian packaging files.
 # Documentation: <URL:https://editorconfig.org/>.
 
-# Is this the project-root configuration file?
+# Stop searching for .editorconfig files after reading this one.
 root = true
 
 
 # Match all file names, unless more specific match later.
 [*]
-
-# Text encoding name.
-charset = utf-8
-
-# Character to use for indentation (“tab” for U+0009, “space” for U+0020).
 indent_style = space
-
-# How many columns (integer) for each indentation level.
-indent_size = 4
-
-# How many columns (integer) to represent a U+0009 TAB.
-tab_width = 8
-
-# How many characters (integer) before enforcing line wrap.
-max_line_length = 79
-
-# Remove trailing whitespace on each line?
-trim_trailing_whitespace = true
-
-# End-of-line style (“lf”, “cr”, “crlf”).
-end_of_line = lf
-
-# Ensure file ends with a line break?
 insert_final_newline = true
+trim_trailing_whitespace = true
 
 
 [{*.mk,Makefile,rules}]
 indent_style = tab
 
-
+
+[{*.md,*.yaml,.yml}]
+indent_size = 2
+
+
 # Local variables:
 # coding: utf-8
-# mode: conf-editorconfig
-# mode: conf
 # End:
 # vim: fileencoding=utf-8 filetype=dosini :
