@@ -44,6 +44,7 @@
 (require 'gdscript-hydra)
 (require 'gdscript-debug)
 (require 'gdscript-eglot)
+(require 'gdscript-snippet)
 
 (when (version< "29" emacs-version)
   (require 'gdscript-ts-mode))
@@ -74,6 +75,7 @@
   "<backspace>" 'gdscript-indent-dedent-line-backspace
   "<backtab>" 'gdscript-indent-dedent-line
   ;; Insertion.
+  "C-c <tab>" 'gdscript-snippet-menu
   "C-c C-i" 'gdscript-completion-insert-file-path-at-point
   ;; Formatting.
   "C-c C-f r" 'gdscript-format-region

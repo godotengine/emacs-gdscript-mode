@@ -62,6 +62,7 @@ This mode features all the essentials:
 - Code formatting using
   [gdformat](https://github.com/scony/godot-gdscript-toolkit/).
 - Auto-completion for all the keywords in the `gdscript-keywords.el` file.
+- Code snippets available through `gdscript-snippet-menu`.
 - Run or open the project and files with Godot.
 - Browsing the API reference in Emacs.
 - Add treesit major mode support `gdscript-ts-mode` .
