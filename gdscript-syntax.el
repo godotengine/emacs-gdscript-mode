@@ -83,7 +83,7 @@
                              (,(rx (group (1+ (or word ?_)))
                                    (0+ space)
                                    "(")
-                              (1 font-lock-function-name-face))))
+                              (1 font-lock-function-call-face))))
 
 (defun gdscript-syntax-context (type &optional syntax-ppss)
   "Return non-nil if point is on TYPE using SYNTAX-PPSS.
