@@ -36,6 +36,7 @@
 (require 'gdscript-syntax)
 (require 'gdscript-indent-and-nav)
 (require 'gdscript-imenu)
+(require 'gdscript-menu)
 (require 'gdscript-fill-paragraph)
 (require 'gdscript-completion)
 (require 'gdscript-format)
