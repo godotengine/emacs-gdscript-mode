@@ -218,7 +218,7 @@ already marked."
   (setq-local paragraph-start "\\s-*$")
   (setq-local fill-paragraph-function
               #'gdscript-fill-paragraph)
-  (setq-local normal-auto-fill-function #'gdscript-fill-paragraph-do-auto-fill)
+  (setq-local normal-auto-fill-function #'gdscript-fill-paragraph-do-auto-fill)
 
   (setq-local beginning-of-defun-function
               #'gdscript-nav-beginning-of-defun)
