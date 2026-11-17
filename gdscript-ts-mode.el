@@ -52,6 +52,11 @@
 (declare-function treesit-node-text nil "ext:treesit.el")
 
 
+(add-to-list
+ 'treesit-language-source-alist
+ '(gdscript "https://github.com/PrestonKnopp/tree-sitter-gdscript")
+ t)
+
 ;;; Imenu
 
 (defvar gdscript-ts-imenu-format-item-label-function
@@ -289,24 +294,29 @@ Similar to `gdscript-imenu-create-index' but use tree-sitter."
 
 \\{gdscript-ts-mode-map}"
   :syntax-table gdscript-mode-syntax-table
-  (when (treesit-ready-p 'gdscript)
-    (treesit-parser-create 'gdscript)
-    (setq-local treesit-font-lock-feature-list gdscript-ts--feature-list)
-    (setq-local treesit-font-lock-settings gdscript-ts--treesit-settings)
+  (if (and (or
+              (not (fboundp 'treesit-ensure-installed))
+              (treesit-ensure-installed 'gdscript))
+             (treesit-ready-p 'gdscript))
+      (progn
+        (treesit-parser-create 'gdscript)
+        (setq-local treesit-font-lock-feature-list gdscript-ts--feature-list)
+        (setq-local treesit-font-lock-settings gdscript-ts--treesit-settings)
     ;;; TODO: create-imenu
-    (setq-local imenu-create-index-function
-                #'gdscript-ts-imenu-treesit-create-index)
-    (setq-local treesit-defun-type-regexp (rx (seq bol
-                                                   (or "function" "class")
-                                                   "_definition"
-                                                   eol)))
-    (setq-local treesit-defun-name-function
-                #'gdscript-ts--treesit-defun-name)
-    (treesit-major-mode-setup)
+        (setq-local imenu-create-index-function
+                    #'gdscript-ts-imenu-treesit-create-index)
+        (setq-local treesit-defun-type-regexp (rx (seq bol
+                                                       (or "function" "class")
+                                                       "_definition"
+                                                       eol)))
+        (setq-local treesit-defun-name-function
+                    #'gdscript-ts--treesit-defun-name)
+        (treesit-major-mode-setup)
 
 
-    (add-to-list 'auto-mode-alist '("\\.gd\\'" . gdscript-ts-mode))
-    (add-to-list 'interpreter-mode-alist '("gdscript[0-9.]*" . gdscript-ts-mode))))
+        (add-to-list 'auto-mode-alist '("\\.gd\\'" . gdscript-ts-mode))
+        (add-to-list 'interpreter-mode-alist '("gdscript[0-9.]*" . gdscript-ts-mode)))
+    (message "gdscript-ts-mode: tree-sitter gdscript grammar is not available, you can install it with `treesit-install-language-grammar RET 'gdscript'")))
 
 (provide 'gdscript-ts-mode)
 ;;; gdscript-ts-mode.el ends here
